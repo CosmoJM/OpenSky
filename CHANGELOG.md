@@ -14,7 +14,9 @@ The first public version: a friendly family wall calendar for a Raspberry Pi tou
 - **Settings on the screen**: brightness (backlight, monitor over HDMI or picture dimming), evening dim, sleep at
   night, how Sleep turns your screen off (with a Test button and wake on touch), volume, pages, accent colour,
   backups, update / restart / shut down.
-- On-screen keyboard; returns to Home after a few quiet minutes.
+- On-screen keyboard; returns to Home after a few quiet minutes (touches inside web pages count, too).
+- Fits any screen: the layout scales to 720p, 768p, 1080p or 4K screens (`look.scale` to adjust).
+- A small notice on Home when a calendar keeps failing (wrong link, expired password), with where to fix it.
 
 **Connects to**
 - Calendars: on the screen (no account), any calendar link (Google, Outlook, iCloud, school…), iCloud / Fastmail /
@@ -27,5 +29,6 @@ The first public version: a friendly family wall calendar for a Raspberry Pi tou
 - One-command installer for Raspberry Pi OS; starts by itself at power-on.
 - **Set up from your phone**: scan a QR code, type the code from the screen, add calendars, lists and photos.
 - Backups: download / restore from the phone, and automatic nightly backups to a USB stick or network folder.
-- `opensky update` goes back to the previous version by itself if a new one doesn't start; `opensky rollback`.
+- Updates install the newest **release** (testers can follow `main`); a version that doesn't start is rolled back by
+  itself; `opensky rollback`, `opensky backup`.
 - Passwords and keys stay in one private file on the Pi; they never reach the screen, the network or the logs.
