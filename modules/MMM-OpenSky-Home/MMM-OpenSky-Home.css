@@ -1,0 +1,390 @@
+/* MMM-OpenSky-Home — week (left) + lists and photos (right) */
+
+.hd-root {
+  text-decoration: none;
+  position: fixed;
+  top: 92px;                          /* below the header bar */
+  bottom: 22px;
+  left: var(--os-content-left, 112px);
+  right: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); /* minmax(0,…): content can never widen a column */
+  gap: 22px;
+  font-family: inherit;
+  color: #1f2937;
+}
+
+/* Right column: lists card on top, photo card below; without lists the photo fills it */
+.hd-right {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  min-height: 0;
+}
+.hd-right > .hd-lists { flex: 1 1 0; min-height: 0; }
+.hd-photo {
+  flex: 0 0 43%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  background: #eef0f3;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 28px rgba(31, 41, 55, .07);
+  cursor: pointer;
+  isolation: isolate;
+}
+.hd-photo-empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  color: #9ca3af; font-size: 16px; font-weight: 600;
+}
+.hd-photo-empty .hd-icon { width: 40px; height: 40px; }
+.hd-ph-layer { position: absolute; inset: 0; display: flex; gap: 4px; background: #fff; opacity: 0; transition: opacity 1s ease; }
+.hd-ph-layer.shown { opacity: 1; }
+.hd-ph-cell { position: relative; flex: 1 1 0; min-width: 0; overflow: hidden; }   /* one cell, or two side by side */
+.hd-ph-blur {                      /* the photo itself, blurred, behind a "contain" photo */
+  position: absolute; inset: -30px;
+  background-size: cover; background-position: center;
+  filter: blur(28px) saturate(1.1) brightness(.92);
+}
+.hd-ph-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.hd-ph-cell.cover .hd-ph-img { object-fit: cover; }
+.hd-ph-cell.cover .hd-ph-blur { display: none; }
+.hd-ph-caption {
+  position: absolute; left: 12px; bottom: 12px;
+  max-width: calc(100% - 24px);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .85);
+  color: #374151; font-size: 15px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---------- cards ---------- */
+.hd-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px 20px 20px;
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 28px rgba(31, 41, 55, .07);
+  box-sizing: border-box;
+}
+.hd-card-head {
+  text-transform: none;           /* MagicMirror's main.css uppercases every <header> (in a condensed font) */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 4px 14px;
+  min-height: 44px;
+}
+.hd-card-label {            /* same title style as the Calendar/Lists pages (bold, sentence case) */
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  color: #1f2937;
+}
+.hd-card-label .hd-icon { width: 26px; height: 26px; color: #e8663f; }
+.hd-icon { width: 20px; height: 20px; display: block; flex: 0 0 auto; }
+.hd-week-range { font-size: 19px; font-weight: 600; color: #9ca3af; }
+
+.hd-nav { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.hd-nav-btn {
+  height: 42px;
+  min-width: 42px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 21px;
+  background: #f3f4f6;
+  color: #374151;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.hd-prev, .hd-next { padding: 0; width: 42px; }
+.hd-today.active { background: #ffd8c9; color: #7a3419; }
+.hd-nav-btn:active, .hd-see-all:active { transform: scale(.95); }
+
+/* ---------- week grid ---------- */
+.hd-week {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+}
+.hd-day {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px 12px 12px;
+  border-radius: 20px;
+  background: #f7f8fa;
+  cursor: pointer;
+}
+.hd-day.hd-is-today {
+  background: #fff6f2;
+  box-shadow: inset 0 0 0 2px #ffcfbd;
+}
+.hd-day-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px;
+}
+.hd-day-name { font-size: 26px; font-weight: 700; color: #1f2937; }
+.hd-day-num {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #6b7280;
+}
+.hd-day.hd-is-today .hd-day-num { background: #ff9f7f; color: #fff; }
+.hd-day-wx {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #6b7280;
+}
+.hd-wx-icon, .hd-wx-icon svg { width: 26px; height: 26px; display: block; }
+.hd-day-count {
+  margin: 2px 2px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #9ca3af;
+  display: flex; align-items: center; gap: 8px;
+  line-height: 17px;
+}
+/* curbside pickup icons (collection.js): sit right of the counter, no taller than the text line */
+.hd-day-count > span:empty { display: none; }
+.hd-pickups { display: inline-flex; gap: 5px; }
+.hd-pickup { display: inline-flex; width: 17px; height: 17px; }
+.hd-pickup svg { width: 17px; height: 17px; }
+.hd-pickup-trash { color: #64748b; }
+.hd-pickup-yard { color: #2e9e57; }
+.hd-pickup-expected { opacity: .5; }
+.hd-day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* event pills (colours: .evc-* variables below, same palette as the month view) */
+.hd-event {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px 8px 12px;
+  border: none;
+  border-left: 5px solid var(--evc-bar, #9ca3af);
+  border-radius: 12px;
+  background: var(--evc-bg, #e5e7eb);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.hd-event.passed { opacity: .6; }
+.hd-event-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f2937;
+}
+.hd-event-time { font-size: 14px; font-weight: 600; color: #4b5563; }
+/* Two-line names, only while the whole day still fits (window.OpenSkyFit.grow) */
+.hd-event.mf-two .hd-event-title {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+.hd-more {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 12px;
+  background: #e9ecf1;
+  color: #3b4452;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+
+/* Next Week tile */
+.hd-nextweek { background: linear-gradient(160deg, #fff4ee 0%, #f3f7ff 100%); }
+.hd-nw-title { font-size: 24px; }
+.hd-nw-list { display: flex; flex-direction: column; gap: 9px; margin-top: 2px; }
+.hd-nw-row { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 16px; }
+.hd-nw-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+.hd-nw-day { font-weight: 700; color: #6b7280; flex: 0 0 auto; width: 36px; }
+.hd-nw-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.hd-nw-more { font-size: 14px; font-weight: 700; color: #9ca3af; }
+
+/* "+ Add Event" pill in the calendar card header (same look as the Calendar page toolbar) */
+.hd-nav-btn.hd-add {
+  gap: 6px;
+  margin-right: 6px;
+  padding: 0 18px 0 14px;
+  background: #ff9f7f;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(255, 138, 101, .3);
+}
+.hd-add .hd-icon { width: 18px; height: 18px; }
+
+/* ---------- lists ---------- */
+.hd-see-all {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 42px;
+  padding: 0 10px 0 16px;
+  border: none;
+  border-radius: 21px;
+  background: #f3f4f6;
+  color: #374151;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hd-see-all .hd-icon { width: 18px; height: 18px; }
+.hd-list-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--list-count, 2), minmax(0, 1fr)); /* equal lists, whatever the text */
+  gap: 14px;
+}
+.hd-list {
+  min-width: 0;
+  --list-accent: #5b8def;
+  --list-tint: #f3f7ff;
+  --list-dark: #2f5fb8;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px 14px 10px;
+  border-radius: 20px;
+  background: var(--list-tint);
+}
+.hd-list.alt { --list-accent: #ff9f7f; --list-tint: #fff7f3; --list-dark: #b4532f; }
+.hd-list-head { display: flex; align-items: center; gap: 10px; padding: 0 4px 10px; }
+.hd-list-title { font-size: 24px; font-weight: 800; color: var(--list-dark); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hd-badge {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--list-accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+.hd-add-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 12px;
+  margin-bottom: 6px;
+  border: 2px dashed color-mix(in srgb, var(--list-accent) 55%, transparent);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .6);
+  color: var(--list-dark);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hd-add-item .hd-icon { width: 20px; height: 20px; }
+.hd-items {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, #000 88%, transparent);
+}
+.hd-item {
+  display: flex;
+  align-items: flex-start;       /* circle stays on the first line of a wrapped item */
+  gap: 12px;
+  padding: 11px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, .06);
+}
+.hd-check {
+  flex: 0 0 auto;
+  margin-top: -2px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 3px solid var(--list-accent);
+  border-radius: 50%;
+  background: #fff center / 18px no-repeat;
+  cursor: pointer;
+}
+.hd-item-text {
+  flex: 1;
+  min-width: 0;
+  /* long items wrap (up to 3 lines); even one unbroken word can't push the column wider */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  line-height: 1.3;
+  font-size: 20px;
+  color: #1f2937;
+  cursor: pointer;
+}
+.hd-item.mte-done .hd-check {
+  background-color: var(--list-accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+.hd-item.mte-done .hd-item-text { text-decoration: line-through; opacity: .45; }
+.hd-empty { padding: 18px 4px; font-size: 17px; color: #9ca3af; }
+
+/* No lists from any provider: the photo card takes the whole right column */
+.hd-root.hd-no-lists .hd-photo { flex: 1 1 auto; }
+/* Two-weekly recycling gets its own icon */
+.hd-pickup-recycle { color: #2e8bd6; }

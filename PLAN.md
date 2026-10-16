@@ -62,8 +62,11 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 2. **Port the reference build, scrubbed** — modules copied in, every secret/personal value moved to settings with
    safe defaults; community-module changes as forks/patches with their licences kept.
    Progress: ✅ settings → config builder, base theme, shared lib (weather, secrets), off-screen harness;
-   ✅ Timer, ✅ Sidebar (soft sleep on any screen), ✅ Header (Open-Meteo default, custom dates, any-team sports pill).
-   Next: Home, Calendar (+ event editor, CalDAV backend), Lists, Settings, keyboard, word game, embed page.
+   ✅ Timer, ✅ Sidebar (soft sleep on any screen), ✅ Header (Open-Meteo default, custom dates, any-team sports pill),
+   ✅ Home (events from any calendar source, named colour palette + rules, shared weather, provider-neutral lists
+   card, photos from a folder/USB stick or Immich, generic pickup schedule + New Bedford preset).
+   Next: Calendar page (+ event editor, CalDAV backend, ICS sources), Lists (on-device + Todoist), Settings,
+   keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

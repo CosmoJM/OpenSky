@@ -2,8 +2,9 @@
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const info = await page.evaluate(() => ({ modules: MM.getModules().map((m) => m.name), bg: getComputedStyle(document.body).backgroundColor, title: document.title }));
-  ok("boots with MMM-pages + the Timer", info.modules.includes("MMM-pages") && info.modules.includes("MMM-OpenSky-Timer"), info.modules);
+  ok("boots with MMM-pages + the Timer", info.modules.includes("MMM-pages") && info.modules.includes("MMM-OpenSky-Timer"), info.modules.join(","));
   ok("base theme applied (white page)", info.bg === "rgb(255, 255, 255)", info.bg);
+  await h.tap(".os-page-timer"); await h.sleep(600);
   const setup = await page.evaluate(() => !!document.querySelector(".timer-setup-screen"));
   ok("Timer setup screen shows", setup);
   await h.shot("smoke-timer-setup");

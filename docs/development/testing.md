@@ -15,6 +15,9 @@ that runs a family's screen.
 4. Test tools: `cd tools && npm install` (Playwright core only — no browsers are downloaded).
 
 ## Running tests
+Everything at once: `tools/test-all.sh` (unit tests + every scenario; starts/stops the compositor itself).
+
+One scenario at a time:
 ```
 tools/headless.sh start                       # off-screen compositor (WAYLAND_DISPLAY=wayland-1)
 node tools/harness.js tools/scenarios/smoke-timer.js
@@ -33,3 +36,7 @@ tools/headless.sh stop
   `grim -o HEADLESS-1 file.png` (with `WAYLAND_DISPLAY=wayland-1`) to see the true picture.
 - Use `page.mouse.click` (or `h.tap`) for taps; Playwright's `page.click` actionability checks can time out on
   MagicMirror's layered regions.
+
+## Unit tests (no screen needed)
+- `node tools/test-pickup.js` — pickup schedule engine; reproduces New Bedford's official 2026 yard-waste flyer
+- `node tools/test-photos.js` — photo folder provider with the synthetic photos in `tools/fixtures/photos/`

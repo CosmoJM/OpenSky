@@ -4,5 +4,8 @@
   "location": { "name": "Boston, MA", "latitude": 42.3601, "longitude": -71.0589 },
   "weather": { "provider": "open-meteo" },
   "header": { "holidays": "US", "occasions": [{ "name": "Test Day", "month": 10, "day": 20 }], "birthdaysFromCalendar": true, "sports": { "league": "nfl", "team": "NE" } },
-  "pages": ["timer"]
+  "pages": ["home", "timer"],
+  "calendar": { "colors": { "calendars": { "Testers": "blue" }, "rules": [{ "match": "dentist", "color": "indigo" }] } },
+  "photos": { "provider": "folder", "folder": "photos", "usb": false, "intervalSeconds": 30 },
+  "pickup": { "trashDay": "monday", "preset": "new-bedford-ma" }
 }

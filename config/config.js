@@ -18,7 +18,7 @@ function readSettings() {
     const p = path.isAbsolute(file) ? file : path.join(CONFIG_DIR, file);
     if (!fs.existsSync(p)) continue;
     try {
-      return { file, settings: JSON.parse(fs.readFileSync(p, "utf8")) };
+      return { file, dir: path.dirname(p), settings: JSON.parse(fs.readFileSync(p, "utf8")) };
     } catch (e) {
       console.error(`[OpenSky] ${file} is not valid JSON (${e.message}) — fix it or delete it to use the example settings`);
     }
@@ -26,7 +26,7 @@ function readSettings() {
   return { file: null, settings: {} };
 }
 
-const { file: settingsFile, settings: s } = readSettings();
+const { file: settingsFile, dir: settingsDir, settings: s } = readSettings();
 const locale = s.locale || {};
 
 // Sidebar label + icon for every page OpenSky knows (order of `pages` in opensky.json = order in the sidebar)
@@ -39,8 +39,46 @@ const PAGE_INFO = {
   timer: { label: "Timer" }
 };
 
+// Curbside pickup: trash day + an optional city preset (lib/pickup-presets/<name>.json) + the family's own overrides
+const DAYS = { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5 };
+function pickupSchedule(p) {
+  if (!p || !p.trashDay) return null;
+  const trashDay = DAYS[String(p.trashDay).toLowerCase()] || Number(p.trashDay);
+  if (!(trashDay >= 1 && trashDay <= 5)) { console.error(`[OpenSky] pickup.trashDay "${p.trashDay}" isn't a weekday — pickup icons off`); return null; }
+  let preset = {};
+  if (p.preset) {
+    const f = path.join(global.root_path || path.resolve(__dirname, ".."), "modules", "opensky-lib", "pickup-presets", `${String(p.preset).replace(/[^a-z0-9-]/gi, "")}.json`);
+    try { preset = JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { console.error(`[OpenSky] pickup preset "${p.preset}" not found (${f})`); }
+  }
+  const { _about, ...presetData } = preset;
+  const own = { ...p }; delete own.preset; delete own.trashDay;
+  return { ...presetData, ...own, trashDay };
+}
+
+// A folder setting may be relative to the settings file (e.g. the test fixture's "photos")
+const folderPath = (f) => (!f ? null : /^[~/]/.test(f) ? f : path.join(settingsDir || CONFIG_DIR, f));
+
 // Each page = the modules that appear on it.
 const PAGES = {
+  home: () => [{
+    module: "MMM-OpenSky-Home",
+    position: "fullscreen_above",
+    config: {
+      listsPage: pages.indexOf("lists") >= 0 ? pages.indexOf("lists") : null,
+      canAddEvents: false,
+      maxEventsPerDay: 4,
+      eventColors: (s.calendar && s.calendar.colors) || null,
+      photos: {
+        enabled: !(s.photos && s.photos.enabled === false),
+        provider: (s.photos && s.photos.provider) || "folder",
+        folder: folderPath(s.photos && s.photos.folder) || "~/Pictures",
+        usb: !(s.photos && s.photos.usb === false),
+        url: (s.photos && s.photos.url) || null,
+        intervalSeconds: (s.photos && s.photos.intervalSeconds) || 30
+      },
+      pickup: pickupSchedule(s.pickup)
+    }
+  }],
   timer: () => [{
     module: "MMM-OpenSky-Timer",
     position: "fullscreen_below",
@@ -52,7 +90,7 @@ const PAGES = {
   }]
 };
 
-const pages = (Array.isArray(s.pages) && s.pages.length ? s.pages : ["timer"]).filter((p) => {
+const pages = (Array.isArray(s.pages) && s.pages.length ? s.pages : ["home", "timer"]).filter((p) => {
   if (PAGES[p]) return true;
   console.error(`[OpenSky] unknown page "${p}" in ${settingsFile} — skipped`);
   return false;

@@ -2,8 +2,11 @@
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const tiles = await page.evaluate(() => [...document.querySelectorAll(".os-tile")].map((t) => ({ key: t.dataset.key, label: t.textContent.trim(), active: t.classList.contains("active") })));
-  ok("tiles = the configured pages + Sleep", JSON.stringify(tiles.map((t) => t.key)) === JSON.stringify(["page-timer", "sleep"]), tiles);
+  ok("tiles = the configured pages + Sleep", JSON.stringify(tiles.map((t) => t.key)) === JSON.stringify(["page-home", "page-timer", "sleep"]), tiles);
   ok("first page tile is highlighted", tiles[0].active);
+  ok("Home tile shows the family initial", await page.evaluate(() => document.querySelector(".os-page-home .os-badge")?.textContent === "T"));
+  await h.tap(".os-page-timer"); await h.sleep(600);
+  ok("tapping a tile switches page + highlight", await page.evaluate(() => document.querySelector(".os-page-timer").classList.contains("active") && !!document.querySelector(".timer-setup-screen").getBoundingClientRect().width));
   const content = await page.evaluate(() => { const b = document.querySelector(".timer-wrapper").getBoundingClientRect(), s = document.querySelector(".os-side-wrap").getBoundingClientRect(); return { contentLeft: Math.round(b.left), sideRight: Math.round(s.right) }; });
   ok("page content starts right of the sidebar", content.contentLeft >= content.sideRight, content);
   await h.shot("sidebar");

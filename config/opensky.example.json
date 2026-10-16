@@ -29,7 +29,23 @@
     "sports": { "league": "nfl", "team": "" }
   },
 
-  "pages": ["timer"],
+  "pages": ["home", "timer"],
+
+  "calendar": {
+    "colors": { "calendars": {}, "rules": [] }
+  },
+
+  "photos": {
+    "provider": "folder",
+    "folder": "~/Pictures",
+    "usb": true,
+    "intervalSeconds": 30
+  },
+
+  "pickup": {
+    "trashDay": "",
+    "preset": ""
+  },
 
   "sidebar": {
     "idleReturnMinutes": 5
