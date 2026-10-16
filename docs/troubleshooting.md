@@ -14,6 +14,12 @@ opensky logs       # what happened lately (the newest lines are at the bottom)
   Usual causes are a missing comma between items, a comma after the last item, or a missing quote.
 - After a power cut it should start by itself. If it doesn't, re-run `./install.sh` and answer **yes** to "Log in automatically".
 
+## Sleep doesn't turn my screen off properly (or it comes back on)
+Settings → **Sleep turns off by** → try each option with **Test**. Monitors differ: some go to sleep when the signal
+stops, some reconnect and come back on (OpenSky notices and switches to Black screen + dim), TVs often prefer HDMI-CEC.
+**Black screen + dim** works on every screen. A touch always wakes it (OpenSky watches the touchscreen even while the
+screen is off; your user must be in the `input` group, which it is on Raspberry Pi OS).
+
 ## The screen goes blank by itself after a few minutes
 Raspberry Pi OS blanks the screen when idle. Run `sudo raspi-config nonint do_blanking 1` (or re-run `./install.sh` and answer yes), then restart the Pi.
 

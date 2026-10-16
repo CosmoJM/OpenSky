@@ -22,6 +22,7 @@ const fs = require("fs");
 const path = require("path");
 const dns = require("dns").promises;
 const backup = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "backup.js"));
+const screen = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "screen.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
 const REPO = path.resolve(__dirname, "..", "..");   // (MagicMirror links the module in; Node resolves the real folder)
@@ -30,7 +31,8 @@ const FILE = process.env.OPENSKY_DEVICE_SETTINGS || path.join(SETTINGS_DIR, "dev
 const DEFAULTS = {
   brightness: 100,
   eveningDim: { enabled: false, from: "19:00", level: 50 },
-  sleep: { enabled: false, off: "22:00", on: "06:30" }
+  sleep: { enabled: false, off: "22:00", on: "06:30" },
+  screenOff: "auto"       // how Sleep turns the screen off (lib/screen.js)
 };
 
 const run = (cmd, args, timeout = 15000) => new Promise((resolve) => {
@@ -76,6 +78,7 @@ module.exports = NodeHelper.create({
   async detect() {
     this.method = "software";
     this.audio = null;
+    this.screenAvail = await screen.detect();
     if (DRY) { this.method = process.env.OPENSKY_FAKE_BRIGHTNESS || "software"; this.audio = { name: "Test speaker", volume: 50 }; this.fake = { level: null, volume: 50 }; return; }
     // 1. a display with a backlight the system exposes (official Pi touch displays, some DSI panels)
     try {
@@ -113,6 +116,15 @@ module.exports = NodeHelper.create({
     } else if (n === "OS_SET_ASLEEP") {
       this.asleep = !!p;
       this.applyBrightness();
+      if (p) this.screenOff(); else this.screenOn();
+    } else if (n === "OS_SET_FAKE_INPUT" && DRY) {   // tests only: stands in for a touch seen by the input watcher
+      if (screen.fakeInput) screen.fakeInput();
+    } else if (n === "OS_SET_SCREEN_TEST") {
+      // turn the screen off the chosen way for 10 seconds (a touch wakes it sooner)
+      this.testMethod = screen.resolve((p && p.method) || this.settings.screenOff, this.screenAvail);
+      this.sendSocketNotification("OS_SET_SLEEP_NOW");
+      clearTimeout(this.testTimer);
+      this.testTimer = setTimeout(() => { if (this.testMethod) this.wake(); }, 10000);
     } else if (n === "OS_SET_STATUS") {
       this.sendSocketNotification("OS_SET_STATUS", await this.status());
     } else if (n === "OS_SET_PREFS") {
@@ -132,7 +144,9 @@ module.exports = NodeHelper.create({
   sendState() {
     this.sendSocketNotification("OS_SET_STATE", {
       settings: this.settings, brightness: { method: this.method }, audio: this.audio,
-      canRestart: DRY || !!process.env.INVOCATION_ID   // running as the systemd service
+      canRestart: DRY || !!process.env.INVOCATION_ID,   // running as the systemd service
+      screen: { method: this.settings.screenOff, resolved: screen.resolve(this.settings.screenOff, this.screenAvail || {}), labels: screen.LABELS,
+        available: Object.fromEntries(screen.METHODS.map((m) => [m, m === "auto" || m === "soft" || !!(this.screenAvail || {})[m]])) }
     });
   },
 
@@ -147,6 +161,7 @@ module.exports = NodeHelper.create({
       const z = c.sleep;
       s.sleep = { enabled: "enabled" in z ? !!z.enabled : s.sleep.enabled, off: isTime(z.off) ? z.off : s.sleep.off, on: isTime(z.on) ? z.on : s.sleep.on };
     }
+    if (screen.METHODS.includes(c.screenOff)) s.screenOff = c.screenOff;
     if ("volume" in c && this.audio) {
       this.audio.volume = clamp(c.volume, 0, 100);
       if (DRY) this.fake.volume = this.audio.volume;
@@ -185,6 +200,47 @@ module.exports = NodeHelper.create({
         if (!r.ok) console.error(`[OpenSky] ddcutil: ${r.err.trim()}`);
       }
     });
+  },
+
+  /* ---------- screen off / on (lib/screen.js) ---------- */
+  async screenOff() {
+    const avail = this.screenAvail || {};
+    const m = this.testMethod || screen.resolve(this.settings.screenOff, avail);
+    this.offMethod = m;
+    if (m === "soft") return;   // the page's black cover + brightness 0 (applyBrightness) is all it takes
+    await screen.off(m, avail);
+    // the page can't see touches now: watch the input devices (after a moment, so the Sleep tap itself doesn't wake it)
+    clearTimeout(this.watchTimer);
+    this.watchTimer = setTimeout(() => { if (this.offMethod === m) this.stopWatch = screen.watchInput(() => this.wake()); }, 2500);
+    if (m === "output") {
+      clearTimeout(this.backTimer);
+      this.backTimer = setTimeout(async () => {
+        if (this.offMethod !== "output" || !(await screen.cameBack(avail))) return;
+        // this monitor reconnects by itself when the signal stops: use the black screen instead
+        console.log("[OpenSky] screen: the monitor came back on by itself — switching to Black screen + dim");
+        this.stopWatching();
+        this.offMethod = "soft";
+        if (!this.testMethod) { this.settings.screenOff = "soft"; this.save(); this.sendState(); }
+        this.sendSocketNotification("OS_SET_NOTICE", { type: "info", message: "This screen turns itself back on when the signal stops, so OpenSky uses Black screen + dim instead." });
+      }, 25000);
+    }
+  },
+
+  async screenOn() {
+    const m = this.offMethod;
+    this.offMethod = null;
+    this.testMethod = null;
+    this.stopWatching();
+    clearTimeout(this.backTimer);
+    if (m && m !== "soft") await screen.on(m, this.screenAvail || {});
+  },
+
+  stopWatching() { clearTimeout(this.watchTimer); if (this.stopWatch) { this.stopWatch(); this.stopWatch = null; } },
+
+  // a touch while the screen was really off, or the end of a Test: screen on, page awake
+  async wake() {
+    await this.screenOn();
+    this.sendSocketNotification("OS_SET_WAKE");
   },
 
   /* ---------- automatic backups ---------- */

@@ -244,6 +244,7 @@ if you use a real keyboard. Dates and times use pickers instead.
 |---|---|
 | Brightness | Uses the display's backlight (Pi touch displays), the monitor's own brightness over HDMI (most monitors; the installer sets this up), or — if neither works — dims the picture. The panel says which. |
 | Dim in the evening | From the time you pick until the morning, brightness goes down to the level you pick. |
+| Sleep turns off by | How the screen goes off: **Automatic** (recommended), **Black screen + dim** (works on every screen), **Turn the signal off** (most monitors), **Monitor power save over HDMI**, **TV standby (HDMI-CEC)**, **Display backlight off** (Pi displays). **Every screen is different — try them with Test** (back after 10 seconds or at a touch). A monitor that turns itself back on when the signal stops is noticed and switched to Black screen + dim. If none suits your screen, Black screen + dim always works. |
 | Sleep at night | The screen goes dark at "Off at" and comes back at "On at". A touch wakes it; it sleeps again after 3 quiet minutes. A running timer keeps it on. |
 | Volume / Test | The Pi's speaker volume; Test plays the timer chime. |
 | Pages | Turn pages on/off and change their order (also on the phone). |

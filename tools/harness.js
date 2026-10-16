@@ -98,6 +98,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     sleep,
     shot: (n) => page.screenshot({ path: path.join(OUT, `${n}.png`) }),
     log: (...a) => console.log(...a),
+    serverLog: () => serverLog,   // MagicMirror's own output (node helpers)
     box: async (sel) => (await page.$(sel))?.boundingBox(),
     tap: async (sel) => { const b = await h.box(sel); if (!b) throw new Error("no element " + sel); await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2); }
   };

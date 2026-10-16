@@ -51,6 +51,13 @@ Module.register("MMM-OpenSky-Settings", {
       if (this.prefs) this.prefs.status = p.status;
       window.OpenSkyToast(p.status.ok ? "Backed up ✓" : `Backup failed: ${p.status.error}`, p.status.ok ? "success" : "error");
       if (this.isOpen()) this.renderPrefs();
+    } else if (n === "OS_SET_WAKE") {
+      this.sendNotification("OPENSKY_WAKE");
+    } else if (n === "OS_SET_SLEEP_NOW") {
+      this.close();
+      this.sendNotification("OPENSKY_SLEEP");
+    } else if (n === "OS_SET_NOTICE" && p) {
+      window.OpenSkyToast(p.message, p.type || "info");
     } else if (n === "OS_SET_SOFT_DIM") {
       this.softDim(p);
     } else if (n === "OS_SET_SYSTEM_RESULT" && p) {
@@ -91,7 +98,7 @@ Module.register("MMM-OpenSky-Settings", {
   },
 
   shape(st) {
-    return st ? JSON.stringify([st.settings.eveningDim.enabled, st.settings.sleep.enabled, st.brightness.method, !!st.audio, st.canRestart]) : "";
+    return st ? JSON.stringify([st.settings.eveningDim.enabled, st.settings.sleep.enabled, st.brightness.method, !!st.audio, st.canRestart, st.screen && st.screen.method]) : "";
   },
 
   /* ---------------- panel ---------------- */
@@ -146,6 +153,8 @@ Module.register("MMM-OpenSky-Settings", {
             <h3>Screen</h3>
             <div class="ost-row"><span class="ost-label">Brightness</span>${this.slider("brightness", s.brightness, 10, 100)}</div>
             <div class="ost-note">${methodNote}</div>
+            <div class="ost-row"><span class="ost-label">Sleep turns off by</span><select class="ost-select ost-wide" data-screenoff>${Object.entries(st.screen.labels).map(([m, l]) => `<option value="${m}" ${m === st.screen.method ? "selected" : ""} ${st.screen.available[m] ? "" : "disabled"}>${l}${st.screen.available[m] ? "" : " — not found on this Pi"}</option>`).join("")}</select><button class="ost-btn ost-test-screen">Test</button></div>
+            <div class="ost-note">Every screen is different: try the options with Test (it comes back after 10 seconds, or at a touch). If one doesn't suit your screen, use Black screen + dim.${st.screen.method === "auto" ? ` Now: ${st.screen.labels[st.screen.resolved].replace(/ \(.*/, "")}.` : ""}</div>
             <div class="ost-row">${this.toggle("dim", s.eveningDim.enabled)}<span class="ost-label">Dim in the evening</span></div>
             <div class="ost-sub" ${s.eveningDim.enabled ? "" : "hidden"}>
               <div class="ost-row"><span class="ost-label">From</span>${this.stepper("dimFrom", s.eveningDim.from)}</div>
@@ -193,6 +202,9 @@ Module.register("MMM-OpenSky-Settings", {
     this.bindStepper("dimFrom", (t) => this.change({ eveningDim: { from: t } }));
     this.bindStepper("sleepOff", (t) => this.change({ sleep: { off: t } }));
     this.bindStepper("sleepOn", (t) => this.change({ sleep: { on: t } }));
+    const sel = q("[data-screenoff]");
+    sel.onchange = () => this.change({ screenOff: sel.value });
+    q(".ost-test-screen").onclick = () => this.sendSocketNotification("OS_SET_SCREEN_TEST", { method: sel.value });
     const test = q(".ost-test");
     if (test) test.onclick = () => this.sendNotification("TIMER_TEST_CHIME");
     this.panel.querySelectorAll("[data-act]").forEach((b) => { b.onclick = () => this.system(b); });
