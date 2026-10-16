@@ -123,6 +123,11 @@ const PAGES = {
     position: "fullscreen_above",
     config: { columns: (s.lists && s.lists.columns) || 4 }
   }],
+  wordgame: () => [{
+    module: "MMM-OpenSky-WordGame",
+    position: "fullscreen_above",
+    config: { extraWords: (s.wordgame && Array.isArray(s.wordgame.extraWords)) ? s.wordgame.extraWords : [] }
+  }],
   timer: () => [{
     module: "MMM-OpenSky-Timer",
     position: "fullscreen_below",

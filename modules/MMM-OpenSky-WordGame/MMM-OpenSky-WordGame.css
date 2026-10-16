@@ -1,0 +1,87 @@
+/* MMM-OpenSky-WordGame — the daily word game */
+.wg-root {
+  --wg-g: #5aa469;   /* right letter, right spot */
+  --wg-y: #e3b341;   /* in the word */
+  --wg-b: #a1a7b0;   /* not in the word */
+  position: fixed;
+  top: 92px; bottom: 22px;
+  left: var(--os-content-left, 112px); right: 24px;
+  display: flex; flex-direction: column; gap: 14px;
+  color: #1f2937; text-align: left; font-family: inherit;
+  user-select: none;
+}
+.wg-loading { margin: auto; font-size: 22px; font-weight: 600; color: #9ca3af; }
+.wg-head { display: flex; align-items: baseline; gap: 18px; }
+.wg-title { display: flex; align-items: center; gap: 12px; font-size: 32px; font-weight: 800; }
+.wg-logo { width: 46px; height: 46px; border-radius: 12px; background: var(--wg-g); display: inline-flex; align-items: center; justify-content: center; }
+.wg-logo i { font-style: normal; color: #fff; font-size: 26px; font-weight: 900; }
+.wg-sub { font-size: 18px; font-weight: 600; color: #9ca3af; }
+
+.wg-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 22px; }
+.wg-play {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+  border-radius: 26px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 28px rgba(31,41,55,.07);
+}
+.wg-toast {
+  position: absolute; top: 22px; left: 50%; transform: translateX(-50%); z-index: 2;
+  padding: 12px 24px; border-radius: 999px; background: #1f2937; color: #fff; font-size: 19px; font-weight: 800;
+}
+
+/* ---------- board ---------- */
+.wg-board { display: grid; grid-template-rows: repeat(6, 80px); gap: 10px; }
+.wg-row { display: grid; grid-template-columns: repeat(5, 80px); gap: 10px; }
+.wg-tile {
+  display: flex; align-items: center; justify-content: center;
+  border: 3px solid #e5e7eb; border-radius: 14px; background: #fff;
+  font-size: 40px; font-weight: 800; text-transform: uppercase; color: #1f2937;
+}
+.wg-tile.filled { border-color: #b8bec7; animation: wg-pop .1s ease; }
+.wg-tile.correct, .wg-tile.present, .wg-tile.absent { color: #fff; border-color: transparent; }
+.wg-tile.correct { background: var(--wg-g); }
+.wg-tile.present { background: var(--wg-y); }
+.wg-tile.absent  { background: var(--wg-b); }
+.wg-tile.flip { animation: wg-flip .35s ease-in-out both; animation-delay: var(--d); }
+.wg-row.win .wg-tile { animation: wg-bounce .5s ease both; animation-delay: var(--d); }
+.wg-row.shake { animation: wg-shake .45s ease; }
+@keyframes wg-pop { 50% { transform: scale(1.08); } }
+@keyframes wg-flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(-90deg); } 100% { transform: rotateX(0); } }
+@keyframes wg-bounce { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-18px); } 70% { transform: translateY(4px); } }
+@keyframes wg-shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); } 30%, 50%, 70% { transform: translateX(-8px); } 40%, 60% { transform: translateX(8px); } }
+
+/* ---------- keyboard ---------- */
+.wg-keys { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.wg-krow { display: flex; gap: 8px; }
+.wg-key {
+  width: 74px; height: 70px; border: 0; border-radius: 14px;
+  background: #eef0f3; color: #1f2937;
+  font: inherit; font-size: 26px; font-weight: 800; text-transform: uppercase;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.wg-key.wide { width: 124px; font-size: 19px; text-transform: none; }
+.wg-key svg { width: 32px; height: 32px; }
+.wg-key:active { transform: scale(.95); }
+.wg-key.correct { background: var(--wg-g); color: #fff; }
+.wg-key.present { background: var(--wg-y); color: #fff; }
+.wg-key.absent  { background: #d9dce1; color: #8a909a; }
+
+/* ---------- side: result + family stats ---------- */
+.wg-side { display: flex; flex-direction: column; gap: 18px; min-height: 0; }
+.wg-card { padding: 24px 26px; border-radius: 26px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 28px rgba(31,41,55,.07); }
+.wg-result { text-align: center; }
+.wg-result.won { background: #eef8f1; }
+.wg-result.lost { background: #fdf3ea; }
+.wg-big { font-size: 34px; font-weight: 800; }
+.wg-result.won .wg-big { color: #2e7d4f; }
+.wg-small { margin-top: 6px; font-size: 18px; font-weight: 600; color: #6b7280; }
+.wg-answer { color: #b4532f; letter-spacing: 2px; }
+.wg-next { margin-top: 14px; font-size: 17px; font-weight: 700; color: #4b5563; }
+.wg-countdown { font-variant-numeric: tabular-nums; color: #1f2937; }
+.wg-card-title { font-size: 14px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #9ca3af; margin-bottom: 12px; }
+.wg-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 22px; text-align: center; }
+.wg-nums b { display: block; font-size: 34px; font-weight: 800; color: #1f2937; }
+.wg-nums span { font-size: 14px; font-weight: 700; color: #6b7280; }
+.wg-dist { display: flex; flex-direction: column; gap: 8px; }
+.wg-drow { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; color: #4b5563; }
+.wg-drow > span { width: 14px; }
+.wg-bar { min-width: 28px; padding: 4px 10px; border-radius: 8px; background: #d9dce1; color: #374151; text-align: right; box-sizing: border-box; }
+.wg-bar.today { background: var(--wg-g); color: #fff; }

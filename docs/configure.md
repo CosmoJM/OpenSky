@@ -48,9 +48,14 @@ These are the buttons on the left, in this order. The first one is where the scr
 | `home` | the week ahead, your lists and a photo |
 | `calendar` | month view (two weeks / one week from its toolbar), tap a day or event to see or edit it |
 | `lists` | every list side by side, each one scrolls (Home shows the first three) |
+| `wordgame` | a daily five-letter word puzzle for the whole family (one shared board a day, family stats) |
 | `timer` | kitchen timers with a chime |
 
-You can also add your own **web pages** as pages (next section). A word game is coming.
+You can also add your own **web pages** as pages (next section).
+
+**Word game:** a new word every day at midnight — the same word on every OpenSky screen, so you can compare with
+friends. Missing a word you know is real? Add it to the accepted guesses:
+`"wordgame": { "extraWords": ["emoji"] }`.
 
 ## Web pages on the screen (Smart Home, cameras…)
 Any web page can be a page of its own — a Home Assistant dashboard, a camera, a school portal:

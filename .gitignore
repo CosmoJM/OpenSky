@@ -13,6 +13,7 @@ config/calendar-cache/
 config/local-calendar.json*
 config/lists.json*
 config/device.json*
+config/wordgame.json*
 config/*.damaged-*
 __pycache__/
 *.log

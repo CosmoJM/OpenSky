@@ -41,7 +41,7 @@ opensky/
 | MMM-OpenSky-ListsPage ✅ | (Todoist page) | page `lists`: every list side by side; columns drawn by `lib/client` `OpenSkyListColumn` (+ `list-columns.css`), same as Home |
 | MMM-OpenSky-Timer | MMM-Timer | |
 | MMM-OpenSky-Settings ✅ | the reference build's settings module | panel on `OPENSKY_SETTINGS_OPEN`; `config/device.json`; brightness: sysfs backlight → ddcutil → software dim; wpctl volume; sleep schedule drives the Sidebar (`OPENSKY_SLEEP`/`OPENSKY_WAKE`); `OPENSKY_DRY_RUN=1` in tests |
-| MMM-OpenSky-WordGame | MMM-Wordle | own word list by default; NYT optional |
+| MMM-OpenSky-WordGame ✅ | MMM-Wordle | page `wordgame`; words/ from SCOWL (licence in words/SCOWL-COPYRIGHT.txt); daily word = answers[days since 2026-01-01]; the answer never reaches the page before the game ends; `config/wordgame.json` |
 | MMM-OpenSky-Embed ✅ | MMM-EmbedURL + MMM-Finance ideas | one instance per `embeds.<key>` page, told apart by the class `opensky-embed-<key>` (MMM-pages matches classes); `<webview>` (electronOptions.webviewTag); PIN in secrets.json checked by the node helper (timing-safe, 5 tries → 30 s); config.js only learns whether a PIN exists + its length |
 | MMM-OpenSky-Keyboard ✅ | MMM-Keyboard (heavily modified fork) | own, dependency-free: follows focus (text boxes only), hides when the box goes away (MutationObserver — Chromium sends no focus event when a focused node is removed), `body.kb-open` moves popups up |
 

@@ -24,6 +24,9 @@ fs.rmSync(LOCAL_CAL, { force: true });
 // screen settings (brightness, schedule), fresh each run
 const DEVICE = path.join(OUT, "device.test.json");
 fs.rmSync(DEVICE, { force: true });
+// word game board + stats, fresh each run
+const WORDGAME = path.join(OUT, "wordgame.test.json");
+fs.rmSync(WORDGAME, { force: true });
 // on-device lists, seeded fresh each run (Groceries: Milk, Apples · Chores: empty)
 const LOCAL_LISTS = path.join(OUT, "lists.test.json");
 fs.mkdirSync(OUT, { recursive: true });
@@ -55,6 +58,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_LOCAL_CALENDAR: LOCAL_CAL,
       OPENSKY_LOCAL_LISTS: LOCAL_LISTS,
       OPENSKY_DEVICE_SETTINGS: DEVICE,
+      OPENSKY_WORDGAME: WORDGAME,
       OPENSKY_DRY_RUN: "1",
       LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings            // Settings: never touch the real backlight, monitor, audio, updates or power
       ELECTRON_ENABLE_LOGGING: "1"
