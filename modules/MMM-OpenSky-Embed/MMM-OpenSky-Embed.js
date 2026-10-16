@@ -99,7 +99,17 @@ Module.register("MMM-OpenSky-Embed", {
       if (e.isMainFrame === false || e.errorCode === -3) return;   // -3 = aborted (normal while navigating)
       this.showError(`Couldn't open ${this.config.title}. Is it switched on and on the same Wi-Fi?`);
     });
-    v.addEventListener("dom-ready", () => { if (this.config.zoom && this.config.zoom !== 1) v.setZoomFactor(this.config.zoom); });
+    v.addEventListener("dom-ready", () => {
+      if (this.config.zoom && this.config.zoom !== 1) v.setZoomFactor(this.config.zoom);
+      // Touches inside the page never reach the screen, so the idle return to Home would kick someone out mid-use.
+      // The page reports activity through its console (at most every 5 s), which the screen can hear.
+      v.executeJavaScript(`(() => { if (window.__osTouch) return; window.__osTouch = 1; let last = 0;
+        const ping = () => { const n = Date.now(); if (n - last > 5000) { last = n; console.debug("__opensky_activity__"); } };
+        ["pointerdown", "touchstart", "keydown", "wheel"].forEach((t) => addEventListener(t, ping, { capture: true, passive: true })); })()`).catch(() => {});
+    });
+    v.addEventListener("console-message", (e) => {
+      if (String(e.message || "").includes("__opensky_activity__")) this.sendNotification("OPENSKY_ACTIVITY");
+    });
     this.view = v;
     this.root.querySelector(".oe-frame").appendChild(v);
     this.root.querySelector(".oe-back").onclick = () => { if (v.canGoBack && v.canGoBack()) v.goBack(); };

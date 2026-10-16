@@ -24,6 +24,11 @@ module.exports = async (page, h) => {
   await until(async () => /embed\.html$/.test(await inView("smarthome", "location.pathname") || ""));
   ok("Back button goes back inside the page", /embed\.html$/.test(await inView("smarthome", "location.pathname") || ""));
   await h.shot("embed-smarthome");
+  // a touch inside the embedded page counts as activity (otherwise the idle return would kick the user out)
+  await page.evaluate(() => { MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].lastActivity = 0; });
+  await inView("smarthome", "document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })), 1");
+  await until(async () => page.evaluate(() => Date.now() - MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].lastActivity < 10000), 20);
+  ok("a touch inside the web page keeps the screen from returning Home", await page.evaluate(() => Date.now() - MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].lastActivity < 10000));
   await h.tap(".os-page-home"); await h.sleep(400); await h.tap(".os-page-smarthome"); await h.sleep(400);
   ok("a page without a PIN stays loaded when you come back", (await inView("smarthome", "document.getElementById('hello')?.textContent")) === "Test dashboard");
 

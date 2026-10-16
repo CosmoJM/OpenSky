@@ -9,7 +9,7 @@
  *
  * Notifications sent: PAGE_CHANGED (MMM-pages), OPENSKY_IDLE_RESET, OPENSKY_SCREEN_SLEEP (true/false),
  * OPENSKY_SETTINGS_OPEN, HIDE_KEYBOARD.   Received: PAGE_CHANGED, OPENSKY_WAKE (e.g. a timer finished),
- * OPENSKY_SLEEP (e.g. the Settings sleep schedule),
+ * OPENSKY_SLEEP (e.g. the Settings sleep schedule), OPENSKY_ACTIVITY (a touch inside an embedded page),
  * OPENSKY_TOAST { message, type: "error" | "success" | "info" } (the shared toast; the sidebar is always on screen).
  */
 Module.register("MMM-OpenSky-Sidebar", {
@@ -57,6 +57,8 @@ Module.register("MMM-OpenSky-Sidebar", {
       this.syncActive();
     } else if (n === "OPENSKY_WAKE") {
       this.wake();
+    } else if (n === "OPENSKY_ACTIVITY") {   // a touch inside an embedded page (MMM-OpenSky-Embed)
+      this.lastActivity = Date.now(); this.idleHandled = false;
     } else if (n === "OPENSKY_SLEEP") {
       if (!this.isAsleep()) this.sleep();
     } else if (n === "OPENSKY_TOAST" && payload && payload.message) {
