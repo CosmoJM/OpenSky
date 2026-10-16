@@ -4,7 +4,7 @@
   "location": { "name": "Boston, MA", "latitude": 42.3601, "longitude": -71.0589 },
   "weather": { "provider": "open-meteo" },
   "header": { "holidays": "US", "occasions": [{ "name": "Test Day", "month": 10, "day": 20 }], "birthdaysFromCalendar": true, "sports": { "league": "nfl", "team": "NE" } },
-  "pages": ["home", "timer"],
+  "pages": ["home", "calendar", "timer"],
   "calendar": {
     "sources": [
       { "name": "Family", "url": "http://localhost:8083/modules/opensky-fixtures/family.ics", "color": "pink" },

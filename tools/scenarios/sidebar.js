@@ -2,7 +2,7 @@
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const tiles = await page.evaluate(() => [...document.querySelectorAll(".os-tile")].map((t) => ({ key: t.dataset.key, label: t.textContent.trim(), active: t.classList.contains("active") })));
-  ok("tiles = the configured pages + Sleep", JSON.stringify(tiles.map((t) => t.key)) === JSON.stringify(["page-home", "page-timer", "sleep"]), tiles);
+  ok("tiles = the configured pages + Sleep", JSON.stringify(tiles.map((t) => t.key)) === JSON.stringify(["page-home", "page-calendar", "page-timer", "sleep"]), tiles);
   ok("first page tile is highlighted", tiles[0].active);
   ok("Home tile shows the family initial", await page.evaluate(() => document.querySelector(".os-page-home .os-badge")?.textContent === "T"));
   await h.tap(".os-page-timer"); await h.sleep(600);

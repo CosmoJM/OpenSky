@@ -39,7 +39,8 @@ Module.register("MMM-OpenSky-Calendars", {
     for (const src of this.config.sources) {
       const evs = this.events.get(src.name) || [];
       const color = palette && palette[src.color] ? palette[src.color][1] : "";
-      for (const ev of evs) list.push({ ...ev, calendarName: src.name, color, colorName: src.color || null });
+      // symbol: [] — MagicMirror's calendar always sets it and CalendarExt3 requires it (calls symbol.join)
+      for (const ev of evs) list.push({ ...ev, calendarName: src.name, color, colorName: src.color || null, symbol: [] });
     }
     list.sort((a, b) => Number(a.startDate) - Number(b.startDate));
     this.sendNotification("CALENDAR_EVENTS", list);

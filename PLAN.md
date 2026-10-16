@@ -65,8 +65,10 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    ✅ Timer, ✅ Sidebar (soft sleep on any screen), ✅ Header (Open-Meteo default, custom dates, any-team sports pill),
    ✅ Home (events from any calendar source, named colour palette + rules, shared weather, provider-neutral lists
    card, photos from a folder/USB stick or Immich, generic pickup schedule + New Bedford preset).
-   Next: Calendar page (+ event editor, CalDAV backend, ICS sources), Lists (on-device + Todoist), Settings,
-   keyboard, word game, embed page.
+   ✅ Calendar sources (public links in settings, private links in secrets.json, MagicMirror's own fetcher),
+   ✅ Calendar page (MMM-CalendarExt3 pinned + patch, toolbar, taps, two-line fitting, palette colours).
+   Next: event editor (view/add/edit/delete popups + CalDAV backend), Lists (on-device + Todoist), docs + installer,
+   Settings, keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

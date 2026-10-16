@@ -1,1 +1,2 @@
 MMM-pages https://github.com/edward-shen/MMM-pages 0cfc9b02c8c490e3a5ca28ede5ae3991086ca00d
+MMM-CalendarExt3 https://github.com/MMRIZE/MMM-CalendarExt3 9e90b7d006e171c5c86a9e2782314f2039ac9747

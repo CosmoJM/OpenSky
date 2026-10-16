@@ -9,7 +9,8 @@
     "language": "en",
     "locale": "en-US",
     "timeFormat": 12,
-    "units": "imperial"
+    "units": "imperial",
+    "firstDayOfWeek": 0
   },
 
   "location": {
@@ -29,7 +30,7 @@
     "sports": { "league": "nfl", "team": "" }
   },
 
-  "pages": ["home", "timer"],
+  "pages": ["home", "calendar", "timer"],
 
   "calendar": {
     "sources": [],

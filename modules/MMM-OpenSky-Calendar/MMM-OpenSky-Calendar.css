@@ -1,0 +1,347 @@
+/* MMM-OpenSky-Calendar — the Calendar page: month view styling + toolbar */
+
+/* ---------- toolbar on the month title line, right-aligned: [+ Add Event]  [‹] [Today] [›] ---------- */
+.os-cal-nav {
+  position: absolute;
+  top: 102px;            /* level with the month title */
+  right: 24px;           /* matches the calendar's right padding */
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  z-index: 200;
+}
+
+.os-nav-btn {
+  height: 48px;
+  min-width: 48px;
+  padding: 0 16px;
+  border-radius: 24px;
+  border: none;
+  background: #ffffff;
+  color: #374151;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.os-nav-btn:active { transform: scale(0.96); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); }
+
+.os-nav-icon { width: 22px; height: 22px; display: block; }
+.os-nav-prev, .os-nav-next { padding: 0; width: 48px; }
+
+.os-nav-text {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* Today: the peach accent (same as today's date badge) */
+.os-nav-today { background: #ffd8c9; color: #7a3419; }
+
+/* Add Event: primary action, a little apart from the month arrows */
+.os-nav-add {
+  margin-right: 10px;
+  padding: 0 20px 0 16px;
+  background: #ff9f7f;
+  color: #ffffff;
+}
+.os-nav-add .os-nav-icon { width: 20px; height: 20px; }
+
+/* ---------- the month view (MMM-CalendarExt3) ---------- */
+.CX3 {
+  --defaultcolor: #333;
+  --cellbgcolor: #ffffff;
+  --celllinecolor: #d4d4d4;
+  --fontsize: 20px;
+  --eventheight: 38px;
+  --cellheaderheight: 48px;
+  --cellfooterheight: 2px;
+}
+
+/* Main container: right of the sidebar, ending at the same place as the Home cards */
+.MMM-CalendarExt3 {
+  padding: 56px 24px 9px var(--os-content-left, 112px);
+  box-sizing: border-box;
+}
+
+/* Constrain the calendar to the viewport */
+.CX3.bodice {
+  max-height: calc(100vh - 108px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Month / year title */
+.CX3 .headerTitle {
+  color: #1f2937 !important;
+  font-weight: 700;
+  font-size: 32px;
+  margin-bottom: 12px;
+  padding-left: 8px;
+  flex-shrink: 0;
+}
+
+/* Weekday header row */
+.CX3 .headerContainer {
+  font-weight: 600;
+  font-size: 17px;
+  color: #666;
+  margin-bottom: 6px;
+  padding: 6px 0;
+  border-bottom: 0;                  /* the grid's own top edge is the line (was a double line) */
+  flex-shrink: 0;
+}
+.CX3 .headerContainer .weekday {
+  text-align: center;
+  padding: 6px 0;
+  color: #666 !important;
+}
+.CX3 .headerContainer .weekend,
+.CX3 .headerContainer .weekend_1,
+.CX3 .headerContainer .weekend_2 {
+  color: #666 !important;
+  font-weight: 600 !important;
+}
+
+/* Weeks */
+/* The weeks (direct children of .bodice) shrink to fit the screen, more in 6-week months, but CX3
+   gives the cells a fixed height, so they spilled into the next row and the last row's bottom
+   border was clipped by .bodice's overflow. Make the cells follow the (shrunk) week instead. */
+.CX3 .week { min-height: 0; flex: 1 1 0; }          /* 5- and 6-week months both fill down to y1058 */
+.CX3.bodice { height: calc(100vh - 108px) !important; }
+/* Events start right under the date number and stack downwards, like the Home week tiles
+   (CX3 pins its event layer to the cell bottom and spreads the rows over its height).
+   Rows are at most 32px; in shrunk rows (6-week months) they share the space left. */
+.CX3 .week .eventContainer {
+  top: 44px !important;
+  bottom: auto !important;
+  height: calc(100% - 46px) !important;
+  padding-top: 0 !important;
+  grid-template-rows: repeat(var(--maxeventlines), minmax(0, 32px)) !important;
+  align-content: start;
+}
+.CX3 .week .cellContainer { height: 100% !important; grid-template-rows: minmax(0, 1fr); }
+.CX3 .week .cell { height: 100% !important; box-sizing: border-box; }
+/* Rounded outer corners, like every other card */
+.CX3 .headerContainer + .week .cell:first-child { border-top-left-radius: 18px; }
+.CX3 .headerContainer + .week .cell:last-child { border-top-right-radius: 18px; }
+.CX3 .week:last-child .cell:first-child { border-bottom-left-radius: 18px; }
+.CX3 .week:last-child .cell:last-child { border-bottom-right-radius: 18px; }
+.CX3 .month { border-bottom: 1px solid var(--celllinecolor); }
+.CX3 .cw { display: none !important; } /* week numbers */
+
+/* Day cells: the month being viewed is white, neighbouring months are greyed.
+   (.focusMonth is added by OpenSky's CX3 patch; CX3's .thisMonth means *today's* month.) */
+.CX3 .cell {
+  border: 1px solid var(--celllinecolor) !important;
+  background-color: #ffffff !important;
+  position: relative;
+  overflow: visible !important;
+}
+.CX3 .cell:not(.focusMonth) { background-color: #f6f7f8 !important; }
+
+.CX3 .cellHeader {
+  height: var(--cellheaderheight) !important;
+  padding: 6px 8px !important;
+  text-align: right;
+  background: transparent !important;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  border-bottom: none !important;
+  display: flex !important;
+  justify-content: flex-end !important; /* CX3 uses space-between */
+  align-items: flex-start;
+}
+
+/* Date number: same box for every day so today's badge lines up with the rest */
+.CX3 .cellDate {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 6px !important;
+  margin: 0 !important;
+  border-radius: 18px !important;
+  box-sizing: border-box;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1 !important;
+  color: #333 !important;
+  background: transparent !important;
+  pointer-events: auto;
+}
+.CX3 .cell:not(.focusMonth) .cellDate { color: #b3b8bf !important; font-weight: 500; }
+
+/* CX3 draws its own underline/borders on the date and title parts */
+.CX3 .dateParts,
+.CX3 .headerTimeParts {
+  border: 0 !important;
+  text-decoration: none !important;
+}
+
+/* Today: peach badge (matches the Today button) and a soft tint on the cell */
+.CX3 .cell.today {
+  text-decoration: none !important; /* CX3 underlines the whole today cell */
+  background-color: #fff6f2 !important;
+  border-color: var(--celllinecolor) !important;
+}
+.CX3 .cell.today .cellDate {
+  background: #ff9f7f !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+.CX3 .cellBody {
+  position: relative;
+  z-index: 1;
+}
+
+/* Event pills */
+.CX3 .event {
+  padding: 5px 10px !important;
+  margin: 2px 6px !important;
+  border-radius: 6px !important;
+  min-height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  color: #222 !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border-left: 3px solid #ccc !important;
+  background: #f5f5f5 !important;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+.CX3 .event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.CX3 .event .headline {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+.CX3 .event .time {
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  color: #444 !important;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.CX3 .event .title {
+  font-weight: 500 !important;
+  font-size: 16px !important;
+  color: #222 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+/* Two-line names (window.OpenSkyFit, only when the day has a free row): the event spans 2 grid rows */
+/* The event keeps its 2 grid rows (so nothing else lands there) but the box hugs the text */
+.CX3 .event.mf-two { align-self: start !important; height: auto !important; align-items: flex-start !important; }
+.CX3 .event.mf-two .headline { align-items: flex-start !important; }
+.CX3 .event.mf-two .title {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+.CX3 .event .symbol {
+  flex-shrink: 0;
+  font-size: 14px !important;
+}
+/* Keep all event text at the pill size (overrides the .time/.title sizes above) */
+.CX3 .event .headline *,
+.CX3 .event * {
+  color: #222 !important;
+  font-size: inherit !important;
+}
+/* CX3 greys out past events (grayscale + darken) and over-saturates the current one;
+   keep the real colours instead: past = slightly faded, current = ring in its own colour */
+.CX3 .event.passed { filter: none !important; opacity: 0.72; }
+.CX3 .event.current { filter: none !important; box-shadow: 0 0 0 2px var(--evc-bar, #4caf50) !important; }
+/* CX3's dot before each single-day event (the colour bar already does that job) */
+.CX3 .event.singleday .headline::before,
+.CX3 .event.singleday .headline .symbol.noSymbol::before { display: none !important; }
+
+/* Event colours: CX3's eventTransformer (config.js) adds evc-<palette name> from window.OpenSkyEventColors */
+.CX3 .event { --evc-bg: #e5e7eb; --evc-bar: #9ca3af; }
+.CX3 .event.evc-pink { --evc-bg: #ffc2e2; --evc-bar: #dd4f98; }
+.CX3 .event.evc-green { --evc-bg: #d7f199; --evc-bar: #78b014; }
+.CX3 .event.evc-blue { --evc-bg: #b9ddff; --evc-bar: #2e8bd6; }
+.CX3 .event.evc-orange { --evc-bg: #ffc9a3; --evc-bar: #ec7a2c; }
+.CX3 .event.evc-yellow { --evc-bg: #ffe882; --evc-bar: #cfa000; }
+.CX3 .event.evc-emerald { --evc-bg: #b5edc4; --evc-bar: #2e9e57; }
+.CX3 .event.evc-purple { --evc-bg: #cdb4ff; --evc-bar: #7b4ae2; }
+.CX3 .event.evc-red { --evc-bg: #ffb3b3; --evc-bar: #e04848; }
+.CX3 .event.evc-teal { --evc-bg: #95e8d6; --evc-bar: #11998e; }
+.CX3 .event.evc-indigo { --evc-bg: #b8c2ff; --evc-bar: #4a5bd8; }
+.CX3 .event.evc-tan { --evc-bg: #efd9b5; --evc-bar: #b8864b; }
+.CX3 .event.evc-gray { --evc-bg: #e5e7eb; --evc-bar: #9ca3af; }
+.CX3 .event[class*="evc-"] {
+  background: var(--evc-bg) !important;
+  border-left: 4px solid var(--evc-bar) !important;
+}
+
+/* Multi-day events */
+.CX3 .event.multiday,
+.CX3 .event.fullday { border-radius: 6px !important; }
+.CX3 .event.continueFromPreviousWeek {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  margin-left: 0 !important;
+  padding-left: 8px !important;
+}
+.CX3 .event.continueToNextWeek {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  margin-right: 0 !important;
+  padding-right: 8px !important;
+}
+
+/* "+N more" badge (tapping the day opens the day view) */
+.CX3 .cell.hasMore::after {
+  position: absolute !important;
+  bottom: 6px !important;
+  right: 6px !important;
+  z-index: 30 !important;
+  background: #eef1f5 !important;
+  color: #3b4452 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  padding: 5px 11px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Touch screens: bigger targets */
+@media (hover: none) and (pointer: coarse) {
+  .CX3 .event { padding: 10px 14px !important; }
+  .CX3 .cell.hasMore::after { min-height: 36px !important; min-width: 90px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+  .CX3 .cellHeader { z-index: 2; position: relative; background-color: inherit; }
+  .CX3 .eventContainer { z-index: 1; }
+}

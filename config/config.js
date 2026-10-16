@@ -60,6 +60,27 @@ const folderPath = (f) => (!f ? null : /^[~/]/.test(f) ? f : path.join(settingsD
 
 // Each page = the modules that appear on it.
 const PAGES = {
+  calendar: () => [
+    {
+      module: "MMM-CalendarExt3",          // month view (community module, MIT, pinned + OpenSky patch)
+      position: "fullscreen_above",
+      config: {
+        mode: "month", instanceId: "OPENSKY", animationSpeed: 0,
+        firstDayOfWeek: locale.firstDayOfWeek === 1 ? 1 : 0,
+        showHeader: true, customHeader: true, headerTitleOptions: { month: "long", year: "numeric" },
+        maxEventLines: 3, showMore: true, fontSize: "20px", eventHeight: "38px",
+        eventTimeOptions: { hour: "numeric", minute: "2-digit", hour12: locale.timeFormat !== 24 },
+        cellDateOptions: { day: "numeric" }, displayEndTime: false, useSymbol: false, calendars: [],
+        // colour class from the shared palette (window.OpenSkyEventColors, loaded by MMM-OpenSky-Calendar)
+        eventTransformer: (ev) => { if (typeof window !== "undefined" && window.OpenSkyEventColors) ev.class = `evc-${window.OpenSkyEventColors.name(ev)}`; return ev; }
+      }
+    },
+    {
+      module: "MMM-OpenSky-Calendar",
+      position: "fullscreen_above",
+      config: { instanceId: "OPENSKY", canAddEvents: false, eventColors: (s.calendar && s.calendar.colors) || null }
+    }
+  ],
   home: () => [{
     module: "MMM-OpenSky-Home",
     position: "fullscreen_above",

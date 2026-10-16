@@ -1,0 +1,78 @@
+# OpenSky patch for MMM-CalendarExt3 (MIT, MMRIZE): redraw as soon as events change; mark the month being viewed
+# (.focusMonth); a little space above the first event. Applied by tools/dev-setup.sh / the installer.
+diff --git a/MMM-CalendarExt3.css b/MMM-CalendarExt3.css
+index 9dca19a..831f2d8 100644
+--- a/MMM-CalendarExt3.css
++++ b/MMM-CalendarExt3.css
+@@ -71,12 +71,16 @@ selector-pseudo-class-no-unknown, keyframes-name-pattern,
+ }
+ 
+ .CX3 .eventContainer {
+-  z-index: 20;
++  z-index: 20;                 /* events layer above cells so events are visible */
+   position: absolute;
+   bottom: var(--cellfooterheight);
+   left: 0;
+   width: 100%;
+-  height: calc(var(--eventheight) * var(--maxeventlines));
++
++  /* extra top buffer so the first event sits clearly below the date line */
++  padding-top: 16px;
++  box-sizing: border-box;
++  height: calc(var(--eventheight) * var(--maxeventlines) - 16px);
+ }
+ 
+ .CX3 .cell {
+diff --git a/MMM-CalendarExt3.js b/MMM-CalendarExt3.js
+index c069eea..d88f2cd 100644
+--- a/MMM-CalendarExt3.js
++++ b/MMM-CalendarExt3.js
+@@ -328,7 +328,16 @@ Module.register("MMM-CalendarExt3", {
+ 
+     if (notification === this.notifications.eventNotification) {
+       let convertedPayload = this.notifications.eventPayload(payload)
+-      this.eventPool.set(sender.identifier, JSON.parse(JSON.stringify(convertedPayload)))
++      const serialized = JSON.stringify(convertedPayload)
++      const changed = JSON.stringify(this.eventPool.get(sender.identifier)) !== serialized
++      this.eventPool.set(sender.identifier, JSON.parse(serialized))
++      // Local change: redraw as soon as the events actually change (upstream waits for
++      // refreshInterval, up to 10 min), debounced so several calendars arriving together
++      // cause one redraw.
++      if (changed && this._ready) {
++        clearTimeout(this._eventRedrawTimer)
++        this._eventRedrawTimer = setTimeout(() => this.updateAnimate(), 300)
++      }
+     }
+ 
+     if (notification === "MODULE_DOM_CREATED") {
+@@ -456,6 +465,12 @@ Module.register("MMM-CalendarExt3", {
+       if (isToday(tm)) cell.classList.add("today")
+       if (isFutureDay(tm)) cell.classList.add("future")
+       if (isThisMonth(tm)) cell.classList.add("thisMonth")
++      // Local change: mark the month being VIEWED (thisMonth means today's month),
++      // so other months don't look greyed out when navigating
++      if (options.mode === "month") {
++        const focus = this.getMoment(options)
++        if (tm.getFullYear() === focus.getFullYear() && tm.getMonth() === focus.getMonth()) cell.classList.add("focusMonth")
++      }
+       if (isThisYear(tm)) cell.classList.add("thisYear")
+       cell.classList.add(
+         `year_${tm.getFullYear()}`,
+@@ -611,7 +626,7 @@ Module.register("MMM-CalendarExt3", {
+ 
+         let ecDom = document.createElement("div")
+         ecDom.classList.add("eventContainer", "weekGrid", "weekGridRow")
+-
++        
+         let boundary = []
+ 
+         let cm = new Date(wm.valueOf())
+@@ -655,7 +670,7 @@ Module.register("MMM-CalendarExt3", {
+ 
+           eDom.style.gridColumnStart = startLine + 1
+           eDom.style.gridColumnEnd = endLine + 1
+-
++          
+           if (event?.noMarquee) {
+             eDom.dataset.noMarquee = true
+           }

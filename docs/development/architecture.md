@@ -61,6 +61,9 @@ MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarus
   node helpers) is compatible with it and also covers things that aren't module config (service passwords, PINs).
 - Custom CSS is expected in `config/` (2.38 warns about `css/custom.css`); OpenSky sets `customCss` explicitly.
 
+- Events broadcast as `CALENDAR_EVENTS` must look like MagicMirror's calendar output — including `symbol` (an array):
+  MMM-CalendarExt3 calls `event.symbol.join()` and stops drawing the month without it.
+
 ## Lessons from the reference build (keep these true)
 - MagicMirror serves `config.js` to the network → secrets live in `secrets.json`, read server-side.
 - Never name a module property `this.data` (MagicMirror uses `module.data`).
