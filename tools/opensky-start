@@ -1,0 +1,10 @@
+#!/bin/bash
+# Starts the OpenSky screen (opensky.service and `opensky run` use this).
+# Chromium on Linux takes its language (date/time boxes, number formats) from LANGUAGE, not from the page,
+# so it's set here from opensky.json → locale.locale (e.g. "en-US" → en_US) instead of the Pi's system language.
+MM="${OPENSKY_MM:-${OPENSKY_HOME:-$HOME/.local/share/opensky}/MagicMirror}"
+SETTINGS="${OPENSKY_SETTINGS:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/config/opensky.json}"
+loc=$(python3 -c 'import json,sys; print((json.load(open(sys.argv[1])).get("locale") or {}).get("locale") or "")' "$SETTINGS" 2>/dev/null)
+[[ "$loc" =~ ^[a-z]{2}(-[A-Z]{2})?$ ]] && export LANGUAGE="${loc/-/_}"
+cd "$MM" || { echo "No MagicMirror at $MM — run ./install.sh"; exit 1; }
+exec ./node_modules/.bin/electron js/electron.js --ozone-platform=wayland

@@ -34,7 +34,7 @@ After changing either file, run **`opensky restart`**. If the screen doesn't com
 - `locale.timeFormat`: `12` (3:00 PM) or `24` (15:00).
 - `locale.units`: `"imperial"` (°F) or `"metric"` (°C).
 - `locale.firstDayOfWeek`: `0` = Sunday, `1` = Monday (month view).
-- `locale.locale`: how dates are written (`"en-US"`, `"en-GB"`…).
+- `locale.locale`: how dates are written (`"en-US"`, `"en-GB"`…) — on the screen and in date boxes.
 - The **time zone** comes from the Pi itself. To change it: `sudo raspi-config nonint do_change_timezone America/Chicago` (use your zone).
 
 ## Pages
@@ -180,6 +180,13 @@ A small trash-can icon appears on pickup days in the week view. It moves a day l
 - `idleReturnMinutes`: after this many minutes without a touch, open pop-ups close and the screen returns to the first page. A running timer stays put. `0` turns this off.
 - **Sleep** (bottom left) blacks out the screen until the next touch.
 - `quickAddMinutes`: the timer's quick buttons. `chimeVolume` runs from 0 to 1.
+
+## On-screen keyboard
+```json
+"keyboard": { "enabled": true }
+```
+A keyboard slides up whenever you tap a text box (adding a list item, naming an event). Turn it off with `false`
+if you use a real keyboard. Dates and times use pickers instead.
 
 ## The Settings panel (on the screen)
 | Setting | What it does |

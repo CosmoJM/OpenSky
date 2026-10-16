@@ -43,7 +43,7 @@ opensky/
 | MMM-OpenSky-Settings ✅ | the reference build's settings module | panel on `OPENSKY_SETTINGS_OPEN`; `config/device.json`; brightness: sysfs backlight → ddcutil → software dim; wpctl volume; sleep schedule drives the Sidebar (`OPENSKY_SLEEP`/`OPENSKY_WAKE`); `OPENSKY_DRY_RUN=1` in tests |
 | MMM-OpenSky-WordGame | MMM-Wordle | own word list by default; NYT optional |
 | MMM-OpenSky-Embed | MMM-EmbedURL + MMM-Finance ideas | Smart Home / any URL, optional PIN |
-| (vendor) MMM-Keyboard | heavily modified fork | iPad-style on-screen keyboard |
+| MMM-OpenSky-Keyboard ✅ | MMM-Keyboard (heavily modified fork) | own, dependency-free: follows focus (text boxes only), hides when the box goes away (MutationObserver — Chromium sends no focus event when a focused node is removed), `body.kb-open` moves popups up |
 
 Community modules used (all MIT): MMM-CalendarExt3 (MMRIZE), MMM-Keyboard (lavolp3), MMM-Todoist (cbrooker),
 MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarusa), MMM-EmbedURL (Tom-Hirschberger).
@@ -57,6 +57,8 @@ MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarus
   good feed in `config/calendar-cache/`. Repeating events are read-only (409).
 
 ## MagicMirror 2.38 notes
+- Electron's language (date/time boxes) comes from the `LANGUAGE` environment variable on Linux, not from
+  `--lang` or the page: `tools/opensky-start` sets it from `locale.locale` (the harness does the same).
 - A module's own fields and methods must not reuse MagicMirror's `Module` names: `this.data` (holds `classes`;
   overwriting it breaks MMM-pages), `show()`, `hide()`, `config`, `name`, `identifier`, `file()`… Pick specific names.
 - `config.js` is read as text and evaluated (`requireFromString`), so `__dirname` inside it is not the config

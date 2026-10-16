@@ -7,6 +7,8 @@ module.exports = async (page, h) => {
   const until = async (fn, tries = 20) => { for (let i = 0; i < tries && !(await fn()); i++) await h.sleep(250); return fn(); };
   const slide = (id, v) => page.evaluate(([id, v]) => { const el = document.querySelector(`.ost-slider[data-id="${id}"]`); el.value = v; el.dispatchEvent(new Event("input")); el.dispatchEvent(new Event("change")); }, [id, v]);
   const open = () => page.evaluate(() => !!document.querySelector(".ost-overlay:not([hidden]) .ost-panel"));
+  // wait until every change has its reply and the panel has redrawn (taps go by position; the layout must be settled)
+  const settled = () => until(async () => page.evaluate(() => !MM.getModules().withClass("MMM-OpenSky-Settings")[0].inflight));
   const asleep = () => page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].isAsleep());
 
   ok("sidebar has a Settings tile", !!(await h.box(".os-settings")) || !!(await page.$("[class*='settings']")));
@@ -22,14 +24,14 @@ module.exports = async (page, h) => {
   const dim = await page.evaluate(() => Number(getComputedStyle(document.querySelector(".ost-dim")).opacity).toFixed(2));
   ok("brightness 40% → saved, picture dimmed (software)", saved().brightness === 40 && Math.abs(dim - 0.6) < 0.05, { saved: saved().brightness, dim });
 
-  await h.tap('.ost-toggle[data-id="dim"]');
-  await until(async () => saved().eveningDim.enabled);
+  await settled(); await h.tap('.ost-toggle[data-id="dim"]');
+  await until(async () => saved().eveningDim.enabled); await settled();
   await page.evaluate(() => document.querySelector('.ost-stepper[data-id="dimFrom"] .ost-step[data-d="15"]').click());
   await until(async () => saved().eveningDim.from === "19:15");
   ok("evening dim on + its time steps by 15 min", saved().eveningDim.enabled && saved().eveningDim.from === "19:15" && await page.evaluate(() => /7:15/.test(document.querySelector('.ost-stepper[data-id="dimFrom"] .ost-time').textContent)), saved().eveningDim);
 
-  await h.tap('.ost-toggle[data-id="sleep"]');
-  await until(async () => saved().sleep.enabled);
+  await settled(); await h.tap('.ost-toggle[data-id="sleep"]');
+  await until(async () => saved().sleep.enabled); await settled();
   for (let i = 0; i < 4; i++) { await page.evaluate(() => document.querySelector('.ost-stepper[data-id="sleepOff"] .ost-step[data-d="-15"]').click()); await h.sleep(150); }
   await until(async () => saved().sleep.off === "21:00");
   ok("sleep schedule on; off time 10 PM → 9 PM", saved().sleep.enabled && saved().sleep.off === "21:00" && saved().sleep.on === "06:30", saved().sleep);

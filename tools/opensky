@@ -25,7 +25,7 @@ case "${1:-help}" in
            export OPENSKY_SETTINGS="$CONFIG/opensky.json" OPENSKY_SECRETS="$CONFIG/secrets.json" \
                   OPENSKY_LOCAL_CALENDAR="$CONFIG/local-calendar.json" OPENSKY_LOCAL_LISTS="$CONFIG/lists.json" \
                   OPENSKY_CALENDAR_CACHE="$CONFIG/calendar-cache"
-           cd "$RUNTIME/MagicMirror" && exec ./node_modules/.bin/electron js/electron.js --ozone-platform=wayland ;;
+           OPENSKY_MM="$RUNTIME/MagicMirror" exec "$REPO/tools/opensky-start" ;;
   edit)    "${EDITOR:-nano}" "$CONFIG/opensky.json" && "$0" check && echo "Run 'opensky restart' to see the changes." ;;
   secrets) "${EDITOR:-nano}" "$CONFIG/secrets.json" && "$0" check && echo "Run 'opensky restart' to use them." ;;
   *) cat <<EOF

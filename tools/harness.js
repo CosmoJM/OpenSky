@@ -28,6 +28,14 @@ fs.rmSync(DEVICE, { force: true });
 const LOCAL_LISTS = path.join(OUT, "lists.test.json");
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(LOCAL_LISTS, JSON.stringify({ version: 1, lists: { Groceries: [{ id: "g1", text: "Milk" }, { id: "g2", text: "Apples" }] } }));
+// tools/opensky-start sets LANGUAGE from opensky.json → locale.locale; the harness does the same
+function settingsLanguage() {
+  try {
+    const f = process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json");
+    const loc = (JSON.parse(fs.readFileSync(f, "utf8")).locale || {}).locale || "";
+    return /^[a-z]{2}(-[A-Z]{2})?$/.test(loc) ? loc.replace("-", "_") : process.env.LANGUAGE || "";
+  } catch (e) { return process.env.LANGUAGE || ""; }
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
@@ -47,7 +55,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_LOCAL_CALENDAR: LOCAL_CAL,
       OPENSKY_LOCAL_LISTS: LOCAL_LISTS,
       OPENSKY_DEVICE_SETTINGS: DEVICE,
-      OPENSKY_DRY_RUN: "1",            // Settings: never touch the real backlight, monitor, audio, updates or power
+      OPENSKY_DRY_RUN: "1",
+      LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings            // Settings: never touch the real backlight, monitor, audio, updates or power
       ELECTRON_ENABLE_LOGGING: "1"
     },
     timeout: 90000

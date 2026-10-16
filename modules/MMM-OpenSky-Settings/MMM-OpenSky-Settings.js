@@ -33,7 +33,13 @@ Module.register("MMM-OpenSky-Settings", {
   socketNotificationReceived(n, p) {
     if (n === "OS_SET_STATE") {
       this.state = p;
-      if (this.isOpen() && !this.dragging) this.render();
+      // Every change gets one reply. While some are still on their way, the controls already show what was picked;
+      // once all are back the state includes every tap: redraw if the layout changed (a switch), else sync values.
+      if (this.inflight > 0) this.inflight--;
+      if (this.isOpen() && !this.inflight) {
+        if (this.shape(p) !== this.drawnShape) this.render();
+        else this.syncControls();
+      }
     } else if (n === "OS_SET_STATUS") {
       this.status = p;
       if (this.isOpen()) this.renderStatus();
@@ -76,6 +82,10 @@ Module.register("MMM-OpenSky-Settings", {
     this.dim.style.opacity = String(Math.max(0, Math.min(0.8, (100 - level) / 100)));
   },
 
+  shape(st) {
+    return st ? JSON.stringify([st.settings.eveningDim.enabled, st.settings.sleep.enabled, st.brightness.method, !!st.audio, st.canRestart]) : "";
+  },
+
   /* ---------------- panel ---------------- */
   isOpen() { return !!(this.panel && !this.panel.hidden); },
 
@@ -88,6 +98,7 @@ Module.register("MMM-OpenSky-Settings", {
       document.body.appendChild(this.panel);
     }
     this.confirming = null;
+    this.inflight = 0;
     this.panel.hidden = false;
     this.render();
     this.sendSocketNotification("OS_SET_STATUS");
@@ -95,13 +106,28 @@ Module.register("MMM-OpenSky-Settings", {
 
   close() { if (this.panel) this.panel.hidden = true; this.confirming = null; },
 
-  change(c) { this.sendSocketNotification("OS_SET_CHANGE", c); },
+  change(c) { this.inflight = (this.inflight || 0) + 1; this.sendSocketNotification("OS_SET_CHANGE", c); },
+
+  // Put the saved values into the controls without rebuilding them
+  syncControls() {
+    const s = this.state.settings, q = (sel) => this.panel.querySelector(sel);
+    const vals = { brightness: s.brightness, dimLevel: s.eveningDim.level, volume: this.state.audio && this.state.audio.volume };
+    for (const [id, v] of Object.entries(vals)) {
+      const el = q(`.ost-slider[data-id="${id}"]`);
+      if (el && v != null) { el.value = v; q(`.ost-value[data-for="${id}"]`).textContent = `${v}%`; }
+    }
+    for (const [id, t] of Object.entries({ dimFrom: s.eveningDim.from, sleepOff: s.sleep.off, sleepOn: s.sleep.on })) {
+      const el = q(`.ost-stepper[data-id="${id}"]`);
+      if (el) { el.dataset.time = t; el.querySelector(".ost-time").textContent = this.fmt(t); }
+    }
+  },
 
   render() {
     if (!this.panel) return;
     const st = this.state;
     if (!st) { this.panel.innerHTML = `<div class="ost-panel"><div class="ost-loading">Loading…</div></div>`; return; }
     const s = st.settings;
+    this.drawnShape = this.shape(st);
     const methodNote = { backlight: "The display's own backlight", ddc: "The monitor's brightness (over HDMI)", software: "Dims the picture (this screen doesn't take brightness commands)" }[st.brightness.method] || "";
     this.panel.innerHTML = `
       <div class="ost-panel" role="dialog" aria-label="Settings">
@@ -214,13 +240,12 @@ Module.register("MMM-OpenSky-Settings", {
     if (!el) return;
     const out = this.panel.querySelector(`.ost-value[data-for="${id}"]`);
     let timer = null;
-    el.addEventListener("pointerdown", () => { this.dragging = true; });
     el.addEventListener("input", () => {
       out.textContent = `${el.value}%`;
       clearTimeout(timer);
       timer = setTimeout(() => send(Number(el.value)), 150);   // follow the finger without flooding the hardware
     });
-    el.addEventListener("change", () => { this.dragging = false; clearTimeout(timer); send(Number(el.value)); });
+    el.addEventListener("change", () => { clearTimeout(timer); send(Number(el.value)); });
   },
   bindToggle(id, send) {
     const el = this.panel.querySelector(`.ost-toggle[data-id="${id}"]`);

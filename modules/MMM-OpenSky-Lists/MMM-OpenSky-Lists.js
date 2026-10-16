@@ -199,7 +199,7 @@ Module.register("MMM-OpenSky-Lists", {
     overlay.addEventListener("click", (e) => { if (e.target === overlay && !this.busy) this.closePopup(); });
     document.body.appendChild(overlay);
     this.popup = overlay;
-    setTimeout(() => { input.focus(); this.keyboard(true); }, 50);
+    setTimeout(() => input.focus(), 50);   // (the on-screen keyboard follows the focus)
   },
 
   closePopup() {
@@ -207,14 +207,5 @@ Module.register("MMM-OpenSky-Lists", {
     this.popup.remove();
     this.popup = null;
     this.busy = false;
-    this.keyboard(false);
-  },
-
-  // The on-screen keyboard (when installed) follows the popup's text box
-  keyboard(show) {
-    MM.getModules().withClass("MMM-Keyboard").enumerate((kb) => {
-      const fn = show ? (kb.showKeyboard || kb.show) : (kb.hideKeyboard || kb.hide);
-      if (typeof fn === "function") fn.call(kb);
-    });
   }
 });

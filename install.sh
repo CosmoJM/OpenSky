@@ -184,8 +184,9 @@ After=opensky-calendar.service
 [Service]
 $ENVS
 Environment=PATH=$NODE_BIN:/usr/local/bin:/usr/bin:/bin
+Environment=OPENSKY_MM=$MM
 WorkingDirectory=$MM
-ExecStart=$MM/node_modules/.bin/electron js/electron.js --ozone-platform=wayland
+ExecStart=$REPO/tools/opensky-start
 Restart=on-failure
 RestartSec=5
 EOF
