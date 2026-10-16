@@ -222,6 +222,7 @@
       loc.name = us && r.admin1 ? `${r.name}, ${r.admin1}` : [r.name, r.country].filter(Boolean).join(", ");
       loc.latitude = Math.round(r.latitude * 10000) / 10000; loc.longitude = Math.round(r.longitude * 10000) / 10000;
       S.locale.units = ["US", "LR", "MM"].includes(r.country_code) ? "imperial" : "metric";
+      if (r.country_code) { S.locale.country = r.country_code; if (S.calendar.holidays !== "none") S.calendar.holidays = r.country_code; }
       S.locale.timeFormat = ["US", "CA", "AU", "NZ", "PH", "IN", "MX"].includes(r.country_code) ? 12 : 24;
       if (r.timezone && info.timezone && r.timezone !== info.timezone) toast(`Heads-up: the Pi's clock is set to ${info.timezone}`, "");
       change(); render();
@@ -244,7 +245,8 @@
     return section("calendars", "calendar", "Calendars", "Each with its own colour",
       list,
       el("button", { type: "button", class: "add", onclick: addCalendar }, icon("plus"), "Add a calendar"),
-      el("div", { class: "line" }, el("span", {}, el("b", {}, "US holidays"), el("small", {}, "Shown on the calendar")), toggle(cal.holidays === "US", (v) => { cal.holidays = v ? "US" : "none"; change(); }, "US holidays")));
+      el("div", { class: "line" }, el("span", {}, el("b", {}, "Public holidays"), el("small", {}, `${S.locale.country || (cal.holidays && cal.holidays !== "none" ? cal.holidays : "US")} · on the calendar and the countdown`)),
+        toggle(!!cal.holidays && cal.holidays !== "none", (v) => { cal.holidays = v ? (S.locale.country || "US") : "none"; change(); }, "Public holidays")));
   }
 
   function nameOk(name, taken) {

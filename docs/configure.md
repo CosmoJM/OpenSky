@@ -103,7 +103,7 @@ Any web page can be a page of its own — a Home Assistant dashboard, a camera, 
 }
 ```
 - The top-right pill counts down to the next holiday, occasion or birthday.
-  - `holidays`: `"US"` for the main US holidays, or `"none"`.
+  - Holidays follow `calendar.holidays` (your country); `header.holidays: "none"` leaves them out of the pill.
   - `occasions`: your own yearly dates. `month` runs 1–12.
   - `birthdaysFromCalendar`: calendar events with "Birthday" or "Bday" in the title count as birthdays.
 - `sports`: on game day, a pill shows your team's game, time and channel, then the live score.
@@ -135,7 +135,9 @@ OpenSky can show any number of calendars, each with its own colour. Some can als
 | **A calendar link** (Google, Outlook, iCloud, school or team calendars…) | `"url": "…"` in opensky.json if it's public, or no url and the link in `secrets.json → calendar.sources.<name>` if it's private | read-only |
 | **iCloud, Fastmail, Nextcloud (CalDAV)** | `"type": "caldav"` and the account in `secrets.json` (below) | ✅ |
 
-- `holidays`: `"US"` adds a US holidays calendar; `"none"` turns it off.
+- `holidays`: your country's public holidays as a calendar (and in the countdown pill): a two-letter country code —
+  `"US"` (Google's US list, with Mother's Day, Halloween…), `"GB"`, `"CA"`, `"DE"`, `"AU"`… (from Nager.Date, about 200 countries).
+  `"holidaysRegion": "GB-SCT"` (or `"CA-ON"`, `"DE-BY"`…) adds that region's own days. `"none"` turns it off.
 - **Colours:** `pink`, `green`, `blue`, `orange`, `yellow`, `emerald`, `purple`, `red`, `teal`, `indigo`, `tan`, `gray`.
   Each event's colour is picked in this order:
   1. a matching `rules` keyword in the title

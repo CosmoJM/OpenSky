@@ -49,9 +49,9 @@ function applyPlace(s, place) {
   s.locale.units = IMPERIAL.includes(c) ? "imperial" : "metric";
   s.locale.timeFormat = CLOCK12.includes(c) ? 12 : 24;
   s.locale.firstDayOfWeek = SUNDAY_FIRST.includes(c) ? 0 : 1;
-  if (c !== "US") {   // US holidays + NFL are the only built-in ones so far
-    s.header.holidays = "none";
-    s.calendar.holidays = "none";
+  s.locale.country = c;
+  s.calendar.holidays = c;   // public holidays of that country (US: Google's list; others: Nager.Date)
+  if (c !== "US") {
     s.header.sports = { league: "nfl", team: "" };
     s.locale.locale = c === "GB" ? "en-GB" : c === "CA" ? "en-CA" : c === "AU" ? "en-AU" : "en-US";
   }

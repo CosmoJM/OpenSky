@@ -10,6 +10,7 @@ const path = require("path");
 const CalendarFetcher = require(path.join(global.root_path, "defaultmodules", "calendar", "calendarfetcher.js"));
 const { secret } = require(path.join(global.root_path, "modules", "opensky-lib", "secrets.js"));
 const local = require(path.join(global.root_path, "modules", "opensky-lib", "local-calendar.js"));
+const holidays = require(path.join(global.root_path, "modules", "opensky-lib", "holidays.js"));
 const Log = require("logger");
 
 // MagicMirror's fetcher writes each calendar's link into the log ("Broadcasting 12 events from <url>"). A private link
@@ -43,6 +44,17 @@ module.exports = NodeHelper.create({
     this.sendSocketNotification("OS_CAL_ERROR", { name, message });
   },
 
+  // Public holidays (lib/holidays.js): now, then twice a day; a page reload gets the last list at once
+  startHolidays(src) {
+    this.holidayLists = this.holidayLists || new Map();
+    if (this.holidayLists.has(src.name)) return this.sendSocketNotification("OS_CAL_EVENTS", { name: src.name, events: this.holidayLists.get(src.name) });
+    const load = () => holidays.events(src.country, src.region).then(
+      (events) => { this.holidayLists.set(src.name, events); if (this.lastError) this.lastError.delete(src.name); this.sendSocketNotification("OS_CAL_EVENTS", { name: src.name, events }); },
+      (e) => this.error(src.name, e.message));
+    load();
+    setInterval(load, 12 * 60 * 60 * 1000);
+  },
+
   sendLocal(name) { this.sendSocketNotification("OS_CAL_EVENTS", { name, events: local.mmEvents(name) }); },
 
   socketNotificationReceived(n, p) {
@@ -54,6 +66,7 @@ module.exports = NodeHelper.create({
     if (n !== "OS_CAL_START" || !p || !Array.isArray(p.sources)) return;
     for (const src of p.sources) {
       if (src.type === "local") { this.localNames.add(src.name); this.sendLocal(src.name); continue; }   // on this Pi
+      if (src.type === "holidays") { this.startHolidays(src); continue; }                                // any country
       if (this.fetchers.has(src.name)) { this.fetchers.get(src.name).broadcastEvents(); continue; }   // page reload
       let url = src.url || secret(`calendar.sources.${src.name}`);
       if (!url) { this.error(src.name, `no link for "${src.name}" (set calendar.sources in opensky.json or secrets.json)`); continue; }

@@ -84,7 +84,15 @@ Module.register("MMM-OpenSky-Header", {
 
   // Birthdays come from the calendar ("… Birthday" / "Bday" events), broadcast by the calendar module
   notificationReceived(n, payload) {
-    if (n !== "CALENDAR_EVENTS" || !Array.isArray(payload) || this.config.countdown.birthdays === false) return;
+    if (n !== "CALENDAR_EVENTS" || !Array.isArray(payload)) return;
+    // countdown.holidays "calendar" (countries other than the US): the next days of the Holidays calendar
+    if (this.config.countdown.holidays === "calendar") {
+      const hol = payload.filter((e) => e.calendarName === "Holidays" && e.fullDayEvent)
+        .map((e) => { const d = new Date(Number(e.startDate)); return { name: (e.title || "").trim(), date: new Date(d.getFullYear(), d.getMonth(), d.getDate()) }; });
+      const hk = JSON.stringify(hol);
+      if (hol.length && hk !== this._holKey) { this._holKey = hk; this.calendarHolidays = hol; this.updateDom(0); }
+    }
+    if (this.config.countdown.birthdays === false) return;
     const list = payload
       .filter((e) => /birthday|\bbday\b/i.test(e.title || ""))
       .map((e) => { const d = new Date(Number(e.startDate)); return { name: (e.title || "").trim(), m: d.getMonth(), d: d.getDate() }; });
@@ -108,6 +116,10 @@ Module.register("MMM-OpenSky-Header", {
     const custom = (this.config.countdown.custom || [])
       .filter((c) => c && c.name && c.month >= 1 && c.month <= 12 && c.day >= 1 && c.day <= 31)
       .map((c) => [c.icon || "custom", c.name, new Date(year, c.month - 1, c.day)]);
+    if (this.config.countdown.holidays === "calendar") {
+      return [...custom.map(([key, name, date]) => ({ key, name, date })),
+        ...(this.calendarHolidays || []).filter((h) => h.date.getFullYear() === year).map((h) => ({ key: this._holidayIcon(h.name), name: h.name, date: h.date }))];
+    }
     if (this.config.countdown.holidays !== "US") return custom.map(([key, name, date]) => ({ key, name, date }));
     return [...custom,
       ["newyear", "New Year's Day", new Date(year, 0, 1)], ["valentine", "Valentine's Day", new Date(year, 1, 14)],
@@ -116,6 +128,13 @@ Module.register("MMM-OpenSky-Header", {
       ["labor", "Labor Day", nth(8, 1, 1)], ["halloween", "Halloween", new Date(year, 9, 31)],
       ["thanksgiving", "Thanksgiving", nth(10, 4, 4)], ["christmas", "Christmas", new Date(year, 11, 25)]
     ].map(([key, name, date]) => ({ key, name, date }));
+  },
+
+  // a matching built-in icon for well-known days, else the star
+  _holidayIcon(name) {
+    const n = String(name).toLowerCase();
+    return /christmas/.test(n) ? "christmas" : /easter/.test(n) ? "easter" : /new year/.test(n) ? "newyear" : /halloween/.test(n) ? "halloween"
+      : /thanksgiving/.test(n) ? "thanksgiving" : /mother/.test(n) ? "mothers" : /father/.test(n) ? "fathers" : "custom";
   },
 
   _nextOccasion(now) {

@@ -33,6 +33,19 @@ module.exports = async (page, h) => {
   }));
   ok("ESPN scoreboard reachable for the chosen league", res[0] && res[0].ok === true, res[0] && { ok: res[0].ok, hasEvent: !!res[0].event, error: res[0].error });
   ok("unknown league → clear error message", res[1] && res[1].ok === false && /unknown league/.test(res[1].error), res[1] && res[1].error);
+  // other countries: the countdown follows the Holidays calendar (calendar.holidays = "GB" etc.)
+  await page.evaluate(() => {
+    const hd = MM.getModules().withClass("MMM-OpenSky-Header")[0];
+    hd.config.countdown = { ...hd.config.countdown, holidays: "calendar", custom: [] };
+    const t = new Date(); const at = (dd) => String(new Date(t.getFullYear(), t.getMonth(), t.getDate() + dd).getTime());
+    hd.notificationReceived("CALENDAR_EVENTS", [
+      { title: "Boxing Day", startDate: at(2), endDate: at(3), fullDayEvent: true, calendarName: "Holidays" },
+      { title: "Dentist", startDate: at(1), endDate: at(1), fullDayEvent: false, calendarName: "Family" }]);
+  });
+  await h.sleep(600);
+  const cd2 = await page.evaluate(() => document.querySelector(".hb-countdown")?.textContent.replace(/\s+/g, " ").trim());
+  ok("another country: countdown to the next day of the Holidays calendar", /Boxing Day/.test(cd2 || "") && /2 days/.test(cd2 || ""), cd2);
+
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
 };

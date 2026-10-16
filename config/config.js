@@ -66,6 +66,7 @@ const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((
 const servicePort = (cal.service && cal.service.port) || 5050;
 calendarSources.filter((c) => c.type === "caldav").forEach((c) => { c.url = `http://127.0.0.1:${servicePort}/${encodeURIComponent(c.name)}/calendar.ics`; });
 if (cal.holidays === "US") calendarSources.push({ name: "Holidays", url: "https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics", color: "tan", fetchMinutes: 720 });
+else if (/^[A-Za-z]{2}$/.test(cal.holidays || "")) calendarSources.push({ name: "Holidays", type: "holidays", url: null, country: cal.holidays.toUpperCase(), region: cal.holidaysRegion || null, color: "tan", fetchMinutes: 720 });
 
 // Calendars that can be changed from the screen: the on-device calendar(s) and CalDAV accounts
 // Lists (groceries, to-dos…): on-device by default; Todoist with a token in secrets.json
@@ -199,7 +200,8 @@ const fixed = [
         units, refreshMinutes: 15
       },
       countdown: {
-        holidays: header.holidays === "none" ? "none" : "US",
+        // US: built-in list (with Mother's Day, Halloween…); other countries: from the Holidays calendar
+        holidays: header.holidays === "none" ? "none" : (!cal.holidays || cal.holidays === "US") ? "US" : (cal.holidays === "none" ? "none" : "calendar"),
         custom: Array.isArray(header.occasions) ? header.occasions : [],
         birthdays: header.birthdaysFromCalendar !== false
       },

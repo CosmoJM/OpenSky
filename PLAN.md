@@ -32,27 +32,27 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 
 | Area | Reference build | Options to offer | Notes |
 |---|---|---|---|
-| Install | hand-built Pi | 🔜 one-line installer on Raspberry Pi OS; 💭 ready-made SD-card image | Image = friendliest, more work |
-| First-run setup | hand-edited config.js | 🔜 **phone setup page** (QR on screen) **default**; config file for power users | Validates input, explains each field |
+| Install | hand-built Pi | one-line installer on Raspberry Pi OS ✅; 💭 ready-made SD-card image | Image = friendliest, more work |
+| First-run setup | hand-edited config.js | **phone setup page** (QR + pairing code) **default** ✅; config file for power users ✅ | Validates input, explains each field |
 | Hardware | Pi 5 + 24" Elo touch | Pi 5 / Pi 4 (Pi 3 = light mode?); any HDMI touchscreen; official Pi touch display | Test matrix needed |
 | Screen off/on | soft sleep (black cover + DDC backlight 0) ✅ | 🔜 **DPMS/wlr-randr off** default; DDC/CI backlight; soft sleep (monitors that wake themselves); HDMI-CEC (TVs); Pi display backlight (sysfs) | Auto-detect + "test" button |
 | Wake | touch / mouse / keyboard ✅ | + motion sensor (PIR) 💭; + presence (Home Assistant) | |
 | Sleep schedule | Settings page + HA automations ✅ | **built-in schedule** default ✅; Home Assistant optional | Don't require HA |
-| Calendar (read) | iCloud via CalDAV backend ✅ | 🔜 **ICS URL** default (Google/Outlook/iCloud "secret address"); iCloud CalDAV; generic CalDAV (Fastmail, Nextcloud…); Google Calendar API; Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
+| Calendar (read) | iCloud via CalDAV backend ✅ | **ICS URL** default ✅ (Google/Outlook/iCloud "secret address"); on-device ✅; iCloud + generic CalDAV ✅; 🔜 Google Calendar API; Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
 | Calendar (add/edit) | iCloud CalDAV ✅ | CalDAV ✅; Google (OAuth) 🔜; Microsoft 365 💭; read-only mode | OAuth = setup friction; guide it |
 | Lists | Todoist (2 projects) ✅ | **on-device lists** default (no account) ✅; Todoist ✅; Home Assistant to-do ✅ (covers Google Tasks etc. connected to HA); Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
-| Weather (header + day tiles) | OpenWeatherMap (header) + Open-Meteo (7-day) ✅ | 🔜 **Open-Meteo** default (no key); OpenWeatherMap; 💭 NWS, Met.no | °F/°C, location by address search |
-| Photos | Immich ✅ | 🔜 **local folder / USB stick** default; Immich; PhotoPrism; Nextcloud/WebDAV; iCloud shared album link; 💭 Google Photos (API is very limited now) | Portrait pairing ✅ |
+| Weather (header + day tiles) | OpenWeatherMap (header) + Open-Meteo (7-day) ✅ | **Open-Meteo** default (no key) ✅; OpenWeatherMap ✅; 💭 NWS, Met.no | °F/°C, location by address search |
+| Photos | Immich ✅ | **local folder / USB stick** default ✅; Immich ✅; 🔜 PhotoPrism; Nextcloud/WebDAV; iCloud shared album link; 💭 Google Photos (API is very limited now) | Portrait pairing ✅ |
 | Smart Home page | Home Assistant dashboard (webview) ✅ | Home Assistant; **any URL** embed; none | Generic "embedded page" with optional PIN |
 | HA integration | screen switch/sensor, presence, sleep helpers ✅ | optional: auto-create HA entities via MQTT discovery or a small HA integration 💭 | Reference build uses REST + templates |
-| Header countdown pill | US holidays + birthdays ✅ | 🔜 holidays by **country** (US default); birthdays from a calendar or a list | Themed icons ✅ |
-| Sports pill | Patriots (ESPN) ✅ | 🔜 pick any team: NFL/NBA/MLB/NHL/MLS/college (ESPN); off by default | ESPN API is unofficial → can break |
-| Curbside pickup icons | New Bedford rules (collection.js) ✅ | 🔜 generic schedule (trash day, recycling weekly/every other week, yard-waste weeks, holiday shift rule); ICS import (many cities / ReCollect publish one); city presets contributed by users | Reference city = example preset |
+| Header countdown pill | US holidays + birthdays ✅ | holidays by **country** ✅ (US: Google list; ~200 others: Nager.Date, + regions); birthdays from a calendar or a list | Themed icons ✅ |
+| Sports pill | Patriots (ESPN) ✅ | pick any team ✅: NFL/NBA/MLB/NHL/MLS/college/EPL (ESPN); off by default | ESPN API is unofficial → can break |
+| Curbside pickup icons | New Bedford rules (collection.js) ✅ | generic schedule ✅ (trash day, recycling weekly/every other week, yard-waste weeks, holiday shift rule); 🔜 ICS import (many cities / ReCollect publish one); city presets contributed by users | Reference city = example preset |
 | Timer chime | USB speaker (PipeWire) ✅ | any audio output; 💭 smart-speaker announcement via HA | |
-| Daily word game | NYT daily word ✅ | 🔜 **built-in word list** default; NYT word optional (user opt-in — unofficial feed, ToS grey area) | Rename (not "Wordle", a NYT trademark) |
-| On-screen keyboard | iPad-style US ✅ | 🔜 layouts (US, UK, intl.); 💭 languages | |
+| Daily word game | NYT daily word ✅ | **NYT word default** ✅ (the maintainer's call); built-in SCOWL words as backup / opt-out ✅ | Rename (not "Wordle", a NYT trademark) |
+| On-screen keyboard | iPad-style US ✅ | own module ✅; 🔜 layouts (US, UK, intl.); 💭 languages | |
 | Brightness / volume (Settings) | ddcutil + wpctl ✅ | DDC/CI; Pi display backlight; none (hide slider) | Auto-detect |
-| Look & feel | family name in the header, pastel theme ✅ | 🔜 family name, accent colour, light/dark, 12/24 h, units, first day of week, date format; 💭 languages (i18n) | |
+| Look & feel | family name in the header, pastel theme ✅ | family name ✅, 12/24 h ✅, units ✅, first day of week ✅; 🔜 accent colour, light/dark, 12/24 h, units, first day of week, date format; 💭 languages (i18n) | |
 | Updates | manual | "Update" button in Settings ✅ (git pull + installer); 🔜 migrations, rollback | Big for friendliness |
 | Backups | nightly git + NAS (reference build) | 🔜 export/import settings file from the setup page | |
 | Food (add-on) | Google Places + Routes ✅ | Google (own key); 💭 OpenStreetMap/Overpass (free, no key) | Later |
