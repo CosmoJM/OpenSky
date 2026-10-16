@@ -53,4 +53,24 @@ html, body {
 #remote-control-overlay,
 .remote-control-overlay { pointer-events: none !important; }
 
-
+/* Shared toast (window.OpenSkyToast / OPENSKY_TOAST) — short messages at the top of the screen */
+.os-toast {
+  position: fixed;
+  left: 50%;
+  top: 28px;
+  transform: translate(-50%, calc(-100% - 48px)); /* fully off-screen (-140% left an 8px sliver showing) */
+  visibility: hidden;
+  z-index: 1000001;             /* above modals and the keyboard */
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: #374151;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+  transition: transform .25s ease, visibility 0s linear .25s;
+  pointer-events: none;
+}
+.os-toast.show { transform: translate(-50%, 0); visibility: visible; transition: transform .25s ease; }
+.os-toast[data-type="success"] { background: #3f9467; }   /* muted sage, matches the palette */
+.os-toast[data-type="error"] { background: #d2604e; }     /* soft coral red */

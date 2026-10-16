@@ -37,7 +37,7 @@ opensky/
 | MMM-OpenSky-Header | MMM-HeaderBar | family name, clock, weather provider, countdown + sports pills |
 | MMM-OpenSky-Home | MMM-HomeDashboard | week tiles, lists card, photos card (providers), pickup icons |
 | MMM-OpenSky-CalendarNav / -CalendarHelper / -EventEditor | MMM-CalendarNav / -CalendarHelper / -CalendarEditor | month/week view uses MMM-CalendarExt3 (pinned + patch) |
-| MMM-OpenSky-Lists / -TaskEditor / -QuickAdd | MMM-Todoist (+patch) / MMM-TaskEditor / MMM-TodoistQuickAdd | list providers: on-device (default), Todoist, … |
+| MMM-OpenSky-Lists ✅ | MMM-Todoist / MMM-TaskEditor / MMM-TodoistQuickAdd | `lib/lists.js` providers: on-device (default, `config/lists.json`), Todoist (token in secrets.json); add / edit / check-off-with-Undo popups; broadcasts `OPENSKY_LISTS` |
 | MMM-OpenSky-Timer | MMM-Timer | |
 | MMM-OpenSky-Settings | the reference build's settings module | brightness/volume/schedule backends auto-detected |
 | MMM-OpenSky-WordGame | MMM-Wordle | own word list by default; NYT optional |
@@ -56,6 +56,8 @@ MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarus
   good feed in `config/calendar-cache/`. Repeating events are read-only (409).
 
 ## MagicMirror 2.38 notes
+- A module's own fields and methods must not reuse MagicMirror's `Module` names: `this.data` (holds `classes`;
+  overwriting it breaks MMM-pages), `show()`, `hide()`, `config`, `name`, `identifier`, `file()`… Pick specific names.
 - `config.js` is read as text and evaluated (`requireFromString`), so `__dirname` inside it is not the config
   folder — locate files with `global.root_path`. Node helpers should also require OpenSky's shared library via
   `path.join(global.root_path, "modules", "opensky-lib", …)` (module folders may be links in development).

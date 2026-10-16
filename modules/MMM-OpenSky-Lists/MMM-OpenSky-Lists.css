@@ -1,0 +1,107 @@
+/* MMM-OpenSky-Lists — add / edit popups and the Undo bar (all appended to <body>) */
+
+.osl-overlay {
+  --osl-accent: #2e8bd6;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;                /* below the toast and the on-screen keyboard */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .5);
+  backdrop-filter: blur(4px);
+  animation: osl-fade .2s ease;
+}
+@keyframes osl-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.osl-modal {
+  width: min(620px, 90vw);
+  padding: 24px 28px 26px;
+  border-radius: 24px;
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+  box-sizing: border-box;
+}
+.osl-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.osl-title { font-size: 26px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.osl-x {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+.osl-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 60px;
+  padding: 14px 18px;
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+  font-size: 22px;
+}
+.osl-input:focus { outline: none; border-color: var(--osl-accent); }
+.osl-error { margin-top: 10px; color: #b4432f; font-size: 17px; font-weight: 600; }
+.osl-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.osl-btn {
+  min-width: 100px;
+  min-height: 54px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.osl-btn:disabled { opacity: .6; }
+.osl-primary { background: var(--osl-accent); color: #fff; }
+.osl-cancel { background: #f3f4f6; color: #374151; }
+.osl-done { background: #e6f4ec; color: #22603f; }
+.osl-danger { margin-right: auto; background: #fde8e4; color: #a33a28; }   /* on the left, away from Save */
+
+/* Undo bar after checking an item off */
+.osl-undo {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  z-index: 100001;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 80vw;
+  padding: 10px 10px 10px 26px;
+  border-radius: 40px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .25);
+  transform: translate(-50%, 160%);
+  visibility: hidden;
+  transition: transform .25s ease, visibility 0s linear .25s;
+}
+.osl-undo.show { transform: translate(-50%, 0); visibility: visible; transition: transform .25s ease; }
+.osl-undo-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.osl-undo-btn {
+  flex: 0 0 auto;
+  height: 52px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 26px;
+  background: #ff9f7f;
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}

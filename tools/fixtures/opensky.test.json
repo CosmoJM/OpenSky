@@ -13,6 +13,7 @@
     ],
     "colors": { "calendars": { "Testers": "blue" }, "rules": [{ "match": "dentist", "color": "indigo" }] }
   },
+  "lists": { "lists": [{ "name": "Groceries", "color": "green" }, { "name": "Chores" }] },
   "photos": { "provider": "folder", "folder": "photos", "usb": false, "intervalSeconds": 30 },
   "pickup": { "trashDay": "monday", "preset": "new-bedford-ma" }
 }

@@ -40,6 +40,12 @@
     "colors": { "calendars": {}, "rules": [] }
   },
 
+  "lists": {
+    "lists": [
+      { "name": "To-Dos", "color": "blue" },
+      { "name": "Groceries", "color": "orange" }
+    ]
+  },
   "photos": {
     "provider": "folder",
     "folder": "~/Pictures",

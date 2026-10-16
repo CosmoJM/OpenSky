@@ -377,12 +377,13 @@
   color: #1f2937;
   cursor: pointer;
 }
-.hd-item.mte-done .hd-check {
+.hd-item.is-done .hd-check {
   background-color: var(--list-accent);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
 }
-.hd-item.mte-done .hd-item-text { text-decoration: line-through; opacity: .45; }
+.hd-item.is-done .hd-item-text { text-decoration: line-through; opacity: .45; }
 .hd-empty { padding: 18px 4px; font-size: 17px; color: #9ca3af; }
+.hd-empty.hd-list-error { color: #b4432f; font-size: 15px; line-height: 1.35; }
 
 /* No lists from any provider: the photo card takes the whole right column */
 .hd-root.hd-no-lists .hd-photo { flex: 1 1 auto; }

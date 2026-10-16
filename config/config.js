@@ -68,6 +68,11 @@ calendarSources.filter((c) => c.type === "caldav").forEach((c) => { c.url = `htt
 if (cal.holidays === "US") calendarSources.push({ name: "Holidays", url: "https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics", color: "tan", fetchMinutes: 720 });
 
 // Calendars that can be changed from the screen: the on-device calendar(s) and CalDAV accounts
+// Lists (groceries, to-dos…): on-device by default; Todoist with a token in secrets.json
+const listSettings = s.lists || {};
+const familyLists = (Array.isArray(listSettings.lists) ? listSettings.lists : []).filter((l) => l && l.name)
+  .map((l) => ({ name: String(l.name), color: l.color || null, provider: l.provider === "todoist" ? "todoist" : "local",
+    ...(l.project ? { project: String(l.project) } : {}), ...(l.projectId ? { projectId: String(l.projectId) } : {}) }));
 const editableCalendars = calendarSources.filter((c) => c.type === "local" || c.type === "caldav").map((c) => ({ name: c.name, type: c.type }));
 const canAddEvents = editableCalendars.length > 0;
 
@@ -139,6 +144,7 @@ const header = s.header || {};
 
 // Modules shown on every page
 const fixed = [
+  ...(familyLists.length ? [{ module: "MMM-OpenSky-Lists", config: { lists: familyLists, refreshMinutes: listSettings.refreshMinutes || 2 } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-EventEditor", config: { editable: editableCalendars, servicePort } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources } }] : []),
   {

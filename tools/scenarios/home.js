@@ -35,7 +35,14 @@ module.exports = async (page, h) => {
   const expect = await page.evaluate(() => [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() + i); const c = window.OpenSkyPickup.collectionsOn(d, MM.getModules().withClass("MMM-OpenSky-Home")[0].config.pickup); return { trash: c.trash, yard: c.yard }; }));
   ok("pickup icons match the schedule engine for all 7 days", pick.every((p, i) => p.trash === expect[i].trash && p.yard === expect[i].yard) && pick.some((p) => p.trash), pick.filter((p) => p.trash || p.yard));
 
-  // no list providers yet → no lists card, photo takes the right column
+  // on-device lists (MMM-OpenSky-Lists, seeded by the harness) show on the lists card
+  for (let i = 0; i < 20 && !(await page.evaluate(() => document.querySelectorAll(".hd-list").length)); i++) await h.sleep(500);
+  const own = await page.evaluate(() => [...document.querySelectorAll(".hd-list")].map((c) => ({ title: c.querySelector(".hd-list-title").textContent, badge: c.querySelector(".hd-badge").textContent, items: [...c.querySelectorAll(".hd-item-text")].map((x) => x.textContent), empty: c.querySelector(".hd-empty")?.textContent || "" })));
+  ok("on-device lists from settings show (Groceries 2 items, Chores empty)", own.length === 2 && own[0].title === "Groceries" && own[0].badge === "2" && own[0].items.join() === "Milk,Apples" && /All done/.test(own[1].empty), own);
+
+  // no lists at all → no lists card, photo takes the right column
+  await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Home")[0].notificationReceived("OPENSKY_LISTS", { source: "opensky", lists: [] }));
+  await h.sleep(300);
   const right = await page.evaluate(() => { const r = document.querySelector(".hd-right").getBoundingClientRect(), p = document.querySelector(".hd-photo").getBoundingClientRect(); return { listsHidden: document.querySelector(".hd-lists").hidden, photoShare: +(p.height / r.height).toFixed(2) }; });
   ok("no lists → photo card fills the right column", right.listsHidden && right.photoShare > 0.95, right);
   // photos from the folder

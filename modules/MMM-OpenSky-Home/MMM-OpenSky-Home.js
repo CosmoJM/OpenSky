@@ -8,7 +8,8 @@
  *     (the event editor module answers these; "Add Event" only shows when one is installed)
  *   - daily high + icon from the header's shared forecast (OPENSKY_WEATHER)
  *   - curbside pickup icons next to the "N events" counter (pickup in opensky.json, lib/client/pickup.js)
- * Lists card: whatever list providers broadcast as OPENSKY_LISTS { source, lists: [{ id, title, color, items, loaded }] }.
+ * Lists card: whatever list providers broadcast as OPENSKY_LISTS { source, lists: [{ id, title, color, items, loaded, error }] }
+ *   (an item with done: true is shown checked — e.g. while its Undo is offered).
  *   "Add item" → OPENSKY_LIST_ADD {source, listId}; circle → OPENSKY_LIST_CHECK {source, listId, item, el};
  *   text → OPENSKY_LIST_EDIT {source, listId, item}. No lists → the photo card takes the whole right side.
  * Photo card: a folder / USB stick (default) or Immich, via the node helper (/opensky-photo/<id>).
@@ -356,23 +357,26 @@ Module.register("MMM-OpenSky-Home", {
         col.style.setProperty("--list-dark", `color-mix(in srgb, ${named[1]} 78%, black)`);
       }
       col.innerHTML = `
-        <div class="hd-list-head"><span class="hd-list-title"></span><span class="hd-badge">${(list.items || []).length}</span></div>
+        <div class="hd-list-head"><span class="hd-list-title"></span><span class="hd-badge">${(list.items || []).filter((it) => !it.done).length}</span></div>
         <button class="hd-add-item">${this.icon("plus")}<span>Add item</span></button>
         <div class="hd-items"></div>`;
       col.querySelector(".hd-list-title").textContent = list.title || "List";
       col.querySelector(".hd-add-item").onclick = () => this.sendNotification("OPENSKY_LIST_ADD", { source: list.source, listId: list.id });
       const items = col.querySelector(".hd-items");
       if (list.loaded === false) items.innerHTML = `<div class="hd-empty">Loading…</div>`;
-      else if (!(list.items || []).length) items.innerHTML = `<div class="hd-empty">All done! 🎉</div>`;
+      else if (list.error && !(list.items || []).length) {
+        items.innerHTML = `<div class="hd-empty hd-list-error"></div>`;
+        items.firstChild.textContent = list.error;
+      } else if (!(list.items || []).length) items.innerHTML = `<div class="hd-empty">All done! 🎉</div>`;
       (list.items || []).forEach((item) => {
         const row = document.createElement("div");
-        row.className = "hd-item";
+        row.className = "hd-item" + (item.done ? " is-done" : "");
         row.innerHTML = `<button class="hd-check" aria-label="Check off"></button><span class="hd-item-text"></span>`;
         row.querySelector(".hd-item-text").textContent = item.text;
         row.querySelector(".hd-check").onclick = () => {
-          if (!row.classList.contains("mte-done")) this.sendNotification("OPENSKY_LIST_CHECK", { source: list.source, listId: list.id, item, el: row });
+          if (!item.done) this.sendNotification("OPENSKY_LIST_CHECK", { source: list.source, listId: list.id, item, el: row });
         };
-        row.querySelector(".hd-item-text").onclick = () => this.sendNotification("OPENSKY_LIST_EDIT", { source: list.source, listId: list.id, item });
+        row.querySelector(".hd-item-text").onclick = () => { if (!item.done) this.sendNotification("OPENSKY_LIST_EDIT", { source: list.source, listId: list.id, item }); };
         items.appendChild(row);
       });
       cols.appendChild(col);

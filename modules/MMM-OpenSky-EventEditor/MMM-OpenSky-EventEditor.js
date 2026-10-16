@@ -5,7 +5,6 @@
  *   type "local"  — the on-device calendar (no account; shown again at once)
  *   type "caldav" — iCloud / Fastmail / Nextcloud… through OpenSky's calendar service on the Pi
  * Events of other calendars (links) are read-only: no Edit / Delete buttons.
- * Also shows the shared toast: OPENSKY_TOAST { message, type: "error" | "success" | "info" }.
  */
 Module.register("MMM-OpenSky-EventEditor", {
   defaults: {
@@ -52,10 +51,7 @@ Module.register("MMM-OpenSky-EventEditor", {
       if (this.mode && !this.busy) this.closeModal(); // nobody touched it for a while (MMM-OpenSky-Sidebar)
       return;
     }
-    if (notification === "OPENSKY_TOAST" && payload && payload.message) {
-      // Shared toast: other modules (lists) report failures through this one
-      this.showNotification(payload.message, payload.type || "info");
-    } else if (notification === "CALENDAR_DAY_CLICKED") {
+    if (notification === "CALENDAR_DAY_CLICKED") {
       this.day = payload; // { date: ms of local midnight, events: [...] }
       this.currentEvent = null;
       this.mode = "day";
@@ -517,17 +513,7 @@ Module.register("MMM-OpenSky-EventEditor", {
 
   showNotification(message, type) {
     Log.info(`[${type}] ${message}`);
-    let toast = document.querySelector(".calendar-editor-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.className = "calendar-editor-toast";
-      document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.dataset.type = type;
-    toast.classList.add("show");
-    clearTimeout(this._toastTimer);
-    this._toastTimer = setTimeout(() => toast.classList.remove("show"), type === "error" ? 5000 : 2500);
+    window.OpenSkyToast(message, type);
   },
 
   /* ---------------- icons ---------------- */

@@ -8,7 +8,8 @@
  *   first page (not while a timer is running or ringing on the Timer page). 0 = off.
  *
  * Notifications sent: PAGE_CHANGED (MMM-pages), OPENSKY_IDLE_RESET, OPENSKY_SCREEN_SLEEP (true/false),
- * OPENSKY_SETTINGS_OPEN, HIDE_KEYBOARD.   Received: PAGE_CHANGED, OPENSKY_WAKE (e.g. a timer finished).
+ * OPENSKY_SETTINGS_OPEN, HIDE_KEYBOARD.   Received: PAGE_CHANGED, OPENSKY_WAKE (e.g. a timer finished),
+ * OPENSKY_TOAST { message, type: "error" | "success" | "info" } (the shared toast; the sidebar is always on screen).
  */
 Module.register("MMM-OpenSky-Sidebar", {
   defaults: {
@@ -21,6 +22,7 @@ Module.register("MMM-OpenSky-Sidebar", {
   },
 
   getStyles() { return ["MMM-OpenSky-Sidebar.css"]; },
+  getScripts() { return ["modules/opensky-lib/client/opensky-client.js"]; },
 
   start() {
     this.activeIndex = 0;        // MMM-pages starts on its first page
@@ -38,6 +40,8 @@ Module.register("MMM-OpenSky-Sidebar", {
       this.syncActive();
     } else if (n === "OPENSKY_WAKE") {
       this.wake();
+    } else if (n === "OPENSKY_TOAST" && payload && payload.message) {
+      window.OpenSkyToast(payload.message, payload.type || "info");
     }
   },
 

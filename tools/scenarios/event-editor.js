@@ -2,7 +2,7 @@
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const modal = () => page.evaluate(() => { const m = document.querySelector(".calendar-editor-modal"); return m ? { title: m.querySelector("h2")?.textContent, edit: !!m.querySelector(".event-edit-btn"), del: !!m.querySelector(".event-delete-btn"), text: m.textContent.replace(/\s+/g, " ").trim().slice(0, 200) } : null; });
-  const toast = () => page.evaluate(() => { const t = document.querySelector(".calendar-editor-toast.show"); return t ? t.textContent : null; });
+  const toast = () => page.evaluate(() => { const t = document.querySelector(".os-toast.show"); return t ? t.textContent : null; });
   const fill = (vals) => page.evaluate((v) => { for (const [id, val] of Object.entries(v)) { const el = document.getElementById(id); if (el.type === "checkbox") { el.checked = val; el.onchange && el.onchange(); } else el.value = val; } }, vals);
   const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const pillOnToday = (t) => page.evaluate((t) => [...document.querySelectorAll(".hd-day.hd-is-today .hd-event-title")].some((e) => e.textContent === t), t);

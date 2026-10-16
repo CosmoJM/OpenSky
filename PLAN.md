@@ -40,7 +40,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Sleep schedule | Settings page + HA automations ✅ | 🔜 **built-in schedule** default; Home Assistant optional | Don't require HA |
 | Calendar (read) | iCloud via CalDAV backend ✅ | 🔜 **ICS URL** default (Google/Outlook/iCloud "secret address"); iCloud CalDAV; generic CalDAV (Fastmail, Nextcloud…); Google Calendar API; Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
 | Calendar (add/edit) | iCloud CalDAV ✅ | CalDAV ✅; Google (OAuth) 🔜; Microsoft 365 💭; read-only mode | OAuth = setup friction; guide it |
-| Lists | Todoist (2 projects) ✅ | 🔜 **on-device lists** default (no account); Todoist; Home Assistant to-do; Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
+| Lists | Todoist (2 projects) ✅ | **on-device lists** default (no account) ✅; Todoist ✅; Home Assistant to-do; Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
 | Weather (header + day tiles) | OpenWeatherMap (header) + Open-Meteo (7-day) ✅ | 🔜 **Open-Meteo** default (no key); OpenWeatherMap; 💭 NWS, Met.no | °F/°C, location by address search |
 | Photos | Immich ✅ | 🔜 **local folder / USB stick** default; Immich; PhotoPrism; Nextcloud/WebDAV; iCloud shared album link; 💭 Google Photos (API is very limited now) | Portrait pairing ✅ |
 | Smart Home page | Home Assistant dashboard (webview) ✅ | Home Assistant; **any URL** embed; none | Generic "embedded page" with optional PIN |
@@ -71,8 +71,8 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    read-only; changes go through the node helper).
    ✅ CalDAV calendar service (services/calendar-service: iCloud/Fastmail/Nextcloud…, add/edit/delete, offline
    cache, tested against a throwaway Radicale server).
-   Next: Lists (on-device + Todoist),
-   docs + installer, Settings, keyboard, word game, embed page.
+   ✅ Lists (on-device default + Todoist; add / edit / delete / check off with Undo; shared toast).
+   Next: docs + installer, a full-screen Lists page (Home shows up to 3 lists), Settings, keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

@@ -21,6 +21,10 @@ fs.mkdirSync(OUT, { recursive: true });
 // every run starts with an empty on-device calendar
 const LOCAL_CAL = path.join(OUT, "local-calendar.test.json");
 fs.rmSync(LOCAL_CAL, { force: true });
+// on-device lists, seeded fresh each run (Groceries: Milk, Apples · Chores: empty)
+const LOCAL_LISTS = path.join(OUT, "lists.test.json");
+fs.mkdirSync(OUT, { recursive: true });
+fs.writeFileSync(LOCAL_LISTS, JSON.stringify({ version: 1, lists: { Groceries: [{ id: "g1", text: "Milk" }, { id: "g2", text: "Apples" }] } }));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
@@ -38,6 +42,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_SETTINGS: process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json"),
       OPENSKY_SECRETS: process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json"),
       OPENSKY_LOCAL_CALENDAR: LOCAL_CAL,
+      OPENSKY_LOCAL_LISTS: LOCAL_LISTS,
       ELECTRON_ENABLE_LOGGING: "1"
     },
     timeout: 90000
@@ -45,7 +50,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const page = await app.firstWindow({ timeout: 90000 });
   const logs = [];
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") logs.push(`[${m.type()}] ${m.text()}`); });
-  page.on("pageerror", (e) => logs.push(`[pageerror] ${e.message}`));
+  page.on("pageerror", (e) => logs.push(`[pageerror] ${e.message}\n${(e.stack || "").split("\n").slice(1, 4).join("\n")}`));
   const h = {
     sleep,
     shot: (n) => page.screenshot({ path: path.join(OUT, `${n}.png`) }),
