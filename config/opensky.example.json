@@ -30,7 +30,7 @@
     "sports": { "league": "nfl", "team": "" }
   },
 
-  "pages": ["home", "calendar", "timer"],
+  "pages": ["home", "calendar", "lists", "timer"],
 
   "calendar": {
     "sources": [

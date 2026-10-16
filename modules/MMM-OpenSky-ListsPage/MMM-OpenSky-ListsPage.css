@@ -1,0 +1,57 @@
+/* MMM-OpenSky-ListsPage — all lists, side by side (columns: lib/client/list-columns.css) */
+
+.lp-root {
+  position: fixed;
+  top: 92px;                          /* below the header bar */
+  bottom: 22px;
+  left: var(--os-content-left, 112px);
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 20px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 28px rgba(31, 41, 55, .07);
+  box-sizing: border-box;
+  color: #1f2937;
+  font-family: inherit;
+}
+.lp-head {
+  text-transform: none;               /* MagicMirror's main.css uppercases every <header> */
+  font-family: inherit;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0 4px 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #374151;
+}
+.lp-title { display: inline-flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 800; color: #1f2937; }
+.lp-title svg { width: 26px; height: 26px; color: #e8663f; }
+
+.lp-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-auto-flow: column;
+  /* up to --lp-columns lists fill the width; more scroll sideways */
+  grid-auto-columns: calc((100% - (var(--lp-columns, 4) - 1) * 16px) / var(--lp-columns, 4));
+  gap: 16px;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+}
+/* fewer lists than columns: share the width (one list alone stays a readable width) */
+.lp-columns:not(:has(> .lc-list:nth-child(4))) { grid-auto-columns: minmax(0, 1fr); }
+.lp-columns:has(> .lc-list:only-child) { grid-auto-columns: minmax(0, 620px); }
+
+/* on this page every list scrolls (Home fades the bottom instead) */
+.lp-columns .lc-items {
+  overflow-y: auto;
+  -webkit-mask-image: none;
+  mask-image: none;
+  overscroll-behavior: contain;
+}
+.lp-columns .lc-item-text { -webkit-line-clamp: unset; }
+
+.lp-none { margin: 40px auto; font-size: 20px; color: #6b7280; text-align: center; }

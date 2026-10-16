@@ -38,6 +38,7 @@ opensky/
 | MMM-OpenSky-Home | MMM-HomeDashboard | week tiles, lists card, photos card (providers), pickup icons |
 | MMM-OpenSky-CalendarNav / -CalendarHelper / -EventEditor | MMM-CalendarNav / -CalendarHelper / -CalendarEditor | month/week view uses MMM-CalendarExt3 (pinned + patch) |
 | MMM-OpenSky-Lists ✅ | MMM-Todoist / MMM-TaskEditor / MMM-TodoistQuickAdd | `lib/lists.js` providers: on-device (default, `config/lists.json`), Todoist (token in secrets.json); add / edit / check-off-with-Undo popups; broadcasts `OPENSKY_LISTS` |
+| MMM-OpenSky-ListsPage ✅ | (Todoist page) | page `lists`: every list side by side; columns drawn by `lib/client` `OpenSkyListColumn` (+ `list-columns.css`), same as Home |
 | MMM-OpenSky-Timer | MMM-Timer | |
 | MMM-OpenSky-Settings | the reference build's settings module | brightness/volume/schedule backends auto-detected |
 | MMM-OpenSky-WordGame | MMM-Wordle | own word list by default; NYT optional |

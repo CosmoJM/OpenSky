@@ -36,7 +36,7 @@ After changing either file, run **`opensky restart`**. If the screen doesn't com
 
 ## Pages
 ```json
-"pages": ["home", "calendar", "timer"]
+"pages": ["home", "calendar", "lists", "timer"]
 ```
 These are the buttons on the left, in this order. The first one is where the screen returns after a few idle minutes.
 
@@ -44,9 +44,10 @@ These are the buttons on the left, in this order. The first one is where the scr
 |---|---|
 | `home` | the week ahead, your lists and a photo |
 | `calendar` | month view (two weeks / one week from its toolbar), tap a day or event to see or edit it |
+| `lists` | every list side by side, each one scrolls (Home shows the first three) |
 | `timer` | kitchen timers with a chime |
 
-More pages are coming: a full Lists page, Smart Home, a word game and Settings.
+More pages are coming: Smart Home, a word game and Settings.
 
 ## Weather
 ```json
@@ -138,14 +139,15 @@ In `opensky.json`: `{ "name": "Shared", "type": "caldav", "color": "green" }`. T
     { "name": "Groceries", "color": "orange" },
     { "name": "Shopping", "provider": "todoist", "project": "Shopping", "color": "green" }
   ],
-  "refreshMinutes": 2
+  "refreshMinutes": 2,
+  "columns": 4
 }
 ```
 - **On the Pi** (default, no `provider`): items are kept on the Pi.
 - **Todoist** (`"provider": "todoist"`): shows a Todoist project, by default the one with the same name as the list. Use `"project": "…"` for a different name, or `"projectId": "…"`.
   - Add your token to `secrets.json → lists.todoist.token`. Find it in Todoist → Settings → *Integrations* → *Developer* → **API token**.
   - Changes on the screen show in the Todoist app, and the other way round. The screen checks every `refreshMinutes`.
-- Home shows the first three lists. Tap **Add item** to add, tap the circle to check off (with Undo), or tap an item to edit or delete it.
+- Home shows the first three lists; the **Lists** page shows them all (`columns` fit across, more scroll sideways). Tap **Add item** to add, tap the circle to check off (with Undo), or tap an item to edit or delete it.
 
 ## Photos
 ```json

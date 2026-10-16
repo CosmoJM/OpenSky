@@ -118,6 +118,11 @@ const PAGES = {
       pickup: pickupSchedule(s.pickup)
     }
   }],
+  lists: () => [{
+    module: "MMM-OpenSky-ListsPage",
+    position: "fullscreen_above",
+    config: { columns: (s.lists && s.lists.columns) || 4 }
+  }],
   timer: () => [{
     module: "MMM-OpenSky-Timer",
     position: "fullscreen_below",

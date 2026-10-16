@@ -25,7 +25,7 @@ Module.register("MMM-OpenSky-Home", {
     pickup: null                 // resolved pickup schedule (see lib/client/pickup.js); null = no icons
   },
 
-  getStyles() { return ["MMM-OpenSky-Home.css"]; },
+  getStyles() { return ["modules/opensky-lib/client/list-columns.css", "MMM-OpenSky-Home.css"]; },
   getScripts() { return ["modules/opensky-lib/client/opensky-client.js", "modules/opensky-lib/client/pickup.js"]; },
 
   start() {
@@ -346,40 +346,13 @@ Module.register("MMM-OpenSky-Home", {
     const cols = card.querySelector(".hd-list-columns");
     cols.style.setProperty("--list-count", Math.min(3, Math.max(1, all.length)));
     cols.innerHTML = "";
-    const palette = window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE;
     all.slice(0, 3).forEach((list, idx) => {
-      const col = document.createElement("div");
-      col.className = "hd-list" + (idx % 2 ? " alt" : "");   // default: blue, peach, blue…
-      const named = palette && palette[list.color];
-      if (named) {                                            // a palette colour name → accent, pale tint, dark text
-        col.style.setProperty("--list-accent", named[1]);
-        col.style.setProperty("--list-tint", `color-mix(in srgb, ${named[1]} 7%, white)`);
-        col.style.setProperty("--list-dark", `color-mix(in srgb, ${named[1]} 78%, black)`);
-      }
-      col.innerHTML = `
-        <div class="hd-list-head"><span class="hd-list-title"></span><span class="hd-badge">${(list.items || []).filter((it) => !it.done).length}</span></div>
-        <button class="hd-add-item">${this.icon("plus")}<span>Add item</span></button>
-        <div class="hd-items"></div>`;
-      col.querySelector(".hd-list-title").textContent = list.title || "List";
-      col.querySelector(".hd-add-item").onclick = () => this.sendNotification("OPENSKY_LIST_ADD", { source: list.source, listId: list.id });
-      const items = col.querySelector(".hd-items");
-      if (list.loaded === false) items.innerHTML = `<div class="hd-empty">Loading…</div>`;
-      else if (list.error && !(list.items || []).length) {
-        items.innerHTML = `<div class="hd-empty hd-list-error"></div>`;
-        items.firstChild.textContent = list.error;
-      } else if (!(list.items || []).length) items.innerHTML = `<div class="hd-empty hd-all-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>All done!</div>`;   // (no emoji: Raspberry Pi OS has no colour-emoji font)
-      (list.items || []).forEach((item) => {
-        const row = document.createElement("div");
-        row.className = "hd-item" + (item.done ? " is-done" : "");
-        row.innerHTML = `<button class="hd-check" aria-label="Check off"></button><span class="hd-item-text"></span>`;
-        row.querySelector(".hd-item-text").textContent = item.text;
-        row.querySelector(".hd-check").onclick = () => {
-          if (!item.done) this.sendNotification("OPENSKY_LIST_CHECK", { source: list.source, listId: list.id, item, el: row });
-        };
-        row.querySelector(".hd-item-text").onclick = () => { if (!item.done) this.sendNotification("OPENSKY_LIST_EDIT", { source: list.source, listId: list.id, item }); };
-        items.appendChild(row);
-      });
-      cols.appendChild(col);
+      const send = (n, extra) => this.sendNotification(n, { source: list.source, listId: list.id, ...extra });
+      cols.appendChild(window.OpenSkyListColumn.render(list, {
+        add: () => send("OPENSKY_LIST_ADD"),
+        check: (item, el) => send("OPENSKY_LIST_CHECK", { item, el }),
+        edit: (item) => send("OPENSKY_LIST_EDIT", { item })
+      }, { alt: idx % 2 === 1 }));
     });
   },
 

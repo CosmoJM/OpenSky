@@ -36,8 +36,8 @@ module.exports = async (page, h) => {
   ok("pickup icons match the schedule engine for all 7 days", pick.every((p, i) => p.trash === expect[i].trash && p.yard === expect[i].yard) && pick.some((p) => p.trash), pick.filter((p) => p.trash || p.yard));
 
   // on-device lists (MMM-OpenSky-Lists, seeded by the harness) show on the lists card
-  for (let i = 0; i < 20 && !(await page.evaluate(() => document.querySelectorAll(".hd-list").length)); i++) await h.sleep(500);
-  const own = await page.evaluate(() => [...document.querySelectorAll(".hd-list")].map((c) => ({ title: c.querySelector(".hd-list-title").textContent, badge: c.querySelector(".hd-badge").textContent, items: [...c.querySelectorAll(".hd-item-text")].map((x) => x.textContent), empty: c.querySelector(".hd-empty")?.textContent || "" })));
+  for (let i = 0; i < 20 && !(await page.evaluate(() => document.querySelectorAll(".hd-lists .lc-list").length)); i++) await h.sleep(500);
+  const own = await page.evaluate(() => [...document.querySelectorAll(".hd-lists .lc-list")].map((c) => ({ title: c.querySelector(".lc-list-title").textContent, badge: c.querySelector(".lc-badge").textContent, items: [...c.querySelectorAll(".lc-item-text")].map((x) => x.textContent), empty: c.querySelector(".lc-empty")?.textContent || "" })));
   ok("on-device lists from settings show (Groceries 2 items, Chores empty)", own.length === 2 && own[0].title === "Groceries" && own[0].badge === "2" && own[0].items.join() === "Milk,Apples" && /All done/.test(own[1].empty), own);
 
   // no lists at all → no lists card, photo takes the right column
@@ -61,9 +61,9 @@ module.exports = async (page, h) => {
       { id: "t", title: "To-Dos", items: [] } ] });
   });
   await h.sleep(500);
-  const L = await page.evaluate(() => ({ hidden: document.querySelector(".hd-lists").hidden, cols: [...document.querySelectorAll(".hd-list")].map((c) => ({ title: c.querySelector(".hd-list-title").textContent, badge: c.querySelector(".hd-badge").textContent, empty: c.querySelector(".hd-empty")?.textContent || "" })) }));
+  const L = await page.evaluate(() => ({ hidden: document.querySelector(".hd-lists").hidden, cols: [...document.querySelectorAll(".hd-lists .lc-list")].map((c) => ({ title: c.querySelector(".lc-list-title").textContent, badge: c.querySelector(".lc-badge").textContent, empty: c.querySelector(".lc-empty")?.textContent || "" })) }));
   ok("lists card shows each list with counts", !L.hidden && L.cols.length === 2 && L.cols[0].badge === "2" && /All done/.test(L.cols[1].empty), L);
-  await h.tap(".hd-list .hd-check"); await h.tap(".hd-list .hd-add-item"); await h.sleep(300);
+  await h.tap(".hd-lists .lc-check"); await h.tap(".hd-lists .lc-add-item"); await h.sleep(300);
   const le = await page.evaluate(() => window.__listEvents);
   ok("check-off and Add item go to the list provider", le.some((e) => e[0] === "OPENSKY_LIST_CHECK" && e[2] === "Milk") && le.some((e) => e[0] === "OPENSKY_LIST_ADD" && e[1] === "g"), le);
   await h.sleep(1500); await h.shot("home-with-lists");
