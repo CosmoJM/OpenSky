@@ -29,6 +29,10 @@ Raspberry Pi OS blanks the screen when idle. Run `sudo raspi-config nonint do_bl
 - **Google**: use the *Secret address in iCal format*, not the "public URL" (which only works for public calendars).
 - New events in Google or Outlook can take a while to appear. Those services update their links on their own schedule, sometimes hours.
 
+## Google calendar (with editing) problems
+See the "Problems" list at the end of [google-calendar.md](google-calendar.md). The usual cause of a sign-in that stops
+after a week is a Google app left in "Testing": publish it.
+
 ## iCloud / CalDAV calendar problems
 - **"was refused — check the username and (app-specific) password"**: iCloud needs an **app-specific password** (appleid.apple.com → Sign-In and Security). Your normal Apple ID password won't work.
 - **"Calendar … not found in that account"**: `calendar` in `secrets.json` must match the name in the Calendar app exactly.

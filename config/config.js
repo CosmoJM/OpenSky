@@ -62,7 +62,8 @@ const folderPath = (f) => (!f ? null : /^[~/]/.test(f) ? f : path.join(settingsD
 const cal = s.calendar || {};
 const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name)
   .filter((c) => c.name !== "Pickup" && c.name !== "Holidays")   // (names OpenSky uses itself)
-  .map((c) => ({ name: String(c.name), type: ["local", "caldav"].includes(c.type) ? c.type : "link", url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5 }));
+  .map((c) => ({ name: String(c.name), type: ["local", "caldav", "google"].includes(c.type) ? c.type : "link", url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5,
+    ...(c.type === "google" ? { calendarId: String(c.calendarId || "primary"), readOnly: !!c.readOnly } : {}) }));
 // CalDAV calendars are read through OpenSky's calendar service on this Pi (the account stays in secrets.json)
 const servicePort = (cal.service && cal.service.port) || 5050;
 calendarSources.filter((c) => c.type === "caldav").forEach((c) => { c.url = `http://127.0.0.1:${servicePort}/${encodeURIComponent(c.name)}/calendar.ics`; });
@@ -80,7 +81,8 @@ const familyLists = (Array.isArray(listSettings.lists) ? listSettings.lists : []
 // or a private one in secrets.json → calendar.sources.Pickup (with pickup.url: "secret")
 const pk = s.pickup || {};
 if (pk.url) calendarSources.push({ name: "Pickup", type: "link", role: "pickup", url: pk.url === "secret" ? null : pk.url, color: "gray", fetchMinutes: 720 });
-const editableCalendars = calendarSources.filter((c) => c.type === "local" || c.type === "caldav").map((c) => ({ name: c.name, type: c.type }));
+const editableCalendars = calendarSources.filter((c) => c.type === "local" || c.type === "caldav" || (c.type === "google" && !c.readOnly))
+  .map((c) => ({ name: c.name, type: c.type, ...(c.type === "google" ? { calendarId: c.calendarId } : {}) }));
 const canAddEvents = editableCalendars.length > 0;
 
 // Each page = the modules that appear on it.

@@ -16,7 +16,9 @@ Module.register("MMM-OpenSky-Calendars", {
     this.events = new Map();   // source name → events
     this.status = {};
     this.sendSocketNotification("OS_CAL_START", {
-      sources: this.config.sources.map((s) => ({ name: s.name, type: s.type || "link", url: s.url || null, fetchMinutes: s.fetchMinutes })),
+      // everything a source type needs (holidays: country/region; google: calendarId) — no colours, no secrets here
+      sources: this.config.sources.map((s) => ({ name: s.name, type: s.type || "link", url: s.url || null, fetchMinutes: s.fetchMinutes,
+        country: s.country, region: s.region, calendarId: s.calendarId })),
       days: this.config.days
     });
   },

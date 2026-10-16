@@ -38,8 +38,8 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Screen off/on | soft sleep (black cover + DDC backlight 0) ✅ | 🔜 **DPMS/wlr-randr off** default; DDC/CI backlight; soft sleep (monitors that wake themselves); HDMI-CEC (TVs); Pi display backlight (sysfs) | Auto-detect + "test" button |
 | Wake | touch / mouse / keyboard ✅ | + motion sensor (PIR) 💭; + presence (Home Assistant) | |
 | Sleep schedule | Settings page + HA automations ✅ | **built-in schedule** default ✅; Home Assistant optional | Don't require HA |
-| Calendar (read) | iCloud via CalDAV backend ✅ | **ICS URL** default ✅ (Google/Outlook/iCloud "secret address"); on-device ✅; iCloud + generic CalDAV ✅; 🔜 Google Calendar API; Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
-| Calendar (add/edit) | iCloud CalDAV ✅ | CalDAV ✅; Google (OAuth) 🔜; Microsoft 365 💭; read-only mode | OAuth = setup friction; guide it |
+| Calendar (read) | iCloud via CalDAV backend ✅ | **ICS URL** default ✅ (Google/Outlook/iCloud "secret address"); on-device ✅; iCloud + generic CalDAV ✅; Google Calendar API ✅ (own OAuth client, guided on the phone); Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
+| Calendar (add/edit) | iCloud CalDAV ✅ | CalDAV ✅; Google (OAuth, read + write) ✅; Microsoft 365 💭; read-only mode ✅ | OAuth = setup friction; guide it |
 | Lists | Todoist (2 projects) ✅ | **on-device lists** default (no account) ✅; Todoist ✅; Home Assistant to-do ✅ (covers Google Tasks etc. connected to HA); Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
 | Weather (header + day tiles) | OpenWeatherMap (header) + Open-Meteo (7-day) ✅ | **Open-Meteo** default (no key) ✅; OpenWeatherMap ✅; 💭 NWS, Met.no | °F/°C, location by address search |
 | Photos | Immich ✅ | **local folder / USB stick** default ✅; Immich ✅; 🔜 PhotoPrism; Nextcloud/WebDAV; iCloud shared album link; 💭 Google Photos (API is very limited now) | Portrait pairing ✅ |

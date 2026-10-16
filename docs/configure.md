@@ -140,6 +140,7 @@ OpenSky can show any number of calendars, each with its own colour. Some can als
 |---|---|---|
 | **On the Pi** | `"type": "local"`. Nothing to set up; events are kept on the Pi. | ✅ |
 | **A calendar link** (Google, Outlook, iCloud, school or team calendars…) | `"url": "…"` in opensky.json if it's public, or no url and the link in `secrets.json → calendar.sources.<name>` if it's private | read-only |
+| **Google, with editing** | `"type": "google", "calendarId": "primary"` — a one-time Google key + sign-in, guided on the phone: [google-calendar.md](google-calendar.md) | ✅ |
 | **iCloud, Fastmail, Nextcloud (CalDAV)** | `"type": "caldav"` and the account in `secrets.json` (below) | ✅ |
 
 - `holidays`: your country's public holidays as a calendar (and in the countdown pill): a two-letter country code —

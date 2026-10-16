@@ -11,6 +11,7 @@ const CalendarFetcher = require(path.join(global.root_path, "defaultmodules", "c
 const { secret } = require(path.join(global.root_path, "modules", "opensky-lib", "secrets.js"));
 const local = require(path.join(global.root_path, "modules", "opensky-lib", "local-calendar.js"));
 const holidays = require(path.join(global.root_path, "modules", "opensky-lib", "holidays.js"));
+const google = require(path.join(global.root_path, "modules", "opensky-lib", "google-calendar.js"));
 const Log = require("logger");
 
 // MagicMirror's fetcher writes each calendar's link into the log ("Broadcasting 12 events from <url>"). A private link
@@ -55,10 +56,30 @@ module.exports = NodeHelper.create({
     setInterval(load, 12 * 60 * 60 * 1000);
   },
 
+  // Google calendars (lib/google-calendar.js): 30 days back to `days` ahead, every fetchMinutes
+  startGoogle(src, days) {
+    this.googleLoads = this.googleLoads || new Map();
+    this.googleLists = this.googleLists || new Map();
+    if (this.googleLoads.has(src.name)) {
+      if (this.googleLists.has(src.name)) this.sendSocketNotification("OS_CAL_EVENTS", { name: src.name, events: this.googleLists.get(src.name) });
+      return;
+    }
+    const load = () => {
+      const now = Date.now();
+      return google.mmEvents(src.calendarId || "primary", now - 30 * 86400e3, now + (days || 400) * 86400e3).then(
+        (events) => { this.googleLists.set(src.name, events); if (this.lastError) this.lastError.delete(src.name); this.sendSocketNotification("OS_CAL_EVENTS", { name: src.name, events }); },
+        (e) => this.error(src.name, e.message));
+    };
+    this.googleLoads.set(src.name, load);
+    load();
+    setInterval(load, Math.max(2, src.fetchMinutes || 5) * 60 * 1000);
+  },
+
   sendLocal(name) { this.sendSocketNotification("OS_CAL_EVENTS", { name, events: local.mmEvents(name) }); },
 
   socketNotificationReceived(n, p) {
     if (n === "OS_CAL_REFETCH") {
+      if (p && this.googleLoads && this.googleLoads.has(p.name)) return this.googleLoads.get(p.name)();
       const f = p && this.fetchers.get(p.name);
       if (f) f.fetchCalendar();
       return;
@@ -67,6 +88,7 @@ module.exports = NodeHelper.create({
     for (const src of p.sources) {
       if (src.type === "local") { this.localNames.add(src.name); this.sendLocal(src.name); continue; }   // on this Pi
       if (src.type === "holidays") { this.startHolidays(src); continue; }                                // any country
+      if (src.type === "google") { this.startGoogle(src, p.days); continue; }                             // Google Calendar API
       if (this.fetchers.has(src.name)) { this.fetchers.get(src.name).broadcastEvents(); continue; }   // page reload
       let url = src.url || secret(`calendar.sources.${src.name}`);
       if (!url) { this.error(src.name, `no link for "${src.name}" (set calendar.sources in opensky.json or secrets.json)`); continue; }

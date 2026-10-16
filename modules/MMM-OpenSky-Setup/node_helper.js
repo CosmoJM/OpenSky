@@ -12,6 +12,8 @@
  *   OS_SETUP_NEWCODE → OS_SETUP_READY   OS_SETUP_STOP   → events OS_SETUP_PAIRED, OS_SETUP_SAVED, OS_SETUP_STOPPED {reason}
  * Phone ↔ server (JSON; POSTs need the header "X-OpenSky: 1"):
  *   POST /api/pair {code} · GET /api/state · POST /api/save {settings, secrets} · GET /api/geocode?q= · POST /api/done
+ *   Google Calendar sign-in: GET /api/google · POST /api/google/start {clientId?, clientSecret?} → {url}
+ *     · POST /api/google/finish {address} → {calendars} · GET /api/google/calendars
  *   GET /api/backup[?secrets=1] (a download: settings + on-device data, passwords only when asked) · POST /api/restore {backup}
  */
 const NodeHelper = require("node_helper");
@@ -21,6 +23,7 @@ const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
 const { execFile } = require("child_process");
+const google = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "google-calendar.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
 const MM_CONFIG = path.join(global.root_path || process.cwd(), "config");
@@ -255,6 +258,39 @@ module.exports = NodeHelper.create({
       } catch (e) {
         return this.send(res, 502, { error: "Couldn't look that up — is the Pi online?" });
       }
+    }
+
+    if (url.pathname === "/api/google" && req.method === "GET") {
+      const g = readJson(SECRETS, {}).google || {};
+      return this.send(res, 200, { clientSet: !!(g.clientId && g.clientSecret), signedIn: !!g.refreshToken, redirect: google.REDIRECT });
+    }
+    if (url.pathname === "/api/google/start" && req.method === "POST") {
+      const { clientId, clientSecret } = await this.body(req);
+      const cur = readJson(SECRETS, {});
+      if (clientId || clientSecret) {
+        applySecret(cur, "google", { clientId: String(clientId || "").trim(), clientSecret: String(clientSecret || "").trim() });
+        writeJson(SECRETS, cur, 0o600);
+      }
+      const g = cur.google || {};
+      if (!g.clientId || !g.clientSecret) return this.send(res, 400, { error: "Paste the Client ID and Client secret first" });
+      try { this.googlePending = google.authUrl(g.clientId); } catch (e) { return this.send(res, e.status || 400, { error: e.message }); }
+      return this.send(res, 200, { url: this.googlePending.url });
+    }
+    if (url.pathname === "/api/google/finish" && req.method === "POST") {
+      const { address } = await this.body(req);
+      const cur = readJson(SECRETS, {}), g = cur.google || {};
+      try {
+        const { refreshToken } = await google.finishSignIn(address, this.googlePending, g.clientId, g.clientSecret);
+        applySecret(cur, "google", { refreshToken });
+        writeJson(SECRETS, cur, 0o600);
+        this.googlePending = null;
+        console.log("[OpenSky] phone setup: signed in to Google Calendar");
+        return this.send(res, 200, { calendars: await google.listCalendars() });
+      } catch (e) { return this.send(res, e.status && e.status < 500 ? e.status : 502, { error: e.message }); }
+    }
+    if (url.pathname === "/api/google/calendars" && req.method === "GET") {
+      try { return this.send(res, 200, { calendars: await google.listCalendars() }); }
+      catch (e) { return this.send(res, e.status && e.status < 500 ? e.status : 502, { error: e.message }); }
     }
 
     if (url.pathname === "/api/backup" && req.method === "GET") {

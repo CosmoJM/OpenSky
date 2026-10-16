@@ -4,6 +4,20 @@
 const fs = require("fs"), path = require("path"), http = require("http");
 const OUT = path.join(__dirname, "..", "out");
 
+// a fake Google (sign-in + token + calendar list) on port 8092, started before MagicMirror (module.exports.env)
+const GOOGLE = 8092, CLIENT = "777-test.apps.googleusercontent.com";
+const fakeGoogle = http.createServer((req, res) => {
+  let raw = ""; req.on("data", (c) => { raw += c; });
+  req.on("end", () => {
+    const u = new URL(req.url, "http://x"), send = (code, obj, h = {}) => { res.writeHead(code, { "Content-Type": "application/json", ...h }); res.end(JSON.stringify(obj)); };
+    if (u.pathname === "/auth") return send(302, {}, { Location: `http://127.0.0.1:53682/?state=${u.searchParams.get("state")}&code=fake-code&scope=x` });
+    if (u.pathname === "/token") { const f = new URLSearchParams(raw); return f.get("client_id") === CLIENT && (f.get("code") === "fake-code" || f.get("refresh_token") === "fake-refresh") ? send(200, { access_token: "fake-access", expires_in: 3600, refresh_token: "fake-refresh" }) : send(400, { error: "invalid_grant" }); }
+    if (u.pathname === "/cal/users/me/calendarList") return send(200, { items: [{ id: "primary-x", summary: "tester@example.com", primary: true, accessRole: "owner" }, { id: "club@group.calendar.google.com", summary: "Soccer club", accessRole: "reader" }] });
+    send(404, {});
+  });
+});
+fakeGoogle.listen(GOOGLE, "127.0.0.1"); fakeGoogle.unref();
+
 module.exports = async (page, h, app) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const until = async (fn, tries = 40) => { for (let i = 0; i < tries && !(await fn()); i++) await h.sleep(250); return fn(); };
@@ -67,6 +81,25 @@ module.exports = async (page, h, app) => {
   await phone.screenshot({ path: path.join(OUT, "setup-phone-sheet.png") });
   await phone.click(".sheet .btn.primary"); await h.sleep(400);
   ok("phone: the new list and calendar show, with 'Unsaved changes'", await phone.evaluate(() => /Hardware/.test(document.querySelector("#lists").textContent) && /Grandma/.test(document.querySelector("#calendars").textContent) && /Unsaved/.test(document.querySelector(".bar").textContent)));
+  // Google Calendar: key → sign in → paste the address → pick a calendar
+  await phone.click("#calendars .add"); await h.sleep(400);
+  await phone.click(".sheet .seg button:nth-child(2)");
+  await until(() => phone.evaluate(() => !!document.querySelector(".gbox input")));
+  await phone.fill(".gbox input[placeholder$='googleusercontent.com']", CLIENT);
+  await phone.fill(".gbox input[type=password]", "test-secret");
+  await phone.click(".gbox .btn.primary");
+  await until(() => phone.evaluate(() => !!document.querySelector(".gbox a.btn")));
+  const signIn = await phone.evaluate(() => document.querySelector(".gbox a.btn").href);
+  const landed = await new Promise((r) => http.get(signIn, (res) => { r(res.headers.location); res.resume(); }));   // where Google sends the browser
+  await phone.screenshot({ path: path.join(OUT, "setup-phone-google.png") });
+  await phone.fill(".gbox textarea", landed);
+  await phone.click(".gbox button.btn.primary");
+  await until(() => phone.evaluate(() => /Signed in to Google/.test(document.querySelector(".gbox")?.textContent || "")));
+  const gsel = await phone.evaluate(() => [...document.querySelectorAll(".gbox select option")].map((o) => o.textContent));
+  ok("Google: sign in from the phone, then pick from the account's calendars", gsel.join("|") === "Main calendar|Soccer club (view only)", gsel);
+  await phone.selectOption(".gbox select", "club@group.calendar.google.com"); await h.sleep(200);
+  await phone.click(".sheet .btn.primary"); await h.sleep(400);
+
   await phone.click(".bar .btn.primary");
   await until(() => phone.evaluate(() => /Finish/.test(document.querySelector(".bar")?.textContent || "")));
   const S = JSON.parse(fs.readFileSync(path.join(OUT, "opensky.test.json"), "utf8"));
@@ -77,7 +110,10 @@ module.exports = async (page, h, app) => {
     sec.calendar.sources.Grandma === "https://calendar.example.com/private-abc123/basic.ics" && sec.calendar.sources.School && fs.existsSync(path.join(OUT, "opensky.test.json.bak")) &&
     (fs.statSync(path.join(OUT, "secrets.test.json")).mode & 0o777) === 0o600, { family: S.family.name });
   const state = await phone.evaluate(() => fetch("/api/state").then((r) => r.text()));
-  ok("the phone is told WHICH secrets are set, never their values", /calendar\.sources\.Grandma/.test(state) && !/private-abc123/.test(state) && !/school\.ics/.test(state));
+  const gsrc = S.calendar.sources.find((c) => c.type === "google");
+  ok("Google calendar saved (view-only one marked); the sign-in kept in secrets.json only", gsrc && gsrc.calendarId === "club@group.calendar.google.com" && gsrc.readOnly === true && gsrc.name === "Soccer club" &&
+    sec.google && sec.google.refreshToken === "fake-refresh" && sec.google.clientId === CLIENT, gsrc);
+  ok("the phone is told WHICH secrets are set, never their values", /calendar\.sources\.Grandma/.test(state) && !/private-abc123/.test(state) && !/school\.ics/.test(state) && !/fake-refresh|test-secret/.test(state));
   ok("the screen follows along ('Saved!')", /Saved/.test(await status()));
 
   // backup + restore
@@ -102,7 +138,9 @@ module.exports = async (page, h, app) => {
   const after = await raw("GET", "/");
   ok("Finish: the phone says All set, the screen says done, and the server is gone", /All done/.test(await status()) && after.status === 0, after.status);
 
+  fakeGoogle.close();
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
 };
 module.exports.writableSettings = true;
+module.exports.env = { OPENSKY_GOOGLE_AUTH_URL: `http://127.0.0.1:${GOOGLE}/auth`, OPENSKY_GOOGLE_TOKEN_URL: `http://127.0.0.1:${GOOGLE}/token`, OPENSKY_GOOGLE_API_URL: `http://127.0.0.1:${GOOGLE}/cal` };

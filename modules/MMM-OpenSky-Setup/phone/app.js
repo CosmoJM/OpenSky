@@ -240,7 +240,7 @@
 
   function calendarsCard() {
     const cal = S.calendar, list = el("div", { class: "rows" });
-    const kind = (c) => c.type === "local" ? "On this screen · add & edit on the screen" : c.type === "caldav" ? "iCloud / CalDAV · add & edit" : "Calendar link · read-only";
+    const kind = (c) => c.type === "local" ? "On this screen · add & edit on the screen" : c.type === "caldav" ? "iCloud / CalDAV · add & edit" : c.type === "google" ? `Google${c.readOnly ? " · view only" : " · add & edit"}` : "Calendar link · read-only";
     cal.sources.forEach((c, i) => list.append(row(hex(c.color || "blue"), c.name, kind(c), () => editCalendar(i))));
     if (!cal.sources.length) list.append(el("p", { class: "empty" }, "No calendars yet."));
     return section("calendars", "calendar", "Calendars", "Each with its own colour",
@@ -258,14 +258,17 @@
   }
 
   function addCalendar() {
-    const d = { kind: "link", name: "", color: COLORS[S.calendar.sources.length % COLORS.length], link: "", server: "icloud", url: "", user: "", pass: "", remote: "" };
+    const d = { kind: "link", name: "", color: COLORS[S.calendar.sources.length % COLORS.length], link: "", server: "icloud", url: "", user: "", pass: "", remote: "",
+      g: null, gcals: null, gcal: "", gurl: "", cid: "", csec: "", gaddr: "", gbusy: false, gerr: "" };
     const err = el("p", { class: "err" });
     sheet("Add a calendar", (b) => {
       const parts = el("div");
       const draw = () => {
         parts.replaceChildren(
-          field("Name", text(d.name, (v) => { d.name = v.trim(); }, { placeholder: d.kind === "local" ? "e.g. Family" : "e.g. Mom, School, Soccer" })),
-          el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(d.color, (c) => { d.color = c; })),
+          ...(d.kind === "google" ? [googleBox()] : []),
+          ...(d.kind !== "google" || d.gcals ? [
+            field("Name", text(d.name, (v) => { d.name = v.trim(); d.named = true; }, { placeholder: d.kind === "local" ? "e.g. Family" : "e.g. Mom, School, Soccer" })),
+            el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(d.color, (c) => { d.color = c; }))] : []),
           ...(d.kind === "link" ? [
             field("Calendar link", el("textarea", { class: "input", rows: "3", placeholder: "https://… or webcal://…", oninput: (e) => { d.link = e.target.value.trim(); } }), "Kept private on the Pi."),
             el("details", { class: "help" }, el("summary", {}, "Where do I find the link?"),
@@ -285,16 +288,55 @@
           ...(d.kind === "local" ? [el("p", { class: "hint" }, "Events are kept on the Pi — no account needed. Add and edit them right on the screen.")] : []),
           err);
       };
-      b.append(seg([["link", "Link"], ["caldav", "iCloud & co."], ["local", "This screen"]], d.kind, (v) => { d.kind = v; draw(); }), parts);
+      // Google: sign in once (guided), then pick one of the account's calendars
+      const googleBox = () => {
+        const box = el("div", { class: "gbox" });
+        const run = async (fn) => { d.gbusy = true; d.gerr = ""; draw(); try { await fn(); } catch (e) { d.gerr = e.message; } d.gbusy = false; draw(); };
+        if (!d.g) { box.append(el("p", { class: "hint" }, "Checking Google…")); api("GET", "/api/google").then((g) => { d.g = g; draw(); }, (e) => { d.gerr = e.message; d.g = { clientSet: false, signedIn: false }; draw(); }); return box; }
+        if (d.g.signedIn) {
+          if (!d.gcals && !d.gbusy && !d.gerr) run(async () => { d.gcals = (await api("GET", "/api/google/calendars")).calendars; });
+          if (d.gcals) {
+            const pick = (id) => { d.gcal = id; const c = d.gcals.find((x) => x.id === id); if (c && !d.named) d.name = c.primary ? "Family" : c.name.slice(0, 30); };
+            if (!d.gcal && d.gcals.length) pick(d.gcals[0].id);
+            box.append(el("p", { class: "good-note" }, "Signed in to Google ✓"),
+              field("Which Google calendar?", select(d.gcals.map((c) => [c.id, `${c.primary ? "Main calendar" : c.name}${c.canEdit ? "" : " (view only)"}`]), d.gcal, (v) => { pick(v); draw(); })));
+          }
+        } else {
+          box.append(el("details", { class: "help", open: !d.g.clientSet },
+            el("summary", {}, "First: your own Google key (once, about 5 minutes)"),
+            el("p", {}, "Google asks every MagicMirror screen to have its own key. On a computer, open console.cloud.google.com and:"),
+            el("ol", { class: "steps" },
+              el("li", {}, "Create a project (any name, e.g. OpenSky)."),
+              el("li", {}, "APIs & Services → Library → “Google Calendar API” → Enable."),
+              el("li", {}, "Google Auth platform → Get started: app name “OpenSky”, your email, audience “External”."),
+              el("li", {}, "Audience → Publish app → In production (otherwise the sign-in stops working after 7 days)."),
+              el("li", {}, "Clients → Create client → type “Desktop app” → copy the Client ID and Client secret below.")),
+            el("p", {}, "Step-by-step with pictures: docs/google-calendar.md in OpenSky.")));
+          if (!d.g.clientSet) box.append(
+            field("Client ID", text(d.cid, (v) => { d.cid = v.trim(); }, { placeholder: "….apps.googleusercontent.com", autocapitalize: "off" })),
+            field("Client secret", el("input", { type: "password", class: "input", autocomplete: "off", value: d.csec, oninput: (e) => { d.csec = e.target.value.trim(); } })));
+          if (!d.gurl) box.append(el("button", { type: "button", class: "btn primary block", disabled: d.gbusy, onclick: () => run(async () => { d.gurl = (await api("POST", "/api/google/start", d.g.clientSet ? {} : { clientId: d.cid, clientSecret: d.csec })).url; d.g.clientSet = true; }) }, d.gbusy ? "One moment…" : "Get the Google sign-in"));
+          else box.append(
+            el("a", { class: "btn primary block", href: d.gurl, target: "_blank", rel: "noopener" }, "Sign in with Google"),
+            el("p", { class: "hint" }, "Google may say it hasn't verified the app — it's your own key: tap Advanced → Go to OpenSky, then allow both permissions. At the end your browser shows a page that can't be reached (http://127.0.0.1…). That's expected: copy that whole address and paste it here."),
+            el("textarea", { class: "input", rows: "3", placeholder: "http://127.0.0.1:53682/?code=…", oninput: (e) => { d.gaddr = e.target.value.trim(); } }, d.gaddr),
+            el("button", { type: "button", class: "btn primary block", disabled: d.gbusy, onclick: () => run(async () => { const r = await api("POST", "/api/google/finish", { address: d.gaddr }); d.gcals = r.calendars; d.g.signedIn = true; }) }, d.gbusy ? "Signing in…" : "Finish sign-in"));
+        }
+        if (d.gerr) box.append(el("p", { class: "err" }, d.gerr));
+        return box;
+      };
+      b.append(seg([["link", "Link"], ["google", "Google"], ["caldav", "iCloud & co."], ["local", "On screen"]], d.kind, (v) => { d.kind = v; draw(); }), parts);
       draw();
     }, [["Cancel", "", () => {}], ["Add", "primary", () => {
       const bad = nameOk(d.name, S.calendar.sources.map((c) => c.name)) ||
         (d.kind === "link" && !/^(https?|webcal):\/\/\S+$/i.test(d.link) ? "Paste the calendar's link (it starts with https:// or webcal://)" : null) ||
         (d.kind === "caldav" && (!d.user || !d.pass) ? "Please fill in the username and password" : null) ||
+        (d.kind === "google" && !d.gcal ? "Sign in to Google and pick a calendar first" : null) ||
         (d.kind === "caldav" && d.server === "other" && !/^https?:\/\//.test(d.url) ? "Please add the server address" : null);
       if (bad) { err.textContent = bad; return false; }
       const src = { name: d.name, color: d.color };
       if (d.kind === "local") src.type = "local";
+      if (d.kind === "google") { src.type = "google"; src.calendarId = d.gcal; const c = (d.gcals || []).find((x) => x.id === d.gcal); if (c && !c.canEdit) src.readOnly = true; }
       if (d.kind === "caldav") {
         src.type = "caldav";
         const url = d.server === "icloud" ? "https://caldav.icloud.com/" : d.server === "fastmail" ? "https://caldav.fastmail.com/" : d.url;
@@ -311,7 +353,7 @@
     let color = c.color || "blue";
     sheet(c.name, (b) => {
       b.append(el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(color, (v) => { color = v; })));
-      if (c.type !== "local" && c.type !== "caldav") b.append(field("Replace the link", el("textarea", { class: "input", rows: "2", placeholder: isSet(`calendar.sources.${c.name}`) ? "Saved ✓ — paste a new link to replace it" : "https://… or webcal://…", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.sources.${c.name}`] = e.target.value.trim(); } })));
+      if (c.type !== "local" && c.type !== "caldav" && c.type !== "google") b.append(field("Replace the link", el("textarea", { class: "input", rows: "2", placeholder: isSet(`calendar.sources.${c.name}`) ? "Saved ✓ — paste a new link to replace it" : "https://… or webcal://…", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.sources.${c.name}`] = e.target.value.trim(); } })));
       if (c.type === "caldav") b.append(field("New password", el("input", { type: "password", class: "input", placeholder: "Saved ✓ — type to replace", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.caldav.${c.name}`] = { password: e.target.value.trim() }; } })));
       if (c.type === "local") b.append(el("p", { class: "hint" }, "Removing it here takes it off the screen. Its events stay saved on the Pi."));
     }, [["Remove", "danger", () => {

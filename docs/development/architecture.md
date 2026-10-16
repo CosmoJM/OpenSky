@@ -48,6 +48,14 @@ opensky/
 Community modules used (all MIT): MMM-CalendarExt3 (MMRIZE), MMM-Keyboard (lavolp3), MMM-Todoist (cbrooker),
 MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarusa), MMM-EmbedURL (Tom-Hirschberger).
 
+## Google Calendar (lib/google-calendar.js)
+Same process as other MagicMirror Google modules (the user's own Desktop-app OAuth client) but guided from phone setup:
+PKCE + loopback redirect `http://127.0.0.1:53682/` (the phone shows "can't be reached"; the user pastes that address),
+scopes calendar.calendarlist.readonly + calendar.events, refresh token in secrets.json → google. Google forbids the
+device ("TV") flow for calendar scopes and blocks sign-in in embedded browsers — hence the phone. Sources
+`type: "google"` are fetched by MMM-OpenSky-Calendars (singleEvents, 30 days back) and edited by the event editor
+(find by title + start; repeating events → 409). Tests: tools/test-google.js (fake Google), setup scenario.
+
 ## Phone setup (MMM-OpenSky-Setup)
 The node helper runs a plain `http` server on 0.0.0.0:`setup.port` (8090) **only while the pairing card is open**
 (stops after 30 quiet minutes or Finish). Pairing: 6-digit code (crypto.randomInt, 10 min, timing-safe compare,

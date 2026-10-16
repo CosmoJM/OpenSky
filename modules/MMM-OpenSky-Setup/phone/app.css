@@ -155,3 +155,12 @@ details.help p { margin: 10px 0 0; }
 .line.top { margin: 0 0 6px; padding: 0 0 14px; border-top: 0; border-bottom: 1px solid var(--line); }
 .hidden-file { display: none; }
 
+/* Google sign-in */
+.gbox { margin-bottom: 14px; }
+.gbox .btn.block { margin: 4px 0 12px; }
+.gbox textarea { margin-bottom: 4px; }
+.good-note { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; background: #eaf6ef; color: #22603f; font-weight: 700; font-size: 15px; }
+ol.steps { margin: 8px 0 0; padding-left: 20px; }
+ol.steps li { margin: 4px 0; }
+.sheet .seg button { font-size: 13.5px; padding: 0 4px; }
+

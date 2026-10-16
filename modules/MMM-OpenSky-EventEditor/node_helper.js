@@ -2,10 +2,12 @@
  *   OS_EV {id, op: "create"|"update"|"delete", calendar, ref: {originalTitle, originalStart}, data} → OS_EV_RESULT {id, ok, error}
  * type "local"  → lib/local-calendar.js (the on-device calendar)
  * type "caldav" → OpenSky's calendar service on this Pi (services/calendar-service, 127.0.0.1 only)
+ * type "google" → the Google Calendar API (lib/google-calendar.js)
  */
 const NodeHelper = require("node_helper");
 const path = require("path");
 const local = require(path.join(global.root_path, "modules", "opensky-lib", "local-calendar.js"));
+const google = require(path.join(global.root_path, "modules", "opensky-lib", "google-calendar.js"));
 
 module.exports = NodeHelper.create({
   socketNotificationReceived(n, p) {
@@ -25,6 +27,12 @@ module.exports = NodeHelper.create({
       if (op === "create") return local.create(calendar, data);
       if (op === "update") return local.update(calendar, ref, data);
       return local.remove(calendar, ref);
+    }
+    if (cal.type === "google") {
+      const id = cal.calendarId || "primary";
+      if (op === "create") return google.create(id, data);
+      if (op === "update") return google.update(id, ref, data);
+      return google.remove(id, ref);
     }
     // CalDAV through the calendar service (it holds the account; the page never sees it)
     let res;

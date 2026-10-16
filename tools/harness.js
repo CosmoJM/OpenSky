@@ -49,11 +49,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // A scenario that changes the settings (phone setup) gets writable copies in tools/out — never the fixtures
   let SETTINGS_FILE = process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json");
   let SECRETS_FILE = process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json");
-  if (scenario.writableSettings) {
+  if (scenario.writableSettings || scenario.patchSettings || scenario.patchSecrets) {
     const st = JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf8"));
+    if (scenario.patchSettings) scenario.patchSettings(st);
     if (st.photos && st.photos.folder && !path.isAbsolute(st.photos.folder)) st.photos.folder = path.join(path.dirname(SETTINGS_FILE), st.photos.folder);
     fs.writeFileSync(path.join(OUT, "opensky.test.json"), JSON.stringify(st, null, 2));
-    fs.copyFileSync(SECRETS_FILE, path.join(OUT, "secrets.test.json"));
+    const sec = JSON.parse(fs.readFileSync(SECRETS_FILE, "utf8"));
+    if (scenario.patchSecrets) scenario.patchSecrets(sec);
+    fs.writeFileSync(path.join(OUT, "secrets.test.json"), JSON.stringify(sec, null, 2));
     SETTINGS_FILE = path.join(OUT, "opensky.test.json");
     SECRETS_FILE = path.join(OUT, "secrets.test.json");
   }
@@ -78,7 +81,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_NYT_URL: "http://127.0.0.1:9/nyt",   // never the real NYT from tests: unreachable → OpenSky's own word
       OPENSKY_DRY_RUN: "1",
       LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings            // Settings: never touch the real backlight, monitor, audio, updates or power
-      ELECTRON_ENABLE_LOGGING: "1"
+      ELECTRON_ENABLE_LOGGING: "1",
+      ...(scenario.env || {})          // a scenario's own stand-ins (e.g. a fake Google)
     },
     timeout: 90000
   });
