@@ -1,0 +1,16 @@
+# Never commit secrets or a user's personal settings
+secrets.json
+*.secrets.json
+config/config.js
+config/*.local.*
+.env
+*.env
+
+# Runtime data
+node_modules/
+**/data/cache/
+*.log
+
+# Editors / OS
+.DS_Store
+*.swp
