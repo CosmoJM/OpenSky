@@ -66,7 +66,7 @@ Module.register("MMM-OpenSky-Setup", {
       h.innerHTML = `
         <div class="osu-overlay">
           <div class="osu-card osu-welcome">
-            <div class="osu-badge">${this.phoneIcon}</div>
+            <img class="osu-brand" src="modules/opensky-lib/client/assets/opensky-icon.png" alt="">
             <h2>Welcome to OpenSky!</h2>
             <p>Add your calendars, lists, photos and more from your phone — it takes a couple of minutes.</p>
             <div class="osu-actions">

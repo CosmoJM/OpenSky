@@ -129,7 +129,7 @@
     input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 6); draw(); go.disabled = input.value.length !== 6; msg.textContent = ""; if (input.value.length === 6) submit(); });
     go.onclick = submit;
     $app.append(el("div", { class: "pair" },
-      el("div", { class: "logo" }, icon("logo")),
+      el("img", { class: "brand-icon", src: "icon.png", alt: "OpenSky" }),
       el("h1", {}, "Connect to your OpenSky"),
       el("p", { class: "lead" }, "Type the 6-digit code shown on the screen."),
       el("div", { class: "code-wrap" }, boxes, input), msg, go,
@@ -155,7 +155,7 @@
     const y = window.scrollY;
     $app.innerHTML = "";
     $app.append(
-      el("header", { class: "top" }, el("div", { class: "brand" }, el("span", { class: "logo sm" }, icon("logo")), el("div", {}, el("b", {}, "OpenSky"), el("small", {}, S.family.name || "Setup")))),
+      el("header", { class: "top" }, el("div", { class: "brand" }, el("img", { class: "brand-icon sm", src: "icon.png", alt: "" }), el("div", {}, el("b", {}, "OpenSky"), el("small", {}, S.family.name || "Setup")))),
       el("nav", { class: "jump" }, ...[["family", "Family"], ["calendars", "Calendars"], ["lists", "Lists"], ["photos", "Photos"], ["pages", "Pages"], ["web", "Web pages"], ["extras", "Extras"], ["backup", "Backup"]].map(([id, t]) => el("a", { href: `#${id}` }, t))),
       familyCard(), calendarsCard(), listsCard(), photosCard(), pagesCard(), webCard(), extrasCard(), backupCard(),
       el("p", { class: "fine end" }, "Changes reach the screen when you tap Finish."),

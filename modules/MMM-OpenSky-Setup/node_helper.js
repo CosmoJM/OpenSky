@@ -43,7 +43,9 @@ const STATIC = {
   "/": ["index.html", "text/html; charset=utf-8"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
   "/app.css": ["app.css", "text/css; charset=utf-8"],
-  "/opensky-client.js": [path.join("..", "..", "..", "lib", "client", "opensky-client.js"), "text/javascript; charset=utf-8"]
+  "/opensky-client.js": [path.join("..", "..", "..", "lib", "client", "opensky-client.js"), "text/javascript; charset=utf-8"],
+  "/icon.png": [path.join("..", "..", "..", "lib", "client", "assets", "opensky-icon.png"), "image/png"],
+  "/apple-touch-icon.png": [path.join("..", "..", "..", "lib", "client", "assets", "opensky-touch-icon.png"), "image/png"]
 };
 const CODE_MINUTES = 10, IDLE_MINUTES = 30;
 // secrets the phone may set (dotted paths under these)
