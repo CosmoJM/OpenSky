@@ -149,6 +149,7 @@ const header = s.header || {};
 
 // Modules shown on every page
 const fixed = [
+  { module: "MMM-OpenSky-Settings", config: {} },
   ...(familyLists.length ? [{ module: "MMM-OpenSky-Lists", config: { lists: familyLists, refreshMinutes: listSettings.refreshMinutes || 2 } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-EventEditor", config: { editable: editableCalendars, servicePort } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources } }] : []),
@@ -179,7 +180,8 @@ const fixed = [
       pages: pages.map((key, index) => ({ key, index, label: (PAGE_INFO[key] || {}).label || key, icon: key })),
       familyInitial: (familyName.replace(/^the\s+/i, "")[0] || "H").toUpperCase(),
       idleReturnMinutes: (s.sidebar && Number.isFinite(s.sidebar.idleReturnMinutes)) ? s.sidebar.idleReturnMinutes : 5,
-      screenServiceUrl: (s.screen && s.screen.serviceUrl) || null
+      screenServiceUrl: (s.screen && s.screen.serviceUrl) || null,
+      showSettings: true
     }
   }
 ];

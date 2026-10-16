@@ -40,7 +40,7 @@ opensky/
 | MMM-OpenSky-Lists ✅ | MMM-Todoist / MMM-TaskEditor / MMM-TodoistQuickAdd | `lib/lists.js` providers: on-device (default, `config/lists.json`), Todoist (token in secrets.json); add / edit / check-off-with-Undo popups; broadcasts `OPENSKY_LISTS` |
 | MMM-OpenSky-ListsPage ✅ | (Todoist page) | page `lists`: every list side by side; columns drawn by `lib/client` `OpenSkyListColumn` (+ `list-columns.css`), same as Home |
 | MMM-OpenSky-Timer | MMM-Timer | |
-| MMM-OpenSky-Settings | the reference build's settings module | brightness/volume/schedule backends auto-detected |
+| MMM-OpenSky-Settings ✅ | the reference build's settings module | panel on `OPENSKY_SETTINGS_OPEN`; `config/device.json`; brightness: sysfs backlight → ddcutil → software dim; wpctl volume; sleep schedule drives the Sidebar (`OPENSKY_SLEEP`/`OPENSKY_WAKE`); `OPENSKY_DRY_RUN=1` in tests |
 | MMM-OpenSky-WordGame | MMM-Wordle | own word list by default; NYT optional |
 | MMM-OpenSky-Embed | MMM-EmbedURL + MMM-Finance ideas | Smart Home / any URL, optional PIN |
 | (vendor) MMM-Keyboard | heavily modified fork | iPad-style on-screen keyboard |

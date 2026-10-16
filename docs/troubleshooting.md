@@ -35,6 +35,12 @@ Raspberry Pi OS blanks the screen when idle. Run `sudo raspi-config nonint do_bl
 - **"Can't reach the calendar service"**: run `systemctl --user restart opensky-calendar`, then `opensky logs`. If it says the helper isn't installed, re-run `./install.sh`.
 - **"Repeating events can only be changed in your calendar app"**: on purpose. Changing one repeat from the screen could damage the whole series.
 
+## Brightness doesn't change (Settings says "Dims the picture")
+The screen didn't accept brightness commands, so OpenSky dims the picture instead (it works, but black is less black).
+- HDMI monitor: turn on **DDC/CI** in the monitor's own menu (often under "Other" or "System"), then `opensky restart`.
+  Check with `ddcutil detect` — it should list your monitor. Re-run `./install.sh` if `ddcutil` is missing.
+- Some TVs and portable screens don't support it at all; the picture dimming is the fallback.
+
 ## Lists
 - **Todoist: "refused the API token"**: copy the token again (Todoist → Settings → Integrations → Developer) into `secrets.json → lists.todoist.token`.
 - **"No Todoist project called …"**: the list's `project` (or its `name`) must match a Todoist project. Letter case doesn't matter.

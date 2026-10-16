@@ -1,6 +1,9 @@
 # Setting up OpenSky
 
-OpenSky reads two files in `~/OpenSky/config/`:
+**Most day-to-day things are on the screen itself:** tap **Settings** at the bottom left for brightness, evening dimming,
+the night-time sleep schedule, volume, restart / update / shut down. Those choices are saved in `config/device.json`.
+
+Everything else is in two files in `~/OpenSky/config/`:
 
 | File | What's in it | Open it with |
 |---|---|---|
@@ -177,3 +180,13 @@ A small trash-can icon appears on pickup days in the week view. It moves a day l
 - `idleReturnMinutes`: after this many minutes without a touch, open pop-ups close and the screen returns to the first page. A running timer stays put. `0` turns this off.
 - **Sleep** (bottom left) blacks out the screen until the next touch.
 - `quickAddMinutes`: the timer's quick buttons. `chimeVolume` runs from 0 to 1.
+
+## The Settings panel (on the screen)
+| Setting | What it does |
+|---|---|
+| Brightness | Uses the display's backlight (Pi touch displays), the monitor's own brightness over HDMI (most monitors; the installer sets this up), or — if neither works — dims the picture. The panel says which. |
+| Dim in the evening | From the time you pick until the morning, brightness goes down to the level you pick. |
+| Sleep at night | The screen goes dark at "Off at" and comes back at "On at". A touch wakes it; it sleeps again after 3 quiet minutes. A running timer keeps it on. |
+| Volume / Test | The Pi's speaker volume; Test plays the timer chime. |
+| System | Internet, the Pi's address, the OpenSky version (and **Update** when there is one), Reload, Restart OpenSky, Restart Pi, Shut down. The last three ask you to tap twice. |
+

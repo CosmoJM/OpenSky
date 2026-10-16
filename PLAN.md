@@ -37,7 +37,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Hardware | Pi 5 + 24" Elo touch | Pi 5 / Pi 4 (Pi 3 = light mode?); any HDMI touchscreen; official Pi touch display | Test matrix needed |
 | Screen off/on | soft sleep (black cover + DDC backlight 0) ✅ | 🔜 **DPMS/wlr-randr off** default; DDC/CI backlight; soft sleep (monitors that wake themselves); HDMI-CEC (TVs); Pi display backlight (sysfs) | Auto-detect + "test" button |
 | Wake | touch / mouse / keyboard ✅ | + motion sensor (PIR) 💭; + presence (Home Assistant) | |
-| Sleep schedule | Settings page + HA automations ✅ | 🔜 **built-in schedule** default; Home Assistant optional | Don't require HA |
+| Sleep schedule | Settings page + HA automations ✅ | **built-in schedule** default ✅; Home Assistant optional | Don't require HA |
 | Calendar (read) | iCloud via CalDAV backend ✅ | 🔜 **ICS URL** default (Google/Outlook/iCloud "secret address"); iCloud CalDAV; generic CalDAV (Fastmail, Nextcloud…); Google Calendar API; Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
 | Calendar (add/edit) | iCloud CalDAV ✅ | CalDAV ✅; Google (OAuth) 🔜; Microsoft 365 💭; read-only mode | OAuth = setup friction; guide it |
 | Lists | Todoist (2 projects) ✅ | **on-device lists** default (no account) ✅; Todoist ✅; Home Assistant to-do; Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
@@ -53,7 +53,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | On-screen keyboard | iPad-style US ✅ | 🔜 layouts (US, UK, intl.); 💭 languages | |
 | Brightness / volume (Settings) | ddcutil + wpctl ✅ | DDC/CI; Pi display backlight; none (hide slider) | Auto-detect |
 | Look & feel | family name in the header, pastel theme ✅ | 🔜 family name, accent colour, light/dark, 12/24 h, units, first day of week, date format; 💭 languages (i18n) | |
-| Updates | manual | 🔜 "Update" button in Settings (git pull + migrations, rollback) | Big for friendliness |
+| Updates | manual | "Update" button in Settings ✅ (git pull + installer); 🔜 migrations, rollback | Big for friendliness |
 | Backups | nightly git + NAS (reference build) | 🔜 export/import settings file from the setup page | |
 | Food (add-on) | Google Places + Routes ✅ | Google (own key); 💭 OpenStreetMap/Overpass (free, no key) | Later |
 
@@ -75,7 +75,9 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    ✅ Installer (`install.sh`: private Node only if needed, pinned MagicMirror, CalDAV venv, first-run questions,
    systemd user services + desktop autostart, `opensky` command) and user docs (install, configure, troubleshooting).
    ✅ Lists page (all lists side by side, scrolling; shared list-column renderer with Home).
-   Next: Settings, keyboard, word game, embed page.
+   ✅ Settings panel (brightness by backlight / DDC/CI / software, evening dim, built-in sleep schedule, volume,
+   status, update / restart / power with tap-twice; dry-run for tests).
+   Next: keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

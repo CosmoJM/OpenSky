@@ -21,6 +21,9 @@ fs.mkdirSync(OUT, { recursive: true });
 // every run starts with an empty on-device calendar
 const LOCAL_CAL = path.join(OUT, "local-calendar.test.json");
 fs.rmSync(LOCAL_CAL, { force: true });
+// screen settings (brightness, schedule), fresh each run
+const DEVICE = path.join(OUT, "device.test.json");
+fs.rmSync(DEVICE, { force: true });
 // on-device lists, seeded fresh each run (Groceries: Milk, Apples · Chores: empty)
 const LOCAL_LISTS = path.join(OUT, "lists.test.json");
 fs.mkdirSync(OUT, { recursive: true });
@@ -43,6 +46,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_SECRETS: process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json"),
       OPENSKY_LOCAL_CALENDAR: LOCAL_CAL,
       OPENSKY_LOCAL_LISTS: LOCAL_LISTS,
+      OPENSKY_DEVICE_SETTINGS: DEVICE,
+      OPENSKY_DRY_RUN: "1",            // Settings: never touch the real backlight, monitor, audio, updates or power
       ELECTRON_ENABLE_LOGGING: "1"
     },
     timeout: 90000

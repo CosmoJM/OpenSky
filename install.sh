@@ -54,6 +54,7 @@ if [ $UNINSTALL = 1 ]; then
   say "Removing OpenSky's services"
   systemctl --user disable --now opensky.service opensky-calendar.service 2>/dev/null || true
   rm -f "$UNITS/opensky.service" "$UNITS/opensky-calendar.service" "$AUTOSTART" "$HOME/.local/bin/opensky"
+  for f in /etc/udev/rules.d/90-opensky-backlight.rules /etc/modules-load.d/opensky-i2c.conf; do [ -f "$f" ] && sudo rm -f "$f"; done
   systemctl --user daemon-reload 2>/dev/null || true
   ok "Stopped and removed. Your settings and data are still in $CONFIG"
   if ask "Also delete the runtime in $RUNTIME (MagicMirror, Node.js, Python)?" n; then rm -rf "$RUNTIME"; ok "Deleted $RUNTIME"; fi
@@ -208,6 +209,26 @@ if command -v raspi-config >/dev/null; then
   fi
   if [ "$(sudo -n raspi-config nonint get_autologin 2>/dev/null || echo ?)" != 0 ] && ask "Log in automatically at power-on, so OpenSky starts by itself? (needs sudo)" y; then
     sudo raspi-config nonint do_boot_behaviour B4 && ok "Desktop auto-login on"
+  fi
+fi
+
+# ---------------------------------------------------------------- brightness from the Settings page
+if ls /sys/class/backlight/* >/dev/null 2>&1; then
+  # a display with a backlight (e.g. the official Pi touch display): let the video group set it
+  if [ ! -f /etc/udev/rules.d/90-opensky-backlight.rules ] && ask "Let OpenSky set the display's brightness? (needs sudo)" y; then
+    echo 'SUBSYSTEM=="backlight", ACTION=="add", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"' \
+      | sudo tee /etc/udev/rules.d/90-opensky-backlight.rules >/dev/null
+    for b in /sys/class/backlight/*/brightness; do sudo chgrp video "$b" && sudo chmod g+w "$b"; done
+    id -nG | grep -qw video || sudo usermod -aG video "$USER"
+    ok "Brightness control on"
+  fi
+elif ! command -v ddcutil >/dev/null || ! lsmod | grep -q '^i2c_dev' || ! id -nG | grep -qw i2c; then
+  # an HDMI monitor: most take brightness commands over the cable (DDC/CI)
+  if ask "Let OpenSky set the monitor's brightness over HDMI? (installs ddcutil; needs sudo)" y; then
+    command -v ddcutil >/dev/null || sudo apt-get install -y -q ddcutil
+    lsmod | grep -q '^i2c_dev' || { echo i2c-dev | sudo tee /etc/modules-load.d/opensky-i2c.conf >/dev/null; sudo modprobe i2c-dev; }
+    id -nG | grep -qw i2c || sudo usermod -aG i2c "$USER"
+    ok "Brightness over HDMI set up (if the monitor supports it; Settings shows which method it uses)"
   fi
 fi
 

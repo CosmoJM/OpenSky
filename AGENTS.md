@@ -24,7 +24,7 @@ MagicMirror². This file is the entry point; read it first, then the docs it poi
 ## Where things are on an installed Pi
 | What | Where |
 |---|---|
-| The user's settings + data (back this up) | `~/OpenSky/config/`: `opensky.json`, `secrets.json` (chmod 600), `local-calendar.json`, `lists.json`, `calendar-cache/` |
+| The user's settings + data (back this up) | `~/OpenSky/config/`: `opensky.json`, `secrets.json` (chmod 600), `device.json` (Settings panel), `local-calendar.json`, `lists.json`, `calendar-cache/` |
 | Runtime (re-creatable by `./install.sh`) | `~/.local/share/opensky/`: `MagicMirror/` (pinned tag, OpenSky linked in by `tools/link-mm.sh`), `node/` (only if the system Node is too old), `venv/` |
 | Services | systemd **user** units `opensky.service` (Electron) + `opensky-calendar.service` (CalDAV helper); started by `~/.config/autostart/opensky.desktop` |
 | Commands | `opensky status · logs · check · restart · edit · secrets · update` (`tools/opensky`) |
@@ -44,5 +44,7 @@ The settings files are found through environment variables set by the services (
 - Errors people see are plain and say what to do ("check the app-specific password in secrets.json").
 - Private values never reach a log or the page: node helpers read `secrets.json`; the test harness fails a run if
   any `secrets.json` value appears in MagicMirror's output.
+- Anything that touches hardware or the system (backlight, ddcutil, volume, restart, update, power) must honour
+  `OPENSKY_DRY_RUN=1` — the test harness sets it so tests never touch the real screen.
 - `tools/test-all.sh` must pass before a commit (see `docs/development/testing.md`).
 
