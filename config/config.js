@@ -9,9 +9,13 @@
 const fs = require("fs");
 const path = require("path");
 
+// MagicMirror ≥ 2.38 evaluates this file from a string, so __dirname isn't the config folder: use its root path
+const CONFIG_DIR = path.join(global.root_path || path.resolve(__dirname, ".."), "config");
+
 function readSettings() {
-  for (const file of ["opensky.json", "opensky.example.json"]) {
-    const p = path.join(__dirname, file);
+  // OPENSKY_SETTINGS = another settings file (the test harness uses tools/fixtures/opensky.test.json)
+  for (const file of [process.env.OPENSKY_SETTINGS, "opensky.json", "opensky.example.json"].filter(Boolean)) {
+    const p = path.isAbsolute(file) ? file : path.join(CONFIG_DIR, file);
     if (!fs.existsSync(p)) continue;
     try {
       return { file, settings: JSON.parse(fs.readFileSync(p, "utf8")) };
@@ -56,8 +60,32 @@ const pages = (Array.isArray(s.pages) && s.pages.length ? s.pages : ["timer"]).f
 const pageModules = pages.map((p) => PAGES[p]());
 const familyName = ((s.family && s.family.name) || "").trim();
 
+const loc = s.location || {};
+const units = locale.units === "metric" ? "metric" : "imperial";
+const header = s.header || {};
+
 // Modules shown on every page
 const fixed = [
+  {
+    module: "MMM-OpenSky-Header",
+    position: "top_bar",
+    config: {
+      title: familyName || "Our Family",
+      time: { format12: locale.timeFormat !== 24, showSeconds: false, updateInterval: 1000 },
+      weather: {
+        provider: (s.weather && s.weather.provider) || "open-meteo",
+        latitude: Number.isFinite(loc.latitude) ? loc.latitude : null,
+        longitude: Number.isFinite(loc.longitude) ? loc.longitude : null,
+        units, refreshMinutes: 15
+      },
+      countdown: {
+        holidays: header.holidays === "none" ? "none" : "US",
+        custom: Array.isArray(header.occasions) ? header.occasions : [],
+        birthdays: header.birthdaysFromCalendar !== false
+      },
+      sports: header.sports && header.sports.team ? { league: header.sports.league || "nfl", team: header.sports.team } : null
+    }
+  },
   {
     module: "MMM-OpenSky-Sidebar",
     position: "fullscreen_above",
@@ -78,7 +106,7 @@ let config = {
   language: locale.language || "en",
   locale: locale.locale || "en-US",
   timeFormat: locale.timeFormat === 24 ? 24 : 12,
-  units: locale.units === "metric" ? "metric" : "imperial",
+  units,
   customCss: "css/opensky.css",
 
   modules: [

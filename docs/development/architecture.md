@@ -52,6 +52,15 @@ MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarus
   night re-sleep, idle time. Back-ends: DPMS/wlr-randr (default), DDC/CI, soft sleep, HDMI-CEC, Pi display backlight.
 - **Calendar backend** (from `caldav-backend`): CalDAV read/write behind a local-only HTTP API; more providers later.
 
+## MagicMirror 2.38 notes
+- `config.js` is read as text and evaluated (`requireFromString`), so `__dirname` inside it is not the config
+  folder — locate files with `global.root_path`. Node helpers should also require OpenSky's shared library via
+  `path.join(global.root_path, "modules", "opensky-lib", …)` (module folders may be links in development).
+- MagicMirror 2.38 has its own secret mechanism: `config/config.env` with `SECRET_*` variables used as
+  `${SECRET_X}` in config.js; the copy served to screens shows `**SECRET_X**`. OpenSky's `secrets.json` (read only by
+  node helpers) is compatible with it and also covers things that aren't module config (service passwords, PINs).
+- Custom CSS is expected in `config/` (2.38 warns about `css/custom.css`); OpenSky sets `customCss` explicitly.
+
 ## Lessons from the reference build (keep these true)
 - MagicMirror serves `config.js` to the network → secrets live in `secrets.json`, read server-side.
 - Never name a module property `this.data` (MagicMirror uses `module.data`).

@@ -1,0 +1,8 @@
+{
+  "family": { "name": "The Testers" },
+  "locale": { "language": "en", "locale": "en-US", "timeFormat": 12, "units": "imperial" },
+  "location": { "name": "Boston, MA", "latitude": 42.3601, "longitude": -71.0589 },
+  "weather": { "provider": "open-meteo" },
+  "header": { "holidays": "US", "occasions": [{ "name": "Test Day", "month": 10, "day": 20 }], "birthdaysFromCalendar": true, "sports": { "league": "nfl", "team": "NE" } },
+  "pages": ["timer"]
+}

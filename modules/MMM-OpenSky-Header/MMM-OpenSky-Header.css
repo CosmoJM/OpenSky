@@ -1,0 +1,120 @@
+/* MMM-OpenSky-Header — family name · clock · weather · sports pill · countdown pill */
+
+:root{
+  --hb-font: "Inter","SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --hb-color: #222;
+}
+
+.MMM-OpenSky-Header { width: 100%; }
+
+/* Row sits to the RIGHT of the sidebar and never blocks clicks */
+.hb-row{
+  display:flex;
+  align-items:center;               /* title, time, weather vertically aligned */
+  justify-content:flex-start;
+  gap:24px;                         /* Title — Time — Weather spacing */
+  padding:12px 24px 6px 0;          /* no left padding; we use margin-left */
+  margin-left: var(--os-content-left);      /* shift past sidebar width + gutter */
+  width: calc(100% - var(--os-content-left));/* avoid spanning under sidebar */
+  box-sizing: border-box;           /* right padding inside the width: right edge at x1896 like the cards */
+  color: var(--hb-color);
+  font-family: var(--hb-font);
+  user-select:none;
+  pointer-events:none;              /* let sidebar receive clicks */
+}
+
+/* Title + Time: same size */
+.hb-title{
+  font-size:32px;
+  font-weight:800;
+  letter-spacing:.2px;
+  white-space:nowrap;
+}
+.hb-time{
+  font-size:32px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+/* Weather matches size, sits right after time */
+.hb-weather{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-size:32px;                   /* same visual height as title/time */
+  white-space:nowrap;
+}
+.hb-wx-ico{
+  width:32px; height:32px;
+  display:inline-flex;
+  align-items:center; justify-content:center;
+}
+.hb-wx-ico svg{ width:32px; height:32px; display:block; }
+.hb-wx-temp{ font-weight:700; }
+
+/* Top-right countdown to the next holiday/birthday: a quiet pill, themed per occasion
+   (colours from the OpenSky palette; --cd-solid is used on the day itself) */
+.hb-countdown{
+  --cd-bg:#fff4ef; --cd-fg:#b4532f; --cd-solid:#ff9f7f;
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:6px 18px 6px 10px;
+  border-radius:999px;
+  background:var(--cd-bg);
+  color:var(--cd-fg);
+  font-size:20px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.hb-cd-ico{ display:inline-flex; width:34px; height:34px; align-items:center; justify-content:center; border-radius:50%; background:#fff; }
+.hb-cd-ico svg{ width:26px; height:26px; display:block; }
+.hb-cd-when{ color:#6b7280; font-weight:600; }
+.hb-cd-when::before{ content:"·"; margin-right:10px; color:#d1d5db; }
+.hb-countdown.hb-cd-today{ background:var(--cd-solid); color:#fff; }
+.hb-countdown.hb-cd-today .hb-cd-when{ color:rgba(255,255,255,.9); }
+.hb-countdown.hb-cd-today .hb-cd-when::before{ color:rgba(255,255,255,.6); }
+
+.hb-theme-halloween   { --cd-bg:#fff1e6; --cd-fg:#c8561a; --cd-solid:#ec7a2c; }
+.hb-theme-christmas   { --cd-bg:#ecf7ef; --cd-fg:#2e7d4f; --cd-solid:#2e9e57; }
+.hb-theme-july4,
+.hb-theme-memorial    { --cd-bg:#edf3ff; --cd-fg:#2f5fb8; --cd-solid:#2f5fb8; }
+.hb-theme-newyear     { --cd-bg:#fff8e1; --cd-fg:#8f6b00; --cd-solid:#cfa000; }
+.hb-theme-valentine   { --cd-bg:#ffeef5; --cd-fg:#c23a78; --cd-solid:#dd4f98; }
+.hb-theme-easter      { --cd-bg:#f4f0ff; --cd-fg:#6d4bc4; --cd-solid:#7b4ae2; }
+.hb-theme-mothers     { --cd-bg:#ffeef3; --cd-fg:#c2476e; --cd-solid:#dd4f98; }
+.hb-theme-fathers     { --cd-bg:#eaf4fd; --cd-fg:#1f6fb2; --cd-solid:#2e8bd6; }
+.hb-theme-labor       { --cd-bg:#fbf3e4; --cd-fg:#8a6a3a; --cd-solid:#b8864b; }
+.hb-theme-thanksgiving{ --cd-bg:#fdf0e4; --cd-fg:#a3531c; --cd-solid:#c46a2b; }
+.hb-theme-birthday    { --cd-bg:#fff4ef; --cd-fg:#b4532f; --cd-solid:#ff9f7f; }
+
+/* Sports game-day pill (left of the countdown) */
+.hb-game{
+  margin-left:auto;
+  display:inline-flex; align-items:center; gap:8px;
+  height:46px; padding:0 16px 0 10px; border-radius:999px;
+  background:#eef2f8; color:#002a5c;
+  font-size:20px; font-weight:800; white-space:nowrap;
+}
+.hb-game + .hb-countdown{ margin-left:0; }
+.hb-game-logo{ width:30px; height:30px; object-fit:contain; display:block; }
+.hb-game-vs{ font-size:15px; font-weight:800; color:#6b7280; }
+.hb-game-team{ color:#1f2937; }
+.hb-game-when{ color:#4b5563; font-weight:700; font-size:18px; }
+.hb-game-pre .hb-game-when::before, .hb-game-off .hb-game-when::before{ content:"·"; margin-right:8px; color:#c3cad6; }
+.hb-game-off{ background:#f3f4f6; color:#6b7280; }
+.hb-game-score{ font-variant-numeric:tabular-nums; color:#4b5563; min-width:22px; text-align:center; }
+.hb-game-score.us{ color:#002a5c; }
+.hb-game-dash{ color:#9ca3af; font-weight:700; }
+.hb-game-live{ width:10px; height:10px; border-radius:50%; background:#c60c30; box-shadow:0 0 0 4px rgba(198,12,48,.18); margin-right:2px; }
+.hb-game-in .hb-game-when{ margin-right:6px; }
+.hb-game-final{ margin-left:6px; font-size:15px; font-weight:800; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; }
+.hb-game-wl{ width:26px; height:26px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; background:#e5e7eb; color:#4b5563; }
+.hb-game-wl.w{ background:#2e9e57; color:#fff; }
+.hb-game-wl.l{ background:#c60c30; color:#fff; }
+.hb-game-ball{ width:12px; height:8px; border-radius:50%; background:#8a5a36; box-shadow:inset 0 0 0 1.5px #5c3a1f; }
+.hb-game-ball.rz{ background:#c60c30; box-shadow:none; }
+
+/* Keep header on top visually, but sidebar has higher z-index anyway */
+.region.top.bar .module.MMM-OpenSky-Header{ z-index:250; }

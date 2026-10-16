@@ -10,6 +10,8 @@ MM="${1:-$HOME/opensky-dev/MagicMirror}"
 
 # OpenSky modules
 for m in "$REPO"/modules/MMM-OpenSky-*; do ln -sfn "$m" "$MM/modules/$(basename "$m")"; done
+# shared server-side library (weather, secrets…) → <MagicMirror>/modules/opensky-lib (not a module, just required)
+ln -sfn "$REPO/lib" "$MM/modules/opensky-lib"
 # base theme + config builder (settings files stay in the repo's config/ folder, read via the link)
 ln -sfn "$REPO/css/opensky.css" "$MM/css/opensky.css"
 ln -sfn "$REPO/config/config.js" "$MM/config/config.js"

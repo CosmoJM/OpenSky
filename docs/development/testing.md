@@ -21,6 +21,8 @@ node tools/harness.js tools/scenarios/smoke-timer.js
 tools/headless.sh stop
 ```
 - The app runs on port **8083** (`OPENSKY_PORT`) so it never clashes with a MagicMirror on 8080/8081.
+- Settings come from `tools/fixtures/opensky.test.json` (a fictional family in Boston), never from a personal
+  `config/opensky.json` — override with `OPENSKY_SETTINGS=/path/to/file.json`.
 - Screenshots land in `tools/out/` (not committed).
 - Scenarios export `async (page, h, app) => {}`; helpers: `h.tap(selector)`, `h.box`, `h.shot(name)`, `h.sleep`, `h.log`.
 

@@ -6,7 +6,8 @@
 //   3. stop the compositor:                tools/headless.sh stop
 //
 // Options (environment): OPENSKY_MM = MagicMirror folder (default ~/opensky-dev/MagicMirror),
-// OPENSKY_PORT = server port (default 8083, so it never clashes with a MagicMirror already running on 8080/8081).
+// OPENSKY_PORT = server port (default 8083, so it never clashes with a MagicMirror already running on 8080/8081),
+// OPENSKY_SETTINGS = settings file (default tools/fixtures/opensky.test.json — a fictional family in Boston).
 // A scenario exports `async (page, h, app) => {}`; screenshots go to tools/out/.
 const { _electron } = require("playwright-core");
 const path = require("path");
@@ -30,6 +31,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       WAYLAND_DISPLAY: process.env.OPENSKY_TEST_DISPLAY || "wayland-1",   // the headless compositor, NOT a real screen
       DISPLAY: "",
       OPENSKY_PORT: process.env.OPENSKY_PORT || "8083",
+      OPENSKY_SETTINGS: process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json"),
       ELECTRON_ENABLE_LOGGING: "1"
     },
     timeout: 90000

@@ -58,9 +58,12 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Food (add-on) | Google Places + Routes ✅ | Google (own key); 💭 OpenStreetMap/Overpass (free, no key) | Later |
 
 ## Roadmap (milestones)
-1. **Skeleton** — repo, plan, docs layout, AGENTS.md, licence, separate backups. *(this step)*
+1. **Skeleton** — repo, plan, docs layout, AGENTS.md, licence, separate backups. ✅
 2. **Port the reference build, scrubbed** — modules copied in, every secret/personal value moved to settings with
    safe defaults; community-module changes as forks/patches with their licences kept.
+   Progress: ✅ settings → config builder, base theme, shared lib (weather, secrets), off-screen harness;
+   ✅ Timer, ✅ Sidebar (soft sleep on any screen), ✅ Header (Open-Meteo default, custom dates, any-team sports pill).
+   Next: Home, Calendar (+ event editor, CalDAV backend), Lists, Settings, keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

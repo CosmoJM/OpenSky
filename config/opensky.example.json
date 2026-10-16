@@ -18,6 +18,17 @@
     "longitude": null
   },
 
+  "weather": {
+    "provider": "open-meteo"
+  },
+
+  "header": {
+    "holidays": "US",
+    "occasions": [],
+    "birthdaysFromCalendar": true,
+    "sports": { "league": "nfl", "team": "" }
+  },
+
   "pages": ["timer"],
 
   "sidebar": {
