@@ -48,4 +48,6 @@ The settings files are found through environment variables set by the services (
 - Anything that touches hardware or the system (backlight, ddcutil, volume, restart, update, power) must honour
   `OPENSKY_DRY_RUN=1` — the test harness sets it so tests never touch the real screen.
 - `tools/test-all.sh` must pass before a commit (see `docs/development/testing.md`).
+- The maintainer also edits on GitHub: `git pull --rebase` before pushing; never force-push.
+- Every provider (calendar, list, photo…) gets an on-screen scenario, not only a unit test: wiring between modules is where bugs hide (see tools/scenarios/google.js, holidays.js), plus a line in tools/test-config.js.
 
