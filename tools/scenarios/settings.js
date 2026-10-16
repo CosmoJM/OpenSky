@@ -14,8 +14,9 @@ module.exports = async (page, h) => {
   ok("sidebar has a Settings tile", !!(await h.box(".os-settings")) || !!(await page.$("[class*='settings']")));
   await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].sendNotification("OPENSKY_SETTINGS_OPEN"));
   await until(open);
+  await until(async () => page.evaluate(() => !!document.querySelector(".ost-prefs .ost-section")));
   const secs = await page.evaluate(() => [...document.querySelectorAll(".ost-section h3")].map((x) => x.textContent));
-  ok("panel opens with Screen / Sleep / Sound / System", JSON.stringify(secs) === JSON.stringify(["Screen", "Sleep at night", "Sound", "System"]), secs);
+  ok("panel opens with Screen / Sleep / Sound / Pages / Look & extras / Backups / System", JSON.stringify(secs) === JSON.stringify(["Screen", "Sleep at night", "Sound", "Pages", "Look & extras", "Backups", "System"]), secs);
   ok("brightness method explained (no hardware here → dims the picture)", await page.evaluate(() => /Dims the picture/.test(document.querySelector(".ost-note").textContent)));
 
   await slide("brightness", 40);
@@ -75,6 +76,45 @@ module.exports = async (page, h) => {
   await at(6, 30); await h.sleep(800);
   ok("6:30 AM: wakes up", !(await asleep()));
 
+  // ---- pages, look & extras, backups (the same settings as the phone page) ----
+  const S = () => JSON.parse(fs.readFileSync(path.join(__dirname, "..", "out", "opensky.test.json"), "utf8"));
+  await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].sendNotification("OPENSKY_SETTINGS_OPEN"));
+  await until(async () => page.evaluate(() => document.querySelectorAll(".ost-page").length > 3));
+  const before = S().pages;
+  await page.evaluate(() => document.querySelector('.ost-page[data-page="wordgame"] .ost-toggle').click());
+  await until(async () => !S().pages.includes("wordgame"));
+  ok("Pages: switch one off on the screen → saved, 'Restart now' offered", !S().pages.includes("wordgame") && before.includes("wordgame") && await until(async () => page.evaluate(() => !!document.querySelector(".ost-restart"))), S().pages);
+  await page.evaluate(() => document.querySelector('.ost-page[data-page="lists"] [data-move="-1"]').click());
+  await until(async () => S().pages.indexOf("lists") < before.indexOf("lists"));
+  ok("Pages: move one up", S().pages.indexOf("lists") === before.indexOf("lists") - 1, S().pages);
+  await page.evaluate(() => document.querySelector('[data-accent="teal"]').click());
+  await until(async () => S().look && S().look.accent === "teal");
+  ok("accent colour from the screen: saved and applied at once", S().look.accent === "teal" && await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--os-accent").trim()) === "#11998e");
+  const places = await page.evaluate(() => [...document.querySelectorAll('[data-backup="destination"] option')].map((o) => o.textContent));
+  ok("backups: the places this Pi can write to are listed (here: a network folder + the home folder)", places.some((t) => /Network folder/.test(t)) && places.some((t) => /home folder/.test(t)), places);
+  const nas = path.join(__dirname, "..", "out", "fake-nas");
+  await page.evaluate((v) => { const s = document.querySelector('[data-backup="destination"]'); s.value = v; s.dispatchEvent(new Event("change")); }, nas);
+  await until(async () => S().backup && S().backup.destination === nas);
+  await until(async () => page.evaluate(() => !!document.querySelector(".ost-backup-now")));
+  await page.evaluate(() => document.querySelector(".ost-backup-now").click());
+  await until(() => fs.existsSync(path.join(nas, "OpenSky-backups")) && fs.readdirSync(path.join(nas, "OpenSky-backups")).length > 0);
+  const bfile = fs.readdirSync(path.join(nas, "OpenSky-backups"))[0];
+  const bdata = JSON.parse(fs.readFileSync(path.join(nas, "OpenSky-backups", bfile), "utf8"));
+  ok("Back up now → a backup on the network folder (no passwords unless switched on)", /^opensky-backup-\d{4}-\d\d-\d\d\.json$/.test(bfile) && bdata.opensky === "backup" && !bdata.secrets, bfile);
+  await page.evaluate(() => document.querySelector(".ost-x").click());
+  await page.evaluate(() => { const sb = MM.getModules().withClass("MMM-OpenSky-Sidebar")[0]; ["--os-accent", "--os-accent-mid", "--os-accent-light", "--os-accent-soft", "--os-accent-tint", "--os-accent-dark"].forEach((p) => document.documentElement.style.removeProperty(p)); });
+
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
 };
+module.exports.writableSettings = true;   // the Settings panel saves to opensky.json
+module.exports.env = (() => {
+  const out = require("path").join(__dirname, "..", "out"), fs = require("fs");
+  const nas = require("path").join(out, "fake-nas");
+  fs.rmSync(nas, { recursive: true, force: true }); fs.mkdirSync(nas, { recursive: true });
+  fs.mkdirSync(require("path").join(out, "backup-home"), { recursive: true });
+  fs.writeFileSync(require("path").join(out, "mounts.test"), `//nas/family ${nas} cifs rw 0 0\n/dev/mmcblk0p2 / ext4 rw 0 0\n`);
+  fs.rmSync(require("path").join(out, "backup-status.test.json"), { force: true });
+  return { OPENSKY_MOUNTS: require("path").join(out, "mounts.test"), OPENSKY_GVFS: require("path").join(out, "no-gvfs"),
+    OPENSKY_BACKUP_HOME: require("path").join(out, "backup-home"), OPENSKY_BACKUP_STATUS: require("path").join(out, "backup-status.test.json") };
+})();

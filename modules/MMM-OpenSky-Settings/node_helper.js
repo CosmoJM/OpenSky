@@ -12,12 +12,16 @@
  *   OS_SET_ASLEEP true|false (the screen slept / woke) · OS_SET_STATUS → OS_SET_STATUS {…}
  *   OS_SET_SYSTEM {action: restart-app|update|reboot|shutdown} → OS_SET_SYSTEM_RESULT {action, ok, message}
  *   → OS_SET_SOFT_DIM level (software brightness for the page)
+ *   OS_SET_PREFS → OS_SET_PREFS {prefs, pages, places, backup}   (the core opensky.json settings the phone also edits)
+ *   OS_SET_PREFS_SAVE {patch} → OS_SET_PREFS {…, restartNeeded}   · OS_SET_BACKUP_RUN → OS_SET_BACKUP {status}
+ * Also runs the nightly automatic backup (lib/backup.js; opensky.json → backup).
  */
 const NodeHelper = require("node_helper");
 const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const dns = require("dns").promises;
+const backup = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "backup.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
 const REPO = path.resolve(__dirname, "..", "..");   // (MagicMirror links the module in; Node resolves the real folder)
@@ -46,6 +50,9 @@ module.exports = NodeHelper.create({
     this.queue = Promise.resolve();
     this.ready = this.detect();
     setInterval(() => this.applyBrightness(), 60 * 1000);   // evening dim starts / ends on time
+    // the nightly automatic backup (checked every 10 minutes; a failed one is retried hourly)
+    setInterval(() => this.backupIfDue(), 10 * 60 * 1000);
+    setTimeout(() => this.backupIfDue(), 60 * 1000);
   },
 
   load() {
@@ -108,6 +115,14 @@ module.exports = NodeHelper.create({
       this.applyBrightness();
     } else if (n === "OS_SET_STATUS") {
       this.sendSocketNotification("OS_SET_STATUS", await this.status());
+    } else if (n === "OS_SET_PREFS") {
+      this.sendPrefs();
+    } else if (n === "OS_SET_PREFS_SAVE") {
+      this.savePrefs((p && p.patch) || {});
+    } else if (n === "OS_SET_BACKUP_RUN") {
+      const st = backup.run();
+      console.log(`[OpenSky] backup now: ${st.ok ? st.file : st.error}`);
+      this.sendSocketNotification("OS_SET_BACKUP", { status: st });
     } else if (n === "OS_SET_SYSTEM") {
       const r = await this.system(p && p.action);
       this.sendSocketNotification("OS_SET_SYSTEM_RESULT", { action: p && p.action, ...r });
@@ -170,6 +185,54 @@ module.exports = NodeHelper.create({
         if (!r.ok) console.error(`[OpenSky] ddcutil: ${r.err.trim()}`);
       }
     });
+  },
+
+  /* ---------- automatic backups ---------- */
+  backupIfDue() {
+    if (!backup.due()) return;
+    const st = backup.run();
+    console.log(`[OpenSky] nightly backup: ${st.ok ? st.file : `failed — ${st.error}`}`);
+  },
+
+  /* ---------- core settings (the same ones the phone page edits) ---------- */
+  readSettings() { try { return JSON.parse(fs.readFileSync(backup.SETTINGS, "utf8")); } catch (e) { return {}; } },
+
+  sendPrefs(extra = {}) {
+    const s = this.readSettings();
+    const names = { home: "Home", calendar: "Calendar", lists: "Lists", wordgame: "Word Game", timer: "Timer" };
+    for (const [k, e] of Object.entries(s.embeds || {})) names[k] = (e && e.title) || k;
+    const pages = Array.isArray(s.pages) ? s.pages.filter((p) => names[p]) : ["home", "timer"];
+    this.sendSocketNotification("OS_SET_PREFS", {
+      pages, names,
+      prefs: {
+        accent: (s.look && s.look.accent) || "peach",
+        wordgame: (s.wordgame && s.wordgame.source) === "opensky" ? "opensky" : "nyt",
+        photos: !(s.photos && s.photos.enabled === false),
+        trashDay: (s.pickup && s.pickup.trashDay) || ""
+      },
+      backup: backup.settings(), places: backup.destinations(), status: backup.status(), ...extra
+    });
+  },
+
+  savePrefs(patch) {
+    const s = this.readSettings();
+    let restartNeeded = false;
+    if (Array.isArray(patch.pages) && patch.pages.length) { s.pages = patch.pages.map(String).filter((p) => /^[a-z][a-z0-9-]{0,30}$/.test(p)); restartNeeded = true; }
+    if ("accent" in patch) { s.look = s.look || {}; if (patch.accent === "peach") delete s.look.accent; else s.look.accent = String(patch.accent); }
+    if ("wordgame" in patch) { s.wordgame = s.wordgame || {}; s.wordgame.source = patch.wordgame === "opensky" ? "opensky" : "nyt"; restartNeeded = true; }
+    if ("photos" in patch) { s.photos = s.photos || {}; s.photos.enabled = !!patch.photos; restartNeeded = true; }
+    if ("trashDay" in patch) { s.pickup = s.pickup || {}; s.pickup.trashDay = String(patch.trashDay || ""); restartNeeded = true; }
+    if (patch.backup && typeof patch.backup === "object") {
+      const b = { ...(s.backup || {}), ...patch.backup };
+      if (!b.destination) delete b.destination;
+      s.backup = b;
+    }
+    try {
+      if (fs.existsSync(backup.SETTINGS)) fs.copyFileSync(backup.SETTINGS, `${backup.SETTINGS}.bak`);
+      fs.writeFileSync(`${backup.SETTINGS}.tmp`, JSON.stringify(s, null, 2) + "\n");
+      fs.renameSync(`${backup.SETTINGS}.tmp`, backup.SETTINGS);
+    } catch (e) { return this.sendSocketNotification("OS_SET_SYSTEM_RESULT", { ok: false, message: `Couldn't save: ${e.message}` }); }
+    this.sendPrefs(restartNeeded ? { restartNeeded: true } : {});
   },
 
   /* ---------- status + system ---------- */

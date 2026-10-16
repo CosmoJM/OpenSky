@@ -246,6 +246,9 @@ if you use a real keyboard. Dates and times use pickers instead.
 | Dim in the evening | From the time you pick until the morning, brightness goes down to the level you pick. |
 | Sleep at night | The screen goes dark at "Off at" and comes back at "On at". A touch wakes it; it sleeps again after 3 quiet minutes. A running timer keeps it on. |
 | Volume / Test | The Pi's speaker volume; Test plays the timer chime. |
+| Pages | Turn pages on/off and change their order (also on the phone). |
+| Look & extras | Accent colour, word game (NYT's word or OpenSky's), photo slideshow on/off, trash day. |
+| Backups | Every night to a USB stick, a network folder or the Pi itself — the list shows what the Pi can reach right now; keep 7–90; passwords included only if you switch it on; **Back up now**. |
 | System | Internet, the Pi's address, the OpenSky version (and **Update** when there is one), Reload, Restart OpenSky, Restart Pi, Shut down. The last three ask you to tap twice. |
 
 ## Phone setup
@@ -253,4 +256,13 @@ if you use a real keyboard. Dates and times use pickers instead.
 "setup": { "port": 8090 }
 ```
 The port the phone page uses while setup is open (only then). Change it if something else on the Pi uses 8090.
+
+## Automatic backups
+```json
+"backup": { "destination": "/media/pi/MYSTICK", "time": "03:00", "keep": 14, "includeSecrets": false }
+```
+Easiest from Settings (on the screen) or the phone page → Backup. Backups go to `<destination>/OpenSky-backups/`, one
+file per night, the newest `keep` kept. A USB stick that's unplugged is retried every hour. A network folder: mount it
+on the Pi (e.g. open it once in the file manager: *Go → Network*) and it appears in the list. Restore a backup from the
+phone page → Backup → Restore.
 

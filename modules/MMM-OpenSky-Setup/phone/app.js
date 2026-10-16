@@ -526,11 +526,39 @@
         api("POST", "/api/restore", { backup }).then(() => { toast("Restored — tap Finish to restart the screen", "good"); load().then(() => { saved = true; renderBar(); }); }, (x) => toast(x.message, "bad"));
       }]]);
     } });
+    // automatic nightly backups to a place this Pi can reach (USB stick, network folder…)
+    S.backup = S.backup || {};
+    const auto = el("div", { class: "auto-backup" });
+    const drawAuto = (places, st) => {
+      const opts = [["", "Off — no automatic backups"], ...places.map((p) => [p.path, `${p.label}${p.freeMB != null ? ` · ${p.freeMB >= 1024 ? `${Math.round(p.freeMB / 1024)} GB` : `${p.freeMB} MB`} free` : ""}`])];
+      if (S.backup.destination && !places.some((p) => p.path === S.backup.destination)) opts.push([S.backup.destination, `${S.backup.destination} (not available right now)`]);
+      const last = st && st.last ? `${st.ok ? "Last backup" : "Last try"}: ${new Date(st.last).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}${st.ok ? " ✓" : ` — ${st.error}`}` : "No automatic backup yet.";
+      auto.replaceChildren(
+        el("h4", { class: "sub-title" }, "Automatic backups"),
+        field("Back up every night to", select(opts, S.backup.destination || "", (v) => { if (v) S.backup.destination = v; else delete S.backup.destination; change(); }),
+          "USB sticks and network folders the Pi can see right now. Plug in a stick (or open a network folder on the Pi) and reload to see it here."),
+        el("div", { class: "two" },
+          field("Time", select([["01:00", "1 AM"], ["02:00", "2 AM"], ["03:00", "3 AM"], ["04:00", "4 AM"], ["05:00", "5 AM"]], S.backup.time || "03:00", (v) => { S.backup.time = v; change(); })),
+          field("Keep", select([[7, "7 backups"], [14, "14 backups"], [30, "30 backups"], [90, "90 backups"]], Number(S.backup.keep) || 14, (v) => { S.backup.keep = Number(v); change(); }))),
+        el("div", { class: "line top" }, el("span", {}, el("b", {}, "Include passwords & keys"), el("small", {}, "A complete copy; keep that place private")),
+          toggle(!!S.backup.includeSecrets, (v) => { S.backup.includeSecrets = v; change(); }, "Include passwords in automatic backups")),
+        el("p", { class: `hint${st && st.ok === false ? " bad" : ""}` }, last),
+        el("button", { type: "button", class: "btn block", onclick: async (e) => {
+          if (dirty) return toast("Save first, then back up", "bad");
+          e.currentTarget.disabled = true;
+          try { const r = await api("POST", "/api/backup/run"); toast("Backed up ✓", "good"); drawAuto(places, r.status); }
+          catch (x) { toast(x.message, "bad"); api("GET", "/api/backup/places").then((d) => drawAuto(d.places, d.status), () => {}); }
+        } }, "Back up now"));
+    };
+    auto.append(el("p", { class: "hint" }, "Looking for places to back up to…"));
+    api("GET", "/api/backup/places").then((d) => drawAuto(d.places, d.status), (e) => auto.replaceChildren(el("p", { class: "hint bad" }, e.message)));
+
     return section("backup", "backup", "Backup", "Keep a copy of this screen's setup — handy for a new SD card or a new Pi",
+      el("h4", { class: "sub-title" }, "Download a copy"),
       el("div", { class: "line top" }, el("span", {}, el("b", {}, "Include passwords & keys"), el("small", {}, "Keep that file somewhere private")),
         toggle(false, (v) => { link.setAttribute("href", v ? "/api/backup?secrets=1" : "/api/backup"); }, "Include passwords")),
       link,
-      el("button", { type: "button", class: "btn block", onclick: () => file.click() }, "Restore from a backup"), file);
+      el("button", { type: "button", class: "btn block", onclick: () => file.click() }, "Restore from a backup"), file, auto);
   }
 
   /* ---------------- start ---------------- */
