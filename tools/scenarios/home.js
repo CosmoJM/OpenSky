@@ -46,6 +46,15 @@ module.exports = async (page, h) => {
   ok("pickup calendar: 'Recycling' and 'Yard Waste' events become icons on their days", pc[3] && pc[3].rec && pc[4] && pc[4].yard, pc.slice(2, 6));
   await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Home")[0].notificationReceived("OPENSKY_PICKUP_EVENTS", []));
 
+  // a calendar that keeps failing gets a small notice (after 2 minutes; 0 here), gone once it loads again
+  const alertText = () => page.evaluate(() => { const a = document.querySelector(".hd-cal-alert"); return a && !a.hidden ? a.textContent : null; });
+  await page.evaluate(() => { const hm = MM.getModules().withClass("MMM-OpenSky-Home")[0]; hm.config.calendarAlertAfter = 0; hm.notificationReceived("OPENSKY_CALENDAR_STATUS", { Family: "ok", Mom: "HTTP 404" }); });
+  await h.sleep(200);
+  const shown = await alertText();
+  await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Home")[0].notificationReceived("OPENSKY_CALENDAR_STATUS", { Mom: "ok" }));
+  await h.sleep(200);
+  ok("a failing calendar shows 'Mom isn't loading' on Home; it goes once Mom loads", shown === "Mom isn't loading" && (await alertText()) === null, shown);
+
   // on-device lists (MMM-OpenSky-Lists, seeded by the harness) show on the lists card
   for (let i = 0; i < 20 && !(await page.evaluate(() => document.querySelectorAll(".hd-lists .lc-list").length)); i++) await h.sleep(500);
   const own = await page.evaluate(() => [...document.querySelectorAll(".hd-lists .lc-list")].map((c) => ({ title: c.querySelector(".lc-list-title").textContent, badge: c.querySelector(".lc-badge").textContent, items: [...c.querySelectorAll(".lc-item-text")].map((x) => x.textContent), empty: c.querySelector(".lc-empty")?.textContent || "" })));

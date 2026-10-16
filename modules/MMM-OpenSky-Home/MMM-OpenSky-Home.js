@@ -17,7 +17,8 @@
  */
 Module.register("MMM-OpenSky-Home", {
   defaults: {
-    listsPage: null,             // MMM-pages index of the Lists page ("See all"); null = no button
+    listsPage: null,
+    calendarAlertAfter: 2 * 60 * 1000,   // show "<calendar> isn't loading" after this long             // MMM-pages index of the Lists page ("See all"); null = no button
     canAddEvents: false,         // true when an event editor module is installed
     maxEventsPerDay: 4,
     eventColors: null,           // calendar.colors from opensky.json
@@ -46,6 +47,21 @@ Module.register("MMM-OpenSky-Home", {
   suspend() { clearInterval(this.photoTimer); this.photoTimer = null; },
 
   notificationReceived(n, payload, sender) {
+    // a calendar that keeps failing (wrong link, expired password…) gets a small notice — after 2 minutes, so a
+    // Wi-Fi blip at start-up doesn't flash one
+    if (n === "OPENSKY_CALENDAR_STATUS" && payload && typeof payload === "object") {
+      this.calProblems = this.calProblems || {};
+      const now = Date.now();
+      for (const [name, st] of Object.entries(payload)) {
+        if (st === "ok") delete this.calProblems[name];
+        else if (!this.calProblems[name]) this.calProblems[name] = { since: now, message: String(st) };
+        else this.calProblems[name].message = String(st);
+      }
+      this.renderCalAlert();
+      clearTimeout(this._alertTimer);
+      if (Object.keys(this.calProblems).length) this._alertTimer = setTimeout(() => this.renderCalAlert(), this.config.calendarAlertAfter + 1000);
+      return;
+    }
     if (n === "OPENSKY_PICKUP_EVENTS" && Array.isArray(payload)) {
       const key = JSON.stringify(payload);
       if (key !== this._pickupKey) { this._pickupKey = key; this.pickupEvents = payload; this.renderCalendar(); }
@@ -93,6 +109,7 @@ Module.register("MMM-OpenSky-Home", {
         <header class="hd-card-head">
           <span class="hd-card-label">${this.icon("calendar")} Calendar</span>
           <span class="hd-week-range"></span>
+          <button class="hd-cal-alert" hidden></button>
           <span class="hd-nav">
             ${this.config.canAddEvents ? `<button class="hd-nav-btn hd-add">${this.icon("plus")} Add Event</button>` : ""}
             <button class="hd-nav-btn hd-prev" aria-label="Previous week">${this.icon("left")}</button>
@@ -229,6 +246,16 @@ Module.register("MMM-OpenSky-Home", {
     return events
       .filter((ev) => { const end = ev.endDate > ev.startDate ? ev.endDate : ev.startDate + 1; return ev.startDate < to.getTime() && end > from.getTime(); })
       .sort((a, b) => (b.allDay - a.allDay) || (a.startDate - b.startDate));
+  },
+
+  renderCalAlert() {
+    const el = this.root && this.root.querySelector(".hd-cal-alert");
+    if (!el) return;
+    const now = Date.now(), bad = Object.entries(this.calProblems || {}).filter(([, p]) => now - p.since >= this.config.calendarAlertAfter);
+    el.hidden = !bad.length;
+    if (!bad.length) return;
+    el.textContent = bad.length === 1 ? `${bad[0][0]} isn't loading` : `${bad.length} calendars aren't loading`;
+    el.onclick = () => window.OpenSkyToast(`${bad.map(([n, p]) => `${n}: ${p.message}`).join(" · ")} — fix it in Settings → Set up from your phone → Calendars`, "error");
   },
 
   renderCalendar() {

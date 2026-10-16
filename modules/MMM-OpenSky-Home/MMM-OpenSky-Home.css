@@ -94,6 +94,9 @@
 }
 .hd-card-label .hd-icon { width: 26px; height: 26px; color: var(--os-accent); }
 .hd-icon { width: 20px; height: 20px; display: block; flex: 0 0 auto; }
+.hd-cal-alert { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 6px 14px; border: 0; border-radius: 999px; background: #fdecea; color: #a33a28; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.hd-cal-alert[hidden] { display: none; }
+.hd-cal-alert::before { content: "!"; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #d2604e; color: #fff; font-size: 12px; font-weight: 800; }
 .hd-week-range { font-size: 19px; font-weight: 600; color: #9ca3af; }
 
 .hd-nav { margin-left: auto; display: flex; gap: 8px; align-items: center; }
