@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Installation guide
+    url: https://github.com/CosmoJM/OpenSky/blob/main/docs/install.md
+    about: Step by step, from an empty SD card to a working screen.
+  - name: Troubleshooting
+    url: https://github.com/CosmoJM/OpenSky/blob/main/docs/troubleshooting.md
+    about: Most problems are answered here (opensky status / check / logs).

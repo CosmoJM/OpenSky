@@ -84,13 +84,23 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    ✅ Phone setup page (QR + 6-digit pairing code on the screen; LAN server only while open; write-only secrets;
    first-run welcome card; Settings → Set up from your phone).
    Next: clean-install test on a spare SD card (needs the maintainer), then providers from the matrix.
-3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
-   Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
-4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.
-5. Providers from the matrix, one at a time (Google Calendar, HA lists, Immich, sports team picker, pickup presets…).
+   Since: Google Calendar (read + write), Home Assistant lists, holidays for ~200 countries, pickup from a calendar
+   link, backups (download/restore + nightly automatic), safe updates with rollback, accent colour, screen-off methods
+   with Test + wake on touch, Settings on the screen = the phone's core settings, web-page touches count as activity.
+3. **First public milestone (v1.0)** — everything above. ✅ built and tested off-screen. Left before tagging v1.0.0:
+   the real-monitor screen test, the **clean install on a spare SD card**, README screenshots, release notes.
+4. ~~Phone setup page~~ ✅ (done in 2).  5. ~~Providers from the matrix~~ ✅ most of them (done in 2).
 6. **Clean-install test** on a separate SD card in the same Pi (swap cards; the family calendar stays on its card).
-7. Public release (v1.0): docs, screenshots with demo data, issue templates, contribution guide.
-8. Add-ons: Food.
+7. **Public release v1.0.0**: tag, GitHub release notes, announcement (MagicMirror forum "Showcase").
+
+## v2 (nice to have — after v1.0)
+- **Create your own web-app page from the screen/phone**: a Create button → address, name, pick an icon from a set →
+  a new sidebar page that works like the Smart Home page (embed + optional PIN). (Today: phone setup → Web pages.)
+- Look: dark mode, date format, more themes; languages (i18n); keyboard layouts (UK, international).
+- More providers: Microsoft 365 / Outlook (Graph) calendars, Google Tasks direct, Apple Reminders (CalDAV VTODO),
+  PhotoPrism / Nextcloud photos, NWS / Met.no weather.
+- Presence: screen on/off from Home Assistant (nobody home → off), settings migrations between versions.
+- Add-ons: **Food** (nearby restaurants), others from the community; a ready-to-flash SD-card image.
 
 ## Development setup (this Pi)
 - The family calendar (`~/MagicMirror`) is **never touched** by OpenSky work. OpenSky lives in `~/opensky` with its own

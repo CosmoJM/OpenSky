@@ -4,7 +4,20 @@
 A friendly family wall calendar and home dashboard for a Raspberry Pi touchscreen — the week ahead, shared lists,
 timers, photos, weather and smart-home controls on one screen. Built on [MagicMirror²](https://magicmirror.builders/).
 
-> 🚧 Early development — usable, but expect changes. See [PLAN.md](PLAN.md) for where it's heading.
+> Release candidate for **v1.0** — see [CHANGELOG.md](CHANGELOG.md). Where it's heading: [PLAN.md](PLAN.md).
+
+![The Home page: the week ahead, lists and a photo](docs/assets/screenshots/home.jpg)
+
+<table><tr>
+<td><img src="docs/assets/screenshots/calendar.jpg" alt="Calendar page"></td>
+<td><img src="docs/assets/screenshots/lists.jpg" alt="Lists page"></td>
+</tr><tr>
+<td><img src="docs/assets/screenshots/settings.jpg" alt="Settings on the screen"></td>
+<td><img src="docs/assets/screenshots/phone-setup-screen.jpg" alt="Set up from your phone: QR code and pairing code"></td>
+</tr></table>
+<p align="center"><img src="docs/assets/screenshots/phone-setup.jpg" alt="The phone setup page" width="260"></p>
+
+<sub>Screenshots use a made-up family and demo pictures (`node tools/harness.js tools/demo/screenshots.js`).</sub>
 
 ## What you get
 - **Home:** the week ahead with everyone's events in their colours, weather, trash-day icons, your lists and a photo.
@@ -23,5 +36,6 @@ Google Calendar with editing: [docs/google-calendar.md](docs/google-calendar.md)
 help: [docs/troubleshooting.md](docs/troubleshooting.md)
 
 ## Docs
-- **For people:** [`docs/`](docs/).
+- **For people:** [`docs/`](docs/README.md).
+- **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md).
 - **For AI assistants:** start with [`AGENTS.md`](AGENTS.md).
