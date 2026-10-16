@@ -30,8 +30,8 @@ html, body {
 .region.fullscreen.below {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: calc(100 * var(--vw));
+  height: calc(100 * var(--vh));
 }
 
 /* Hidden modules must never catch taps.
@@ -56,6 +56,9 @@ html, body {
 /* Accent colour (opensky.json → look.accent). These are the default peach tones; another accent sets
    --os-accent and the Sidebar derives the rest (lighter / softer / darker) from it. */
 :root {
+  /* screen-relative units that stay right when the Sidebar scales the 1920×1080 design to the screen (body zoom) */
+  --vh: calc(1vh / var(--os-zoom, 1));
+  --vw: calc(1vw / var(--os-zoom, 1));
   --os-accent: #e8663f;
   --os-accent-mid: #ff9f7f;
   --os-accent-light: #ffb08f;

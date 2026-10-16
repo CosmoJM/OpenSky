@@ -15,7 +15,7 @@
 @keyframes osl-fade { from { opacity: 0; } to { opacity: 1; } }
 
 .osl-modal {
-  width: min(620px, 90vw);
+  width: min(620px, calc(90 * var(--vw)));
   padding: 24px 28px 26px;
   border-radius: 24px;
   background: #fff;
@@ -78,7 +78,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  max-width: 80vw;
+  max-width: calc(80 * var(--vw));
   padding: 10px 10px 10px 26px;
   border-radius: 40px;
   background: #1f2937;

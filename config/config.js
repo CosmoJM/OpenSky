@@ -224,7 +224,8 @@ const fixed = [
       idleReturnMinutes: (s.sidebar && Number.isFinite(s.sidebar.idleReturnMinutes)) ? s.sidebar.idleReturnMinutes : 5,
       screenServiceUrl: (s.screen && s.screen.serviceUrl) || null,
       showSettings: true,
-      accent: (s.look && s.look.accent) || null
+      accent: (s.look && s.look.accent) || null,
+      scale: (s.look && s.look.scale) || "auto"
     }
   }
 ];

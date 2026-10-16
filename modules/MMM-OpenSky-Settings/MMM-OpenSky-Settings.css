@@ -13,8 +13,8 @@
 .ost-panel {
   display: flex;
   flex-direction: column;
-  width: min(820px, 92vw);
-  max-height: 90vh;
+  width: min(820px, calc(92 * var(--vw)));
+  max-height: calc(90 * var(--vh));
   border-radius: 26px;
   background: #fff;
   color: #1f2937;

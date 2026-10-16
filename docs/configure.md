@@ -46,10 +46,13 @@ After changing either file, run **`opensky restart`**. If the screen doesn't com
 - `locale.locale`: how dates are written (`"en-US"`, `"en-GB"`…) — on the screen and in date boxes.
 - The **time zone** comes from the Pi itself. To change it: `sudo raspi-config nonint do_change_timezone America/Chicago` (use your zone).
 
-## Accent colour
+## Accent colour and size
 ```json
-"look": { "accent": "teal" }
+"look": { "accent": "teal", "scale": "auto" }
 ```
+`scale`: OpenSky is laid out for a 1920×1080 screen and is scaled to fit yours (`"auto"`): a 1280×720 screen shows
+the same layout at two-thirds size, a 4K screen at double size. Want it bigger or smaller? Use a number, e.g. `1.2`.
+
 The colour of buttons, highlights and the active page: any palette colour name (see Calendars) or `"#rrggbb"`.
 Leave it out for the default peach.
 

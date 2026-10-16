@@ -71,7 +71,7 @@
 
 /* Constrain the calendar to the viewport */
 .CX3.bodice {
-  max-height: calc(100vh - 108px);
+  max-height: calc(calc(100 * var(--vh)) - 108px);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -115,7 +115,7 @@
    gives the cells a fixed height, so they spilled into the next row and the last row's bottom
    border was clipped by .bodice's overflow. Make the cells follow the (shrunk) week instead. */
 .CX3 .week { min-height: 0; flex: 1 1 0; }          /* 5- and 6-week months both fill down to y1058 */
-.CX3.bodice { height: calc(100vh - 108px) !important; }
+.CX3.bodice { height: calc(calc(100 * var(--vh)) - 108px) !important; }
 /* Events start right under the date number and stack downwards, like the Home week tiles
    (CX3 pins its event layer to the cell bottom and spreads the rows over its height).
    Rows are at most 32px; in shrunk rows (6-week months) they share the space left. */
