@@ -301,9 +301,14 @@ module.exports = NodeHelper.create({
     out.version = v.ok ? v.out.trim() : null;
     if (out.internet && !DRY) {
       // how many updates are waiting (only fetches; nothing changes until "Update" is pressed)
-      if ((await run("git", ["-C", REPO, "fetch", "--quiet"], 30000)).ok) {
-        const c = await run("git", ["-C", REPO, "rev-list", "--count", "HEAD..@{u}"], 5000);
-        if (c.ok) out.updates = Number(c.out.trim());
+      // the same rule as `opensky update`: the newest release tag, or origin/main when update.channel is "main"
+      if ((await run("git", ["-C", REPO, "fetch", "--quiet", "--tags", "origin"], 30000)).ok) {
+        const channel = ((this.readSettings().update || {}).channel) === "main" ? "main" : "releases";
+        const tag = channel === "releases" ? (await run("git", ["-C", REPO, "tag", "-l", "v[0-9]*", "--sort=-v:refname"], 5000)).out.split("\n")[0].trim() : "";
+        const target = tag || "origin/main";
+        const ahead = await run("git", ["-C", REPO, "merge-base", "--is-ancestor", target, "HEAD"], 5000);
+        out.updates = ahead.ok ? 0 : 1;
+        out.updateTo = ahead.ok ? null : (tag || "the newest version");
       }
     }
     if (DRY) out.updates = 0;

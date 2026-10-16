@@ -12,7 +12,10 @@ printf 'config/*\n!config/.keep\n' > "$T/src/.gitignore"; touch "$T/src/config/.
 (cd "$T/src" && g init -q && g add -A && g commit -qm v1 && g tag v1)
 g clone -q --bare "$T/src" "$T/origin.git"
 g clone -q "$T/origin.git" "$T/work"
-newversion() { (cd "$T/src" && echo "$1" > VERSION && g commit -qam "v$1" && g push -q "$T/origin.git" HEAD:main); }
+# a new release: a commit on main + a tag v<N>.0.0 (what families get by default)
+newversion() { (cd "$T/src" && echo "$1" > VERSION && g commit -qam "v$1" && g tag "v$1.0.0" && g push -q "$T/origin.git" HEAD:main "v$1.0.0"); }
+# a commit on main that isn't a release yet
+newcommit() { (cd "$T/src" && echo "$1" > VERSION && g commit -qam "wip $1" && g push -q "$T/origin.git" HEAD:main); }
 OS="$T/work/tools/opensky"
 export OPENSKY_UPDATE_INSTALL="true" OPENSKY_HEALTH_WAIT=1
 
@@ -24,11 +27,19 @@ ok "2 a good update: newest version, previous one remembered" '[ $st = 0 ] && [ 
 newversion 3
 out=$(OPENSKY_HEALTH_CMD=false "$OS" update 2>&1); st=$?
 ok "3 an update that doesn't start → back on the previous version by itself" '[ $st = 1 ] && [ "$(cat $T/work/VERSION)" = 2 ] && [[ "$out" == *"going back"* ]]'
-(cd "$T/work" && g reset -q --hard origin/main)   # pretend v3 got installed
+(cd "$T/work" && g checkout -q --detach v3.0.0)   # pretend v3 got installed
 echo "$(cd "$T/src" && git rev-parse HEAD~1)" > "$T/work/config/.previous-version"
 out=$("$OS" rollback 2>&1); st=$?
 ok "4 opensky rollback → the version before" '[ $st = 0 ] && [ "$(cat $T/work/VERSION)" = 2 ]'
+OPENSKY_HEALTH_CMD=true "$OS" update >/dev/null 2>&1   # back to the newest release (v3)
+newcommit 4
+out=$(OPENSKY_HEALTH_CMD=true "$OS" update 2>&1); st=$?
+ok "5 a commit on main that isn't a release → not installed (families get releases)" '[ $st = 0 ] && [[ "$out" == *"up to date"* ]] && [ "$(cat $T/work/VERSION)" = 3 ]'
+echo '{"update":{"channel":"main"}}' > "$T/work/config/opensky.json"
+out=$(OPENSKY_HEALTH_CMD=true "$OS" update 2>&1); st=$?
+ok "6 update.channel \"main\" (testers) → the newest commit" '[ $st = 0 ] && [ "$(cat $T/work/VERSION)" = 4 ]'
+rm "$T/work/config/opensky.json"
 echo hand-edit >> "$T/work/VERSION"
 out=$(OPENSKY_HEALTH_CMD=true "$OS" update 2>&1); st=$?
-ok "5 files changed by hand → no update over them" '[ $st = 1 ] && [[ "$out" == *"changed by hand"* ]] && grep -q hand-edit "$T/work/VERSION"'
+ok "7 files changed by hand → no update over them" '[ $st = 1 ] && [[ "$out" == *"changed by hand"* ]] && grep -q hand-edit "$T/work/VERSION"'
 echo "SUMMARY pass=$pass fail=$fail"

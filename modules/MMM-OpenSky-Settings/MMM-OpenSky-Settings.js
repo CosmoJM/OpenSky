@@ -291,7 +291,7 @@ Module.register("MMM-OpenSky-Settings", {
     const rows = [
       ["Internet", s.internet ? "Connected" : "Not connected"],
       ["Address", s.ip ? `${s.ip}` : "—"],
-      ["OpenSky", (s.version || "—") + (s.updates ? ` · ${s.updates} update${s.updates === 1 ? "" : "s"} available` : s.updates === 0 ? " · up to date" : "")]
+      ["OpenSky", (s.version || "—") + (s.updates ? ` · ${s.updateTo || "an update"} available` : s.updates === 0 ? " · up to date" : "")]
     ];
     box.innerHTML = rows.map(() => `<div class="ost-stat"><span></span><b></b></div>`).join("");
     box.querySelectorAll(".ost-stat").forEach((el, i) => { el.children[0].textContent = rows[i][0]; el.children[1].textContent = rows[i][1]; });

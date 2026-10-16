@@ -17,6 +17,15 @@ wait_healthy() {
   return 1
 }
 
+# Which version "the newest OpenSky" is: the newest release tag (v…) by default, or the newest commit on main when
+# opensky.json → update.channel is "main" (for testers).
+channel() { python3 -c 'import json,sys; print(((json.load(open(sys.argv[1])).get("update") or {}).get("channel")) or "releases")' "$CONFIG/opensky.json" 2>/dev/null || echo releases; }
+latest_tag() { git tag -l 'v[0-9]*' --sort=-v:refname | head -1; }
+target() {
+  local t
+  if [ "$(channel)" != main ] && t=$(latest_tag) && [ -n "$t" ]; then echo "$t"; else echo "origin/main"; fi
+}
+
 update() {
   cd "$REPO" || exit 1
   if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
@@ -24,16 +33,17 @@ update() {
     echo "(Your settings in config/ are fine — they're not part of this check.)"; exit 1
   fi
   local before; before=$(git rev-parse HEAD)
-  git fetch -q || { echo "Couldn't reach GitHub — try again later."; exit 1; }
-  if [ "$(git rev-list --count HEAD..@{u})" = 0 ]; then echo "OpenSky is up to date ($(git describe --tags --always))."; exit 0; fi
+  git fetch -q --tags origin || { echo "Couldn't reach GitHub — try again later."; exit 1; }
+  local to; to=$(target)
+  if git merge-base --is-ancestor "$to" HEAD; then echo "OpenSky is up to date ($(git describe --tags --always))."; exit 0; fi
   echo "$before" > "$PREV"
-  echo "Updating OpenSky…"
-  git merge -q --ff-only @{u} || { echo "Couldn't update (the local copy has its own changes)."; exit 1; }
+  echo "Updating OpenSky to $to…"
+  git checkout -q --detach "$to" || { echo "Couldn't update."; exit 1; }
   if install_and_restart && wait_healthy; then
     echo "Updated to $(git describe --tags --always) ✓  (if anything is wrong: opensky rollback)"
   else
     echo "The new version didn't start properly — going back to the previous one."
-    git reset -q --hard "$before" && install_and_restart && wait_healthy && echo "Back on the previous version ✓" || echo "Still not starting — see: opensky logs"
+    git checkout -q --detach "$before" && install_and_restart && wait_healthy && echo "Back on the previous version ✓" || echo "Still not starting — see: opensky logs"
     exit 1
   fi
 }
@@ -45,7 +55,7 @@ rollback() {
   git cat-file -e "$to^{commit}" 2>/dev/null || { echo "The earlier version isn't available any more."; exit 1; }
   git rev-parse HEAD > "$PREV.undo"
   echo "Going back to the previous version…"
-  git reset -q --hard "$to" && install_and_restart && echo "Back on $(git describe --tags --always) ✓  ('opensky update' brings the newest again)"
+  git checkout -q --detach "$to" && install_and_restart && echo "Back on $(git describe --tags --always) ✓  ('opensky update' brings the newest again)"
 }
 
 case "${1:-help}" in

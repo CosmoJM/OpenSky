@@ -270,3 +270,10 @@ file per night, the newest `keep` kept. A USB stick that's unplugged is retried 
 on the Pi (e.g. open it once in the file manager: *Go → Network*) and it appears in the list. Restore a backup from the
 phone page → Backup → Restore.
 
+## Updates
+```json
+"update": { "channel": "releases" }
+```
+`opensky update` (and Settings → Update) installs the newest **release**. `"main"` follows the newest development
+version instead — for testers. Either way, a version that doesn't start is rolled back by itself.
+

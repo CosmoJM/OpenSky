@@ -14,6 +14,8 @@ New calendar, list, photo or weather providers are very welcome. The plan and th
 [PLAN.md](PLAN.md) (the "options matrix"). Please open an issue first, so we can agree on the settings it needs.
 
 ## Making a change
+0. A fresh install switches to the newest release; for development: `git checkout main` (and set
+   `"update": { "channel": "main" }` in `config/opensky.json` so `opensky update` follows main too).
 1. Read [AGENTS.md](AGENTS.md): the house rules (secrets, testing, names) are short.
 2. Set up the off-screen test environment: [docs/development/testing.md](docs/development/testing.md).
 3. Make your change. Then:
