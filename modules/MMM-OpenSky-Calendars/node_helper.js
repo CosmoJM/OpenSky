@@ -3,7 +3,7 @@
  * Private calendar links (Google "secret address", iCloud sharing links, the local CalDAV feed) come from
  * secrets.json → calendar.sources.<name>, so they never appear in the config MagicMirror serves to the network.
  * Sources of type "local" are the on-device calendar (lib/local-calendar.js): no account, shown again on every change.
- *   OS_CAL_START {sources: [{name, type, url|null, fetchMinutes}], days} → OS_CAL_EVENTS {name, events} | OS_CAL_ERROR {name, message}
+ *   OS_CAL_START {sources: [{name, type, url|null, fetchMinutes, country?, region?, calendarId?}], days} → OS_CAL_EVENTS {name, events} | OS_CAL_ERROR {name, message}
  */
 const NodeHelper = require("node_helper");
 const path = require("path");
