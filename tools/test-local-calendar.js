@@ -1,0 +1,27 @@
+// Unit test for lib/local-calendar.js (on-device calendar). Run: node tools/test-local-calendar.js
+const os = require("os"), path = require("path"), fs = require("fs");
+process.env.OPENSKY_LOCAL_CALENDAR = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "opensky-")), "local-calendar.json");
+const L = require("../lib/local-calendar.js");
+let pass = 0, fail = 0; const ok = (k, v, i = "") => { v ? pass++ : fail++; console.log(`${v ? "PASS" : "FAIL"}  ${k} ${i}`); };
+const throws = (fn, re) => { try { fn(); return false; } catch (e) { return re.test(e.message); } };
+let changes = 0; L.on("change", () => changes++);
+L.create("Home", { title: "Piano lesson", startDate: "2026-10-20T21:00:00.000Z", endDate: "2026-10-20T22:00:00.000Z" });
+L.create("Home", { title: "Camping", allDay: true, startDate: "2026-10-23", endDate: "2026-10-25", description: "bring tents" });
+let ev = L.mmEvents("Home");
+ok("1 create timed + all-day", ev.length === 2 && changes === 2);
+const camp = ev.find((e) => e.title === "Camping");
+ok("2 all-day: local midnight start, exclusive end (3 days)", camp.fullDayEvent && (Number(camp.endDate) - Number(camp.startDate)) / 86400000 === 3, `${new Date(+camp.startDate)} → ${new Date(+camp.endDate)}`);
+ok("3 MagicMirror format (string ms, description)", typeof camp.startDate === "string" && camp.description === "bring tents");
+ok("4 other calendars stay separate", L.mmEvents("Work").length === 0);
+L.update("Home", { originalTitle: "Piano lesson", originalStart: "2026-10-20T21:00:00.000Z" }, { title: "Piano lesson (moved)", startDate: "2026-10-21T21:00:00.000Z", endDate: "2026-10-21T22:00:00.000Z" });
+ev = L.mmEvents("Home");
+ok("5 update by title + start", ev.some((e) => e.title === "Piano lesson (moved)" && Number(e.startDate) === Date.parse("2026-10-21T21:00:00.000Z")) && !ev.some((e) => e.title === "Piano lesson"));
+L.remove("Home", { originalTitle: "Camping", originalStart: new Date(+camp.startDate).toISOString() });
+ok("6 delete an all-day event", !L.mmEvents("Home").some((e) => e.title === "Camping"));
+ok("7 validation: empty title", throws(() => L.create("Home", { title: " ", startDate: "2026-10-20T21:00:00Z", endDate: "2026-10-20T22:00:00Z" }), /title/));
+ok("8 validation: end before start", throws(() => L.create("Home", { title: "x", startDate: "2026-10-20T22:00:00Z", endDate: "2026-10-20T21:00:00Z" }), /after start/));
+ok("9 not found → 404", (() => { try { L.remove("Home", { originalTitle: "Nope", originalStart: "2026-01-01T00:00:00Z" }); } catch (e) { return e.status === 404; } return false; })());
+fs.writeFileSync(L.FILE, "{ broken");
+ok("10 damaged file → empty list, copy kept", L.mmEvents("Home").length === 0 && fs.readdirSync(path.dirname(L.FILE)).some((f) => f.includes("damaged")));
+ok("11 atomic write leaves no temp file", (L.create("Home", { title: "After repair", startDate: "2026-10-20T21:00:00Z", endDate: "2026-10-20T22:00:00Z" }), !fs.existsSync(`${L.FILE}.tmp`)));
+console.log(`SUMMARY pass=${pass} fail=${fail}`);

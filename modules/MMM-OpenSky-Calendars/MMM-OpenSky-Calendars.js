@@ -6,7 +6,7 @@
  */
 Module.register("MMM-OpenSky-Calendars", {
   defaults: {
-    sources: [],          // [{ name, url (public links only — private ones go in secrets.json), color, fetchMinutes }]
+    sources: [],          // [{ name, type: "local" | "link" | "caldav", url (public links only), color, fetchMinutes }]
     days: 400             // how far ahead (and back) to keep events
   },
 
@@ -16,7 +16,7 @@ Module.register("MMM-OpenSky-Calendars", {
     this.events = new Map();   // source name → events
     this.status = {};
     this.sendSocketNotification("OS_CAL_START", {
-      sources: this.config.sources.map((s) => ({ name: s.name, url: s.url || null, fetchMinutes: s.fetchMinutes })),
+      sources: this.config.sources.map((s) => ({ name: s.name, type: s.type || "link", url: s.url || null, fetchMinutes: s.fetchMinutes })),
       days: this.config.days
     });
   },
@@ -47,8 +47,10 @@ Module.register("MMM-OpenSky-Calendars", {
     this.sendNotification("OPENSKY_CALENDAR_STATUS", { ...this.status });
   },
 
-  notificationReceived(n) {
+  notificationReceived(n, p) {
     // a page that asks again (e.g. after a reload) gets the current list
     if (n === "OPENSKY_CALENDAR_REFRESH" && this.events.size) this.broadcast();
+    // after an edit: fetch that source again now (instead of at its next interval)
+    if (n === "OPENSKY_CALENDAR_REFETCH") this.sendSocketNotification("OS_CAL_REFETCH", p || {});
   }
 });
