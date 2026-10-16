@@ -134,6 +134,28 @@ const PAGES = {
   }]
 };
 
+// Embed pages (a web page on the screen: Home Assistant, a camera…): any key in opensky.json → embeds, listed in pages.
+// A PIN (secrets.json → embeds.<key>.pin) locks the page; only whether one is set (and its length) is used here.
+const embeds = (s.embeds && typeof s.embeds === "object") ? s.embeds : {};
+function embedPin(key) {
+  try {
+    const sec = JSON.parse(fs.readFileSync(process.env.OPENSKY_SECRETS || path.join(settingsDir || CONFIG_DIR, "secrets.json"), "utf8"));
+    const pin = sec && sec.embeds && sec.embeds[key] && sec.embeds[key].pin;
+    return pin != null && /^\d{4,8}$/.test(String(pin)) ? String(pin).length : 0;
+  } catch (e) { return 0; }
+}
+for (const [key, e] of Object.entries(embeds)) {
+  if (PAGES[key] || !/^[a-z][a-z0-9-]{0,30}$/.test(key) || !e) continue;
+  const pinLength = embedPin(key);
+  PAGE_INFO[key] = { label: e.title || (PAGE_INFO[key] || {}).label || key, icon: e.icon || (key === "smarthome" ? "smarthome" : "embed") };
+  PAGES[key] = () => [{
+    module: "MMM-OpenSky-Embed",
+    classes: `opensky-embed-${key}`,   // MMM-pages tells embed pages apart by this class
+    position: "fullscreen_above",
+    config: { key, title: PAGE_INFO[key].label, url: pinLength ? null : (e.url || null), locked: pinLength > 0, pinLength: pinLength || 4, zoom: Number(e.zoom) || 1 }
+  }];
+}
+
 const pages = (Array.isArray(s.pages) && s.pages.length ? s.pages : ["home", "timer"]).filter((p) => {
   if (PAGES[p]) return true;
   console.error(`[OpenSky] unknown page "${p}" in ${settingsFile} — skipped`);
@@ -178,7 +200,7 @@ const fixed = [
     module: "MMM-OpenSky-Sidebar",
     position: "fullscreen_above",
     config: {
-      pages: pages.map((key, index) => ({ key, index, label: (PAGE_INFO[key] || {}).label || key, icon: key })),
+      pages: pages.map((key, index) => ({ key, index, label: (PAGE_INFO[key] || {}).label || key, icon: (PAGE_INFO[key] || {}).icon || key })),
       familyInitial: (familyName.replace(/^the\s+/i, "")[0] || "H").toUpperCase(),
       idleReturnMinutes: (s.sidebar && Number.isFinite(s.sidebar.idleReturnMinutes)) ? s.sidebar.idleReturnMinutes : 5,
       screenServiceUrl: (s.screen && s.screen.serviceUrl) || null,
@@ -197,6 +219,8 @@ let config = {
   timeFormat: locale.timeFormat === 24 ? 24 : 12,
   units,
   customCss: "css/opensky.css",
+  // embed pages show web pages in a <webview> (it can show sites that refuse to be framed, like Home Assistant)
+  electronOptions: { webPreferences: { webviewTag: true } },
 
   modules: [
     {
@@ -204,7 +228,7 @@ let config = {
       config: {
         timings: { default: 0 },
         animationTime: 0,
-        modules: pageModules.map((mods) => mods.map((m) => m.module)),
+        modules: pageModules.map((mods) => mods.map((m) => m.classes || m.module)),
         fixed: fixed.map((m) => m.module)
       }
     },

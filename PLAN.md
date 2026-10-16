@@ -78,7 +78,8 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    ✅ Settings panel (brightness by backlight / DDC/CI / software, evening dim, built-in sleep schedule, volume,
    status, update / restart / power with tap-twice; dry-run for tests).
    ✅ On-screen keyboard (own module, no dependency) + the screen's language follows the settings.
-   Next: word game, embed page, then the phone setup page.
+   ✅ Embed pages (any web page as a page; optional PIN checked on the Pi; private address only after the PIN).
+   Next: word game, then the phone setup page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

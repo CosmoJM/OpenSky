@@ -1,0 +1,54 @@
+/* MMM-OpenSky-Embed — an embedded web page, or its PIN pad */
+
+.oe-root {
+  position: fixed;
+  top: 92px;                          /* below the header bar */
+  bottom: 22px;
+  left: var(--os-content-left, 112px);
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
+  font-family: inherit;
+}
+.oe-root svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.oe-frame { position: absolute; inset: 0; border-radius: 26px; overflow: hidden; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 28px rgba(31, 41, 55, .07); }
+.oe-view { width: 100%; height: 100%; display: flex; border: 0; }
+
+.oe-tools { position: absolute; right: 14px; bottom: 14px; display: flex; gap: 10px; }
+.oe-tool { width: 56px; height: 56px; padding: 14px; border: 0; border-radius: 50%; background: rgba(31, 41, 55, .72); color: #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .25); cursor: pointer; }
+.oe-tool svg { width: 100%; height: 100%; display: block; }
+
+.oe-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 380px;
+  padding: 34px 40px 30px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 28px rgba(31, 41, 55, .07);
+}
+.oe-icon { width: 58px; height: 58px; padding: 14px; box-sizing: border-box; border-radius: 50%; background: #fff1ea; color: #e8663f; }
+.oe-icon svg { width: 100%; height: 100%; display: block; }
+.oe-error .oe-icon { background: #fde8e4; color: #c2412c; }
+.oe-title { font-size: 28px; font-weight: 800; }
+.oe-sub { max-width: 520px; text-align: center; font-size: 18px; color: #6b7280; }
+.oe-btn { margin-top: 10px; min-height: 54px; padding: 0 28px; border: 0; border-radius: 999px; background: #e8663f; color: #fff; font: inherit; font-size: 19px; font-weight: 700; cursor: pointer; }
+
+.oe-dots { display: flex; gap: 16px; margin: 8px 0 2px; }
+.oe-dots i { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid #9ca3af; }
+.oe-dots i.on { background: #1f2937; border-color: #1f2937; }
+.oe-dots.shake { animation: oe-shake .35s; }
+@keyframes oe-shake { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+.oe-msg { min-height: 24px; font-size: 17px; color: #6b7280; }
+.oe-msg.bad { color: #c2412c; font-weight: 600; }
+.oe-pad { display: grid; grid-template-columns: repeat(3, 88px); gap: 14px; margin-top: 6px; }
+.oe-key { height: 76px; border: 0; border-radius: 50%; background: #f3f4f6; color: #1f2937; font: inherit; font-size: 30px; font-weight: 600; cursor: pointer; }
+.oe-key:active { background: #e5e7eb; }
+.oe-del { background: transparent; }
+.oe-del svg { width: 32px; height: 32px; }
+.oe-paused .oe-key { opacity: .4; pointer-events: none; }

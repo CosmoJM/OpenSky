@@ -118,3 +118,8 @@
 
 /* Keep header on top visually, but sidebar has higher z-index anyway */
 .region.top.bar .module.MMM-OpenSky-Header{ z-index:250; }
+
+/* The row ignores taps (above), but MagicMirror's box around it spans the whole width — over the sidebar's Home
+   tile — and caught them: the middle of the Home tile couldn't be tapped. */
+.module.MMM-OpenSky-Header,
+.module.MMM-OpenSky-Header > .module-content { pointer-events: none; }

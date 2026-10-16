@@ -2,7 +2,7 @@
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const tiles = await page.evaluate(() => [...document.querySelectorAll(".os-tile")].map((t) => ({ key: t.dataset.key, label: t.textContent.trim(), active: t.classList.contains("active") })));
-  ok("tiles = the configured pages + Sleep + Settings", JSON.stringify(tiles.map((t) => t.key)) === JSON.stringify(["page-home", "page-calendar", "page-lists", "page-timer", "sleep", "settings"]), tiles);
+  ok("tiles = the configured pages + Sleep + Settings", JSON.stringify(tiles.map((t) => t.key)) === JSON.stringify(["page-home", "page-calendar", "page-lists", "page-smarthome", "page-vault", "page-timer", "sleep", "settings"]), tiles);
   ok("first page tile is highlighted", tiles[0].active);
   ok("Home tile shows the family initial", await page.evaluate(() => document.querySelector(".os-page-home .os-badge")?.textContent === "T"));
   await h.tap(".os-page-timer"); await h.sleep(600);
@@ -33,6 +33,15 @@ module.exports = async (page, h) => {
   await h.sleep(4200);
   ok("a finished timer wakes the screen (banner visible)", asleep && (await cover()) === null && await page.evaluate(() => !document.querySelector(".timer-banner").hidden));
   await h.tap(".timer-banner-stop"); await h.sleep(300);
+
+  // every tile can really be tapped in its middle (nothing from the header or a page lies on top of it)
+  const blocked = await page.evaluate(() => [...document.querySelectorAll(".os-side-col > *")].filter((t) => t.getBoundingClientRect().width).map((t) => {
+    const r = t.getBoundingClientRect(), e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    return t.contains(e) ? null : `${t.className} ← ${e && (e.closest(".module")?.className || e.className)}`;
+  }).filter(Boolean));
+  ok("every sidebar tile is tappable in its middle", blocked.length === 0, blocked);
+  await h.tap(".os-page-timer"); await h.sleep(500); await h.tap(".os-page-home"); await h.sleep(600);
+  ok("tapping Home from another page goes Home", await page.evaluate(() => document.querySelector(".os-page-home").classList.contains("active") || !MM.getModules().withClass("MMM-OpenSky-Home")[0].hidden));
 
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);

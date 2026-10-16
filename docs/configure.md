@@ -50,7 +50,26 @@ These are the buttons on the left, in this order. The first one is where the scr
 | `lists` | every list side by side, each one scrolls (Home shows the first three) |
 | `timer` | kitchen timers with a chime |
 
-More pages are coming: Smart Home, a word game and Settings.
+You can also add your own **web pages** as pages (next section). A word game is coming.
+
+## Web pages on the screen (Smart Home, cameras…)
+Any web page can be a page of its own — a Home Assistant dashboard, a camera, a school portal:
+```json
+"pages": ["home", "calendar", "lists", "smarthome", "timer"],
+"embeds": {
+  "smarthome": { "title": "Smart Home", "url": "http://homeassistant.local:8123/lovelace/0?kiosk", "zoom": 1 }
+}
+```
+- The key (`smarthome` here) is what you put in `pages`. Lower-case letters, digits and `-`.
+- `title` is the sidebar label; `icon` can be `smarthome` or `embed`; `zoom` (e.g. `0.8`) fits more of a busy page.
+- Log in once on the screen (the keyboard appears); the page remembers it like a browser does.
+- **Back** and **Reload** buttons sit in the bottom-right corner.
+- **Private address or a PIN:** put them in `secrets.json`, not here (opensky.json can be read by devices on your Wi-Fi):
+  ```json
+  "embeds": { "money": { "url": "http://192.168.1.50:8080/", "pin": "4826" } }
+  ```
+  With a PIN, the page asks for it **every time** it's opened; leaving the page, the screen going to sleep or the
+  auto-return to Home lock it again. Five wrong PINs in a row → a 30-second pause.
 
 ## Weather
 ```json
