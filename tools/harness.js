@@ -7,7 +7,8 @@
 //
 // Options (environment): OPENSKY_MM = MagicMirror folder (default ~/opensky-dev/MagicMirror),
 // OPENSKY_PORT = server port (default 8083, so it never clashes with a MagicMirror already running on 8080/8081),
-// OPENSKY_SETTINGS = settings file (default tools/fixtures/opensky.test.json — a fictional family in Boston).
+// OPENSKY_SETTINGS = settings file (default tools/fixtures/opensky.test.json — a fictional family in Boston),
+// OPENSKY_SECRETS = secrets file (default tools/fixtures/secrets.test.json — fictional values only).
 // A scenario exports `async (page, h, app) => {}`; screenshots go to tools/out/.
 const { _electron } = require("playwright-core");
 const path = require("path");
@@ -32,6 +33,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       DISPLAY: "",
       OPENSKY_PORT: process.env.OPENSKY_PORT || "8083",
       OPENSKY_SETTINGS: process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json"),
+      OPENSKY_SECRETS: process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json"),
       ELECTRON_ENABLE_LOGGING: "1"
     },
     timeout: 90000

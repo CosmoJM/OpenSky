@@ -5,7 +5,13 @@
   "weather": { "provider": "open-meteo" },
   "header": { "holidays": "US", "occasions": [{ "name": "Test Day", "month": 10, "day": 20 }], "birthdaysFromCalendar": true, "sports": { "league": "nfl", "team": "NE" } },
   "pages": ["home", "timer"],
-  "calendar": { "colors": { "calendars": { "Testers": "blue" }, "rules": [{ "match": "dentist", "color": "indigo" }] } },
+  "calendar": {
+    "sources": [
+      { "name": "Family", "url": "http://localhost:8083/modules/opensky-fixtures/family.ics", "color": "pink" },
+      { "name": "School", "color": "teal" }
+    ],
+    "colors": { "calendars": { "Testers": "blue" }, "rules": [{ "match": "dentist", "color": "indigo" }] }
+  },
   "photos": { "provider": "folder", "folder": "photos", "usb": false, "intervalSeconds": 30 },
   "pickup": { "trashDay": "monday", "preset": "new-bedford-ma" }
 }

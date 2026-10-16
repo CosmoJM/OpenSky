@@ -102,8 +102,15 @@ const loc = s.location || {};
 const units = locale.units === "metric" ? "metric" : "imperial";
 const header = s.header || {};
 
+// Calendar sources (a module with no screen of its own; any page can use the events)
+const cal = s.calendar || {};
+const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name)
+  .map((c) => ({ name: String(c.name), url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5 }));
+if (cal.holidays === "US") calendarSources.push({ name: "Holidays", url: "https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics", color: "tan", fetchMinutes: 720 });
+
 // Modules shown on every page
 const fixed = [
+  ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources } }] : []),
   {
     module: "MMM-OpenSky-Header",
     position: "top_bar",

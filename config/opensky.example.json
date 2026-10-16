@@ -32,6 +32,8 @@
   "pages": ["home", "timer"],
 
   "calendar": {
+    "sources": [],
+    "holidays": "US",
     "colors": { "calendars": {}, "rules": [] }
   },
 
