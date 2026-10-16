@@ -11,7 +11,7 @@ const google = require(path.join(global.root_path, "modules", "opensky-lib", "go
 
 module.exports = NodeHelper.create({
   socketNotificationReceived(n, p) {
-    if (n === "OS_EV_INIT") { this.editable = (p && p.editable) || []; this.servicePort = (p && p.servicePort) || 5050; return; }
+    if (n === "OS_EV_INIT") { this.editable = (p && p.editable) || []; this.servicePort = (p && p.servicePort) || 5747; return; }
     if (n !== "OS_EV" || !p || !p.id) return;
     this.handle(p).then(
       () => this.sendSocketNotification("OS_EV_RESULT", { id: p.id, ok: true }),

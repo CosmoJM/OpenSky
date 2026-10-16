@@ -232,7 +232,20 @@ module.exports = NodeHelper.create({
     this.testMethod = null;
     this.stopWatching();
     clearTimeout(this.backTimer);
-    if (m && m !== "soft") await screen.on(m, this.screenAvail || {});
+    if (m && m !== "soft") {
+      const avail = this.screenAvail || {};
+      await screen.on(m, avail);
+      // make sure it really came back (retry once); if not, say so plainly and stop using this way
+      setTimeout(async () => {
+        if (await screen.isBack(m, avail)) return;
+        await screen.on(m, avail);
+        await new Promise((r) => setTimeout(r, 3000));
+        if (await screen.isBack(m, avail)) return;
+        console.error(`[OpenSky] screen: didn't come back on after "${m}" — switching to Black screen + dim`);
+        this.settings.screenOff = "soft"; this.save(); this.sendState();
+        this.sendSocketNotification("OS_SET_NOTICE", { type: "error", message: "The screen didn't come back on by itself. If it's dark, press its power button. OpenSky now uses Black screen + dim, which always comes back." });
+      }, 3000);
+    }
   },
 
   stopWatching() { clearTimeout(this.watchTimer); if (this.stopWatch) { this.stopWatch(); this.stopWatch = null; } },

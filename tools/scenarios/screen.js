@@ -10,7 +10,7 @@ module.exports = async (page, h, app) => {
 
   await open();
   const opts = await page.evaluate(() => [...document.querySelectorAll("[data-screenoff] option")].map((o) => [o.value, o.disabled]));
-  ok("Settings lists the ways to turn the screen off (auto, black screen, signal, DDC, TV, backlight)", opts.map((o) => o[0]).join() === "auto,soft,output,ddc,cec,backlight", opts);
+  ok("Settings lists the ways to turn the screen off (auto, black screen, signal, TV, backlight — no DDC power-off)", opts.map((o) => o[0]).join() === "auto,soft,output,cec,backlight", opts);
   await page.evaluate(() => { const s = document.querySelector("[data-screenoff]"); s.value = "output"; s.dispatchEvent(new Event("change")); });
   await h.sleep(500);
   await page.evaluate(() => document.querySelector(".ost-x").click());

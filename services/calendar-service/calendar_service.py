@@ -36,12 +36,12 @@ CACHE_DIR = os.environ.get("OPENSKY_CALENDAR_CACHE") or os.path.join(MM_ROOT, "c
 
 
 def settings_port():
-    """calendar.service.port from opensky.json (OPENSKY_SETTINGS), else 5050."""
+    """calendar.service.port from opensky.json (OPENSKY_SETTINGS), else 5747."""
     try:
         with open(os.environ.get("OPENSKY_SETTINGS") or os.path.join(MM_ROOT, "config", "opensky.json")) as f:
-            return int(((json.load(f).get("calendar") or {}).get("service") or {}).get("port") or 5050)
+            return int(((json.load(f).get("calendar") or {}).get("service") or {}).get("port") or 5747)
     except (OSError, ValueError, TypeError, AttributeError):
-        return 5050
+        return 5747
 
 
 PORT = int(os.environ.get("OPENSKY_CALENDAR_PORT") or settings_port())
@@ -306,5 +306,15 @@ def delete_event(name):
 if __name__ == "__main__":
     print(f"OpenSky calendar service on 127.0.0.1:{PORT} — accounts: {', '.join(sorted(accounts())) or 'none yet'} (time zone {TZ})", flush=True)
     # localhost only; never the Werkzeug debugger (it allows remote code execution)
+    import socket
+    probe = socket.socket()
+    try:
+        probe.bind(("127.0.0.1", PORT))
+    except OSError:
+        print(f"Port {PORT} is already used by another program on this Pi. Pick another one in opensky.json → "
+              f'"calendar": {{ "service": {{ "port": 5748 }} }}, then: opensky restart', flush=True)
+        sys.exit(1)
+    finally:
+        probe.close()
     app.run(host="127.0.0.1", port=PORT, debug=False, threaded=True)
     sys.exit(0)

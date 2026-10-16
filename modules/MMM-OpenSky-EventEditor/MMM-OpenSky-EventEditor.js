@@ -9,7 +9,7 @@
 Module.register("MMM-OpenSky-EventEditor", {
   defaults: {
     editable: [],   // [{ name, type: "local" | "caldav" }] — built by config.js from calendar.sources
-    servicePort: 5050
+    servicePort: 5747
   },
 
   getStyles() { return ["MMM-OpenSky-EventEditor.css"]; },

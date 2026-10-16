@@ -17,7 +17,8 @@ opensky logs       # what happened lately (the newest lines are at the bottom)
 ## Sleep doesn't turn my screen off properly (or it comes back on)
 Settings → **Sleep turns off by** → try each option with **Test**. Monitors differ: some go to sleep when the signal
 stops, some reconnect and come back on (OpenSky notices and switches to Black screen + dim), TVs often prefer HDMI-CEC.
-**Black screen + dim** works on every screen. A touch always wakes it (OpenSky watches the touchscreen even while the
+**Black screen + dim** works on every screen. If a screen ever stays dark after waking, press its power button — OpenSky
+then switches to Black screen + dim by itself. A touch always wakes it (OpenSky watches the touchscreen even while the
 screen is off; your user must be in the `input` group, which it is on Raspberry Pi OS).
 
 ## The screen goes blank by itself after a few minutes
@@ -56,6 +57,10 @@ The screen didn't accept brightness commands, so OpenSky dims the picture instea
 - Type the address exactly as the screen shows it, starting with `http://` (not https).
 - "That code has expired": tap **New code** on the screen. After 5 wrong codes there's a 1-minute pause.
 - The page closes by itself after 30 quiet minutes — open it again from Settings.
+
+## "Port … is already used by another program"
+OpenSky's calendar helper listens on port 5747 on the Pi itself. If another program uses it, pick a free one in
+`opensky.json` → `"calendar": { "service": { "port": 5748 } }`, then `opensky restart`.
 
 ## Lists
 - **Todoist: "refused the API token"**: copy the token again (Todoist → Settings → Integrations → Developer) into `secrets.json → lists.todoist.token`.

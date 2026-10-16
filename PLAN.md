@@ -35,7 +35,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Install | hand-built Pi | one-line installer on Raspberry Pi OS ✅; 💭 ready-made SD-card image | Image = friendliest, more work |
 | First-run setup | hand-edited config.js | **phone setup page** (QR + pairing code) **default** ✅; config file for power users ✅ | Validates input, explains each field |
 | Hardware | Pi 5 + 24" Elo touch | Pi 5 / Pi 4 (Pi 3 = light mode?); any HDMI touchscreen; official Pi touch display | Test matrix needed |
-| Screen off/on | soft sleep (black cover + DDC backlight 0) ✅ | Settings → "Sleep turns off by" ✅: auto / black screen + dim / signal off (wlr-randr, with a came-back self-check) / DDC/CI power / HDMI-CEC / display backlight; Test button; wake-on-touch input watcher | Auto-detect + "test" button |
+| Screen off/on | soft sleep (black cover + DDC backlight 0) ✅ | Settings → "Sleep turns off by" ✅: auto / black screen + dim / signal off (wlr-randr, came-back self-check + did-it-wake check) / HDMI-CEC (only when a TV answers) / display backlight; Test button; wake-on-touch input watcher. DDC/CI power-off removed after a real test fully powered down a touch monitor (only its power button woke it) | Auto-detect + "test" button |
 | Wake | touch / mouse / keyboard ✅ | + motion sensor (PIR) 💭; + presence (Home Assistant) | |
 | Sleep schedule | Settings page + HA automations ✅ | **built-in schedule** default ✅; Home Assistant optional | Don't require HA |
 | Calendar (read) | iCloud via CalDAV backend ✅ | **ICS URL** default ✅ (Google/Outlook/iCloud "secret address"); on-device ✅; iCloud + generic CalDAV ✅; Google Calendar API ✅ (own OAuth client, guided on the phone); Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |

@@ -68,7 +68,7 @@ Phone page: `modules/MMM-OpenSky-Setup/phone/` (no libraries). QR: `lib/client/v
 ## Services
 - **Screen service** (from the reference build's `monitor_control.py`): on/off/status HTTP API, wake-on-touch,
   night re-sleep, idle time. Back-ends: DPMS/wlr-randr (default), DDC/CI, soft sleep, HDMI-CEC, Pi display backlight.
-- **Calendar service** (`services/calendar-service`, Python/Flask, 127.0.0.1 only, port `calendar.service.port`, default 5050):
+- **Calendar service** (`services/calendar-service`, Python/Flask, 127.0.0.1 only, port `calendar.service.port`, default 5747):
   CalDAV read/write. Accounts in `secrets.json` → `calendar.caldav.<name>`. `config.js` points `type: "caldav"` sources at
   `http://127.0.0.1:<port>/<name>/calendar.ics`; the event editor POSTs `<name>/create|update|delete-event`. Keeps the last
   good feed in `config/calendar-cache/`. Repeating events are read-only (409).
@@ -96,3 +96,13 @@ Phone page: `modules/MMM-OpenSky-Setup/phone/` (no libraries). QR: `lib/client/v
 - Popups/overlays are appended to `<body>` (a region's CSS filter traps z-index).
 - Test off-screen (headless labwc + Playwright); Playwright's page screenshot mis-renders `<webview>` content —
   use `grim` on the headless output to see true framing.
+
+## Lessons from real hardware (2026-10-16, Elo ET2494L touch monitor)
+- DDC/CI "power off" (VCP D6=04) powered the monitor fully down, touch controller included; nothing from the Pi (DDC,
+  forcing the HDMI connector on, CEC) woke it — only its power button. So OpenSky never sends it.
+- Black screen + brightness 0 over DDC/CI works and comes back reliably.
+- On Raspberry Pi OS a user service's log is in the system journal (`journalctl _SYSTEMD_USER_UNIT=…`, readable by the
+  default user via the adm group); `journalctl --user` finds nothing.
+- Port 5050 (first choice for the calendar helper) clashed with another program on a real Pi → 5747, and the service
+  now says plainly when its port is taken.
+

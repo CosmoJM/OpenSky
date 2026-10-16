@@ -65,7 +65,10 @@ case "${1:-help}" in
   restart) systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE 2>/dev/null
            systemctl --user restart opensky-calendar.service opensky.service ;;
   status)  systemctl --user --no-pager status opensky.service opensky-calendar.service | grep -E "●|Active:|Main PID" ;;
-  logs)    journalctl --user -u opensky.service -u opensky-calendar.service -n "${2:-80}" --no-pager ;;
+  logs)    # (on Raspberry Pi OS a user service's log lives in the system journal, which the default user can read)
+           out=$(journalctl _SYSTEMD_USER_UNIT=opensky.service + _SYSTEMD_USER_UNIT=opensky-calendar.service -n "${2:-80}" --no-pager 2>/dev/null)
+           if [ -z "$out" ] || [ "$out" = "-- No entries --" ]; then out=$(journalctl --user -u opensky.service -u opensky-calendar.service -n "${2:-80}" --no-pager 2>&1); fi
+           echo "$out" ;;
   check)   # settings sanity check: is the JSON valid, what would be shown?
            for f in opensky.json secrets.json; do
              if [ -f "$CONFIG/$f" ]; then

@@ -79,8 +79,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_SETUP_PORT: "8091",
       OPENSKY_WELCOME_FILE: WELCOME,
       OPENSKY_NYT_URL: "http://127.0.0.1:9/nyt",   // never the real NYT from tests: unreachable → OpenSky's own word
-      OPENSKY_DRY_RUN: "1",
-      LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings            // Settings: never touch the real backlight, monitor, audio, updates or power
+      // Settings: never touch the real screen, audio, updates or power — except in an approved real-screen session
+      // (OPENSKY_HARNESS_REAL=1, run by hand on the real display, never from test-all.sh)
+      ...(process.env.OPENSKY_HARNESS_REAL === "1" ? {} : { OPENSKY_DRY_RUN: "1" }),
+      LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings
       ELECTRON_ENABLE_LOGGING: "1",
       ...(scenario.env || {})          // a scenario's own stand-ins (e.g. a fake Google)
     },
