@@ -79,8 +79,8 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    status, update / restart / power with tap-twice; dry-run for tests).
    ✅ On-screen keyboard (own module, no dependency) + the screen's language follows the settings.
    ✅ Embed pages (any web page as a page; optional PIN checked on the Pi; private address only after the PIN).
-   ✅ Word game (own daily word from SCOWL lists, checked on the Pi, family board + stats). NYT's daily word is NOT
-   included (unofficial endpoint, their puzzle) — a decision for the maintainer if ever wanted as an opt-in.
+   ✅ Word game: NYT's daily word by default (the maintainer's decision, 2026-10-16), OpenSky's own SCOWL word as the backup
+   or with wordgame.source "opensky"; checked on the Pi; family board + stats.
    Next: the phone setup page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.

@@ -21,7 +21,8 @@ module.exports = async (page, h) => {
   await h.tap(".os-page-wordgame");
   await until(async () => !!(await st()));
   let s = await st();
-  ok("today's puzzle loads (#number from Jan 1 2026), no answer sent to the page", s && s.number === days + 1 && s.answer === null && s.guesses.length === 0, s && { number: s.number, answer: s.answer });
+  ok("NYT unreachable → today's OpenSky word (#number from Jan 1 2026), no answer sent to the page", s && s.number === days + 1 && s.backup && s.answer === null && s.guesses.length === 0, s && { number: s.number, answer: s.answer });
+  ok("the subtitle says it's the backup word", await page.evaluate(() => /NYT's word unavailable/.test(document.querySelector(".wg-sub").textContent)));
   await type("ab"); await enter(); await h.sleep(200);
   ok("too short → 'Not enough letters'", /Not enough letters/.test(await toast()), await toast());
   await type("cde"); await h.sleep(100);

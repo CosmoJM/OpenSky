@@ -59,6 +59,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_LOCAL_LISTS: LOCAL_LISTS,
       OPENSKY_DEVICE_SETTINGS: DEVICE,
       OPENSKY_WORDGAME: WORDGAME,
+      OPENSKY_NYT_URL: "http://127.0.0.1:9/nyt",   // never the real NYT from tests: unreachable → OpenSky's own word
       OPENSKY_DRY_RUN: "1",
       LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings            // Settings: never touch the real backlight, monitor, audio, updates or power
       ELECTRON_ENABLE_LOGGING: "1"

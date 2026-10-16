@@ -4,6 +4,7 @@
  * countdown to the next puzzle. New puzzle at midnight. */
 Module.register("MMM-OpenSky-WordGame", {
   defaults: {
+    source: "nyt",      // "nyt" = the New York Times' daily word (OpenSky's own if NYT can't be reached) | "opensky"
     extraWords: []      // more accepted guesses (opensky.json → wordgame.extraWords)
   },
 
@@ -18,7 +19,7 @@ Module.register("MMM-OpenSky-WordGame", {
     this.typed = "";
     this.busy = false;
     this.revealRow = -1;             // row currently flipping (animation)
-    this.sendSocketNotification("OS_WG_INIT", { extraWords: this.config.extraWords });
+    this.sendSocketNotification("OS_WG_INIT", { source: this.config.source, extraWords: this.config.extraWords });
     this.lastDate = this.ymd();
     setInterval(() => {              // midnight → new puzzle; countdown tick
       if (this.ymd() !== this.lastDate) { this.lastDate = this.ymd(); this.typed = ""; this.sendSocketNotification("OS_WG_SYNC"); }
@@ -99,7 +100,7 @@ Module.register("MMM-OpenSky-WordGame", {
     r.innerHTML = `
       <div class="wg-head">
         <div class="wg-title"><span class="wg-logo"><i class="g">W</i></span>Word Game</div>
-        <div class="wg-sub">#${s.number} · ${day} · today's family puzzle</div>
+        <div class="wg-sub">${s.number != null ? `#${s.number} · ` : ""}${day} · today's family puzzle${s.backup ? " (NYT's word unavailable — OpenSky's word)" : ""}</div>
       </div>
       <div class="wg-body">
         <div class="wg-play">

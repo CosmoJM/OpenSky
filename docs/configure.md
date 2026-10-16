@@ -53,9 +53,10 @@ These are the buttons on the left, in this order. The first one is where the scr
 
 You can also add your own **web pages** as pages (next section).
 
-**Word game:** a new word every day at midnight — the same word on every OpenSky screen, so you can compare with
-friends. Missing a word you know is real? Add it to the accepted guesses:
-`"wordgame": { "extraWords": ["emoji"] }`.
+**Word game:** a new puzzle every day at midnight — by default the same word as the New York Times' daily Wordle
+(fetched by the Pi). If NYT can't be reached, OpenSky's own word for the day is used (the page says so) and NYT is
+tried again until someone guesses. For OpenSky's own words only: `"wordgame": { "source": "opensky" }`.
+A word you know is real but isn't accepted? Add it: `"wordgame": { "extraWords": ["emoji"] }`.
 
 ## Web pages on the screen (Smart Home, cameras…)
 Any web page can be a page of its own — a Home Assistant dashboard, a camera, a school portal:

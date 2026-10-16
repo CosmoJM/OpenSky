@@ -126,7 +126,10 @@ const PAGES = {
   wordgame: () => [{
     module: "MMM-OpenSky-WordGame",
     position: "fullscreen_above",
-    config: { extraWords: (s.wordgame && Array.isArray(s.wordgame.extraWords)) ? s.wordgame.extraWords : [] }
+    config: {
+      source: (s.wordgame && s.wordgame.source === "opensky") ? "opensky" : "nyt",
+      extraWords: (s.wordgame && Array.isArray(s.wordgame.extraWords)) ? s.wordgame.extraWords : []
+    }
   }],
   timer: () => [{
     module: "MMM-OpenSky-Timer",
