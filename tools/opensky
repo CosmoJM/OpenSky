@@ -20,7 +20,7 @@ wait_healthy() {
 # Which version "the newest OpenSky" is: the newest release tag (v…) by default, or the newest commit on main when
 # opensky.json → update.channel is "main" (for testers).
 channel() { python3 -c 'import json,sys; print(((json.load(open(sys.argv[1])).get("update") or {}).get("channel")) or "releases")' "$CONFIG/opensky.json" 2>/dev/null || echo releases; }
-latest_tag() { git tag -l 'v[0-9]*' --sort=-v:refname | head -1; }
+latest_tag() { git -c versionsort.suffix=- tag -l 'v[0-9]*' --sort=-v:refname | head -1; }
 target() {
   local t
   if [ "$(channel)" != main ] && t=$(latest_tag) && [ -n "$t" ]; then echo "$t"; else echo "origin/main"; fi

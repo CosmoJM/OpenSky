@@ -66,7 +66,7 @@ fi
 # A fresh copy starts on the newest release (v…), not on whatever is newest on main that day. Testers who want main:
 # opensky.json → "update": { "channel": "main" }. `opensky update` follows the same rule.
 if [ -d "$REPO/.git" ] && [ ! -f "$CONFIG/opensky.json" ] && [ -z "$(git -C "$REPO" status --porcelain --untracked-files=no)" ]; then
-  tag=$(git -C "$REPO" tag -l 'v[0-9]*' --sort=-v:refname | head -1)
+  tag=$(git -C "$REPO" -c versionsort.suffix=- tag -l 'v[0-9]*' --sort=-v:refname | head -1)
   if [ -n "$tag" ] && [ "$(git -C "$REPO" rev-parse HEAD)" != "$(git -C "$REPO" rev-parse "$tag^{commit}")" ]; then
     git -C "$REPO" -c advice.detachedHead=false checkout -q "$tag" && echo "Using the newest release: $tag"
     exec "$REPO/install.sh" "${ARGS[@]}"   # the release's own installer
