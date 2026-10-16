@@ -1,0 +1,61 @@
+# OpenSky architecture
+
+OpenSky is a **distribution on top of upstream MagicMirror²**, not a fork of it. The installer fetches an official
+MagicMirror release (pinned), adds OpenSky's own modules and a few pinned community modules, and generates the
+MagicMirror config from OpenSky's settings. Upstream MagicMirror can then be updated without merging a fork.
+
+## Versions (development baseline)
+- MagicMirror² **v2.38.0** (needs Node.js ≥ 22.22.2 or ≥ 24; development uses **Node 24 LTS**), Electron 44.
+- Raspberry Pi OS (Debian 13 "trixie"), Wayland (labwc). Pi 5 reference hardware.
+
+## Repository layout (target)
+```
+opensky/
+  modules/            OpenSky's own MagicMirror modules (MMM-OpenSky-*), each self-contained
+  vendor/             community modules OpenSky ships *modified* (with their original LICENSE kept)
+  patches/            small patches applied to pinned community modules at install time
+  config/             opensky.example.json (settings), secrets.example.json, config.js (builds the MM config)
+  services/           helper services outside MagicMirror (screen control, calendar backend)
+  installer/          install.sh and friends
+  tools/              test harness (off-screen Electron + Playwright) and scenarios
+  docs/               user documentation;  docs/development/ for contributors and AI agents
+```
+
+## Settings model
+- **`config/opensky.json`** — everything a family configures (name, location, pages, providers, colours…).
+  No secrets. Later edited through the phone setup page; hand-editable meanwhile.
+- **`config/secrets.json`** — API keys, tokens, passwords, PINs. **Read only by node helpers / services on the Pi.**
+  Never copied into the MagicMirror config, because MagicMirror serves its config to every device on the network
+  (`http://<pi>:8080/config`).
+- **`config/config.js`** — MagicMirror's config file. In OpenSky it is *code*: it reads `opensky.json` and builds the
+  module list. Users don't edit it.
+
+## Modules (planned names)
+| OpenSky module | From the reference build | Notes |
+|---|---|---|
+| MMM-OpenSky-Sidebar | MMM-SidebarNav | page list from settings; sleep/wake via the screen service |
+| MMM-OpenSky-Header | MMM-HeaderBar | family name, clock, weather provider, countdown + sports pills |
+| MMM-OpenSky-Home | MMM-HomeDashboard | week tiles, lists card, photos card (providers), pickup icons |
+| MMM-OpenSky-CalendarNav / -CalendarHelper / -EventEditor | MMM-CalendarNav / -CalendarHelper / -CalendarEditor | month/week view uses MMM-CalendarExt3 (pinned + patch) |
+| MMM-OpenSky-Lists / -TaskEditor / -QuickAdd | MMM-Todoist (+patch) / MMM-TaskEditor / MMM-TodoistQuickAdd | list providers: on-device (default), Todoist, … |
+| MMM-OpenSky-Timer | MMM-Timer | |
+| MMM-OpenSky-Settings | the reference build's settings module | brightness/volume/schedule backends auto-detected |
+| MMM-OpenSky-WordGame | MMM-Wordle | own word list by default; NYT optional |
+| MMM-OpenSky-Embed | MMM-EmbedURL + MMM-Finance ideas | Smart Home / any URL, optional PIN |
+| (vendor) MMM-Keyboard | heavily modified fork | iPad-style on-screen keyboard |
+
+Community modules used (all MIT): MMM-CalendarExt3 (MMRIZE), MMM-Keyboard (lavolp3), MMM-Todoist (cbrooker),
+MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarusa), MMM-EmbedURL (Tom-Hirschberger).
+
+## Services
+- **Screen service** (from the reference build's `monitor_control.py`): on/off/status HTTP API, wake-on-touch,
+  night re-sleep, idle time. Back-ends: DPMS/wlr-randr (default), DDC/CI, soft sleep, HDMI-CEC, Pi display backlight.
+- **Calendar backend** (from `caldav-backend`): CalDAV read/write behind a local-only HTTP API; more providers later.
+
+## Lessons from the reference build (keep these true)
+- MagicMirror serves `config.js` to the network → secrets live in `secrets.json`, read server-side.
+- Never name a module property `this.data` (MagicMirror uses `module.data`).
+- MagicMirror's window has Node integration: browser scripts must attach to `window` even when `module` exists.
+- Popups/overlays are appended to `<body>` (a region's CSS filter traps z-index).
+- Test off-screen (headless labwc + Playwright); Playwright's page screenshot mis-renders `<webview>` content —
+  use `grim` on the headless output to see true framing.

@@ -8,8 +8,8 @@ MagicMirror². This file is the entry point; read it first, then the docs it poi
 ## Read in this order
 1. `PLAN.md` — goals, principles, the options matrix (which providers exist or are planned) and the roadmap.
 2. `docs/` — user documentation (install, configure, troubleshoot). *(being written)*
-3. `docs/development/` — architecture, module map, conventions, how to test without touching the real screen.
-   *(being written)*
+3. `docs/development/architecture.md` — how OpenSky is put together (distribution on upstream MagicMirror²,
+   settings vs secrets, module names, services, lessons learned). Testing guide: *(being written)*
 
 ## Ground rules for agents
 - **Never put secrets in `config.js`.** MagicMirror serves it to the whole network. Keys, tokens and PINs go in the
