@@ -41,6 +41,12 @@ The screen didn't accept brightness commands, so OpenSky dims the picture instea
   Check with `ddcutil detect` — it should list your monitor. Re-run `./install.sh` if `ddcutil` is missing.
 - Some TVs and portable screens don't support it at all; the picture dimming is the fallback.
 
+## The phone can't open the setup page
+- The phone must be on the **same Wi-Fi** as the screen (not mobile data, not a guest network that keeps devices apart).
+- Type the address exactly as the screen shows it, starting with `http://` (not https).
+- "That code has expired": tap **New code** on the screen. After 5 wrong codes there's a 1-minute pause.
+- The page closes by itself after 30 quiet minutes — open it again from Settings.
+
 ## Lists
 - **Todoist: "refused the API token"**: copy the token again (Todoist → Settings → Integrations → Developer) into `secrets.json → lists.todoist.token`.
 - **"No Todoist project called …"**: the list's `project` (or its `name`) must match a Todoist project. Letter case doesn't matter.

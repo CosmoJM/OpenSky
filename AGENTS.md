@@ -34,7 +34,8 @@ The settings files are found through environment variables set by the services (
 
 ## Helping a user (checklist)
 1. `opensky status`, `opensky check`, `opensky logs` — most problems are a JSON typo or a wrong link/password.
-2. Change **settings**, not code: `config/opensky.json` / `config/secrets.json`, then `opensky restart`.
+2. Most people set things up with the **phone page** (Settings → Set up from your phone); by hand works too.
+   Change **settings**, not code: `config/opensky.json` / `config/secrets.json`, then `opensky restart`.
 3. Never print, paste or commit the contents of `secrets.json`, private calendar links or tokens.
 4. Don't edit files in `~/.local/share/opensky/MagicMirror` — they are replaced on update.
 

@@ -162,6 +162,7 @@ Module.register("MMM-OpenSky-Settings", {
             <h3>System</h3>
             <div class="ost-status"></div>
             <div class="ost-buttons">
+              <button class="ost-btn ost-phone" data-act="phone">Set up from your phone</button>
               <button class="ost-btn" data-act="reload">Reload screen</button>
               ${st.canRestart ? `<button class="ost-btn" data-act="restart-app">Restart OpenSky</button>` : ""}
               <button class="ost-btn ost-update" data-act="update" hidden>Update</button>
@@ -208,6 +209,7 @@ Module.register("MMM-OpenSky-Settings", {
   system(btn) {
     const act = btn.dataset.act;
     if (act === "reload") { window.location.reload(); return; }
+    if (act === "phone") { this.close(); this.sendNotification("OPENSKY_SETUP_OPEN"); return; }
     const confirmText = { "restart-app": null, update: "Tap again to update", reboot: "Tap again to restart", shutdown: "Tap again to shut down" }[act];
     if (confirmText && this.confirming !== act) {
       this.confirming = act;

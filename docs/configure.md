@@ -1,6 +1,15 @@
 # Setting up OpenSky
 
-**Most day-to-day things are on the screen itself:** tap **Settings** at the bottom left for brightness, evening dimming,
+**The easy way: set it up from your phone.** On the screen tap **Settings → Set up from your phone** (the very first
+start offers it by itself). Scan the QR code with your phone's camera — or open the address it shows — and type the
+6-digit code. You can add calendars (Google, Outlook, iCloud…), lists, photos, pages, web pages, trash day, your team,
+then tap **Save** and **Finish**; the screen restarts with your settings. Your phone must be on the same Wi-Fi.
+Passwords and links you type there go straight into `secrets.json`; the phone can replace them but never read them back.
+The setup page only exists while the code is on the screen (it closes by itself after 30 quiet minutes).
+
+Everything below can also be edited by hand — the phone page writes these same files.
+
+**Day-to-day things are on the screen itself:** tap **Settings** at the bottom left for brightness, evening dimming,
 the night-time sleep schedule, volume, restart / update / shut down. Those choices are saved in `config/device.json`.
 
 Everything else is in two files in `~/OpenSky/config/`:
@@ -221,4 +230,10 @@ if you use a real keyboard. Dates and times use pickers instead.
 | Sleep at night | The screen goes dark at "Off at" and comes back at "On at". A touch wakes it; it sleeps again after 3 quiet minutes. A running timer keeps it on. |
 | Volume / Test | The Pi's speaker volume; Test plays the timer chime. |
 | System | Internet, the Pi's address, the OpenSky version (and **Update** when there is one), Reload, Restart OpenSky, Restart Pi, Shut down. The last three ask you to tap twice. |
+
+## Phone setup
+```json
+"setup": { "port": 8090 }
+```
+The port the phone page uses while setup is open (only then). Change it if something else on the Pi uses 8090.
 

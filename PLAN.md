@@ -81,7 +81,9 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    ✅ Embed pages (any web page as a page; optional PIN checked on the Pi; private address only after the PIN).
    ✅ Word game: NYT's daily word by default (the maintainer's decision, 2026-10-16), OpenSky's own SCOWL word as the backup
    or with wordgame.source "opensky"; checked on the Pi; family board + stats.
-   Next: the phone setup page.
+   ✅ Phone setup page (QR + 6-digit pairing code on the screen; LAN server only while open; write-only secrets;
+   first-run welcome card; Settings → Set up from your phone).
+   Next: clean-install test on a spare SD card (needs the maintainer), then providers from the matrix.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

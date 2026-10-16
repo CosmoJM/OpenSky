@@ -38,6 +38,9 @@ The installer:
 When it says **All set!**, OpenSky fills the screen. Restart the Pi once (`sudo reboot`) to make sure it starts by itself.
 
 ## 3. Make it yours
+The first time OpenSky starts it offers **Set up on my phone**: scan the QR code, type the code from the screen and
+add your calendars, lists and photos from the sofa. (Later: Settings → Set up from your phone.)
+
 Out of the box you get:
 - an on-device **Family** calendar you can add events to from the screen
 - two lists, **To-Dos** and **Groceries**

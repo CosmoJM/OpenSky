@@ -59,6 +59,7 @@
 .ost-btn[hidden] { display: none; }
 .ost-btn:disabled { opacity: .55; }
 .ost-update { background: #e6f4ec; color: #22603f; }
+.ost-phone { background: #fff1ea; color: #c2410c; }
 .ost-danger { background: #fde8e4; color: #a33a28; }
 .ost-confirm { background: #d2604e; color: #fff; }
 .ost-test { flex: 0 0 auto; min-height: 48px; }

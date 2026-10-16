@@ -24,6 +24,9 @@ fs.rmSync(LOCAL_CAL, { force: true });
 // screen settings (brightness, schedule), fresh each run
 const DEVICE = path.join(OUT, "device.test.json");
 fs.rmSync(DEVICE, { force: true });
+// phone setup: the first-run welcome card was already seen (the setup scenario shows it on purpose)
+const WELCOME = path.join(OUT, "welcomed.test");
+fs.writeFileSync(WELCOME, "test\n");
 // word game board + stats, fresh each run
 const WORDGAME = path.join(OUT, "wordgame.test.json");
 fs.rmSync(WORDGAME, { force: true });
@@ -43,6 +46,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   const scenario = require(path.resolve(process.argv[2]));
+  // A scenario that changes the settings (phone setup) gets writable copies in tools/out — never the fixtures
+  let SETTINGS_FILE = process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json");
+  let SECRETS_FILE = process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json");
+  if (scenario.writableSettings) {
+    const st = JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf8"));
+    if (st.photos && st.photos.folder && !path.isAbsolute(st.photos.folder)) st.photos.folder = path.join(path.dirname(SETTINGS_FILE), st.photos.folder);
+    fs.writeFileSync(path.join(OUT, "opensky.test.json"), JSON.stringify(st, null, 2));
+    fs.copyFileSync(SECRETS_FILE, path.join(OUT, "secrets.test.json"));
+    SETTINGS_FILE = path.join(OUT, "opensky.test.json");
+    SECRETS_FILE = path.join(OUT, "secrets.test.json");
+  }
   const app = await _electron.launch({
     executablePath: path.join(MM, "node_modules/electron/dist/electron"),
     args: ["js/electron.js", "--ozone-platform=wayland"],
@@ -53,12 +67,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       WAYLAND_DISPLAY: process.env.OPENSKY_TEST_DISPLAY || "wayland-1",   // the headless compositor, NOT a real screen
       DISPLAY: "",
       OPENSKY_PORT: process.env.OPENSKY_PORT || "8083",
-      OPENSKY_SETTINGS: process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json"),
-      OPENSKY_SECRETS: process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json"),
+      OPENSKY_SETTINGS: SETTINGS_FILE,
+      OPENSKY_SECRETS: SECRETS_FILE,
       OPENSKY_LOCAL_CALENDAR: LOCAL_CAL,
       OPENSKY_LOCAL_LISTS: LOCAL_LISTS,
       OPENSKY_DEVICE_SETTINGS: DEVICE,
       OPENSKY_WORDGAME: WORDGAME,
+      OPENSKY_SETUP_PORT: "8091",
+      OPENSKY_WELCOME_FILE: WELCOME,
       OPENSKY_NYT_URL: "http://127.0.0.1:9/nyt",   // never the real NYT from tests: unreachable → OpenSky's own word
       OPENSKY_DRY_RUN: "1",
       LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings            // Settings: never touch the real backlight, monitor, audio, updates or power
@@ -92,7 +108,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     console.log("---- page errors/warnings ----\n" + logs.filter((l) => !noise.test(l)).slice(0, 30).join("\n"));
     await app.close().catch(() => {});
     // every run: private values (secrets.json) must never reach the log
-    const secretsFile = process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json");
+    const secretsFile = SECRETS_FILE;
     const values = [];
     const collect = (v, key) => { if (typeof v === "string" && v.length >= 8 && !key.startsWith("_")) values.push(v); else if (v && typeof v === "object") Object.entries(v).forEach(([k, x]) => collect(x, k)); };
     try { collect(JSON.parse(fs.readFileSync(secretsFile, "utf8")), ""); } catch (e) { /* no secrets file */ }

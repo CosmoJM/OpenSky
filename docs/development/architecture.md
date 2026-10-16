@@ -48,6 +48,15 @@ opensky/
 Community modules used (all MIT): MMM-CalendarExt3 (MMRIZE), MMM-Keyboard (lavolp3), MMM-Todoist (cbrooker),
 MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarusa), MMM-EmbedURL (Tom-Hirschberger).
 
+## Phone setup (MMM-OpenSky-Setup)
+The node helper runs a plain `http` server on 0.0.0.0:`setup.port` (8090) **only while the pairing card is open**
+(stops after 30 quiet minutes or Finish). Pairing: 6-digit code (crypto.randomInt, 10 min, timing-safe compare,
+5 wrong → 60 s pause, 15 → new code) → random 256-bit session cookie (HttpOnly, SameSite=Strict, in memory only).
+Guards: Host header must name this Pi (DNS rebinding), POSTs need `X-OpenSky: 1` (CSRF), strict CSP (no inline
+script/style — the page sets styles through the DOM), no-store. `/api/state` returns opensky.json + the *paths* of
+set secrets; `/api/save` writes opensky.json (keeps `.bak`) and merges secrets under allowed roots (chmod 600).
+Phone page: `modules/MMM-OpenSky-Setup/phone/` (no libraries). QR: `lib/client/vendor/qrcode.js` (MIT).
+
 ## Services
 - **Screen service** (from the reference build's `monitor_control.py`): on/off/status HTTP API, wake-on-touch,
   night re-sleep, idle time. Back-ends: DPMS/wlr-randr (default), DDC/CI, soft sleep, HDMI-CEC, Pi display backlight.
