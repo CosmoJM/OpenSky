@@ -33,7 +33,9 @@
   "pages": ["home", "calendar", "timer"],
 
   "calendar": {
-    "sources": [],
+    "sources": [
+      { "name": "Family", "type": "local", "color": "blue" }
+    ],
     "holidays": "US",
     "colors": { "calendars": {}, "rules": [] }
   },

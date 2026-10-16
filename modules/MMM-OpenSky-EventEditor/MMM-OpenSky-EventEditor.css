@@ -1,0 +1,524 @@
+/* MMM-OpenSky-EventEditor — event popups (appended to <body>) and the shared toast */
+
+.calendar-editor-wrapper {
+  position: relative;
+  z-index: 1000;
+}
+
+/* ========== OVERLAY ========== */
+.calendar-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ========== MODAL ========== */
+.calendar-editor-modal {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== VIEW MODE ========== */
+.event-view-container {
+  padding: 32px;
+}
+
+.event-view-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.event-view-title {
+  flex: 1;
+  font-size: 28px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.event-edit-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #ffd8c9;
+  color: #b4532f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 159, 127, 0.3);
+}
+
+.event-edit-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.event-edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 213, 226, 0.4);
+}
+
+.event-close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.event-close-btn:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.event-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.event-detail-icon {
+  width: 24px;
+  height: 24px;
+  color: #7dabc7;
+  flex-shrink: 0;
+}
+
+.event-detail-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.event-detail-text {
+  flex: 1;
+  font-size: 16px;
+  color: #555;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.event-delete-btn {
+  width: 100%;
+  margin-top: 28px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #f8e5e5;
+  color: #d9534f;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.event-delete-btn:hover {
+  background: #fdd;
+  transform: translateY(-1px);
+}
+
+/* ========== EDIT/CREATE MODE ========== */
+.event-edit-container {
+  padding: 32px;
+}
+
+.event-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.event-edit-header h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #333;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #a8d5e2;
+  box-shadow: 0 0 0 4px rgba(168, 213, 226, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+/* Date and time inputs */
+.form-input[type="date"],
+.form-input[type="time"] {
+  cursor: pointer;
+}
+
+/* ========== ACTION BUTTONS ========== */
+.event-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.event-btn {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.event-btn-primary {
+  background: linear-gradient(135deg, #ffd8c9 0%, #ffc7b3 100%);
+  color: #2c3e50;
+  box-shadow: 0 4px 12px rgba(255, 216, 201, 0.3);
+}
+
+.event-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 216, 201, 0.4);
+}
+
+.event-btn-secondary {
+  background: white;
+  color: #666;
+  border: 2px solid #e8e8e8;
+}
+
+.event-btn-secondary:hover {
+  background: #f8f9fa;
+  border-color: #d0d0d0;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .calendar-editor-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .event-view-container,
+  .event-edit-container {
+    padding: 24px;
+  }
+
+  .event-view-title,
+  .event-edit-header h2 {
+    font-size: 22px;
+  }
+
+  .event-actions {
+    flex-direction: column;
+  }
+
+}
+
+/* ========== TOUCH OPTIMIZATIONS ========== */
+@media (hover: none) and (pointer: coarse) {
+  .form-input,
+  .form-textarea,
+  .event-btn {
+    padding: 18px;
+    font-size: 18px;
+  }
+
+  .event-edit-btn,
+  .event-close-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+}
+
+/* ========== SCROLLBAR STYLING ========== */
+.calendar-editor-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.calendar-editor-modal::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.calendar-editor-modal::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 4px;
+}
+
+.calendar-editor-modal::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* ========== LOADING STATE ========== */
+.event-loading {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+.event-loading::after {
+  content: "...";
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: "."; }
+  40% { content: ".."; }
+  60%, 100% { content: "..."; }
+}
+
+/* ========== ERROR STATE ========== */
+.event-error {
+  padding: 16px;
+  background: #fff3f3;
+  border: 1px solid #fdd;
+  border-radius: 8px;
+  color: #d9534f;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+/* ========== 2026-09 additions ========== */
+
+/* Start/End as two rows of date | time */
+.event-datetime-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 16px;
+}
+.event-datetime-grid.all-day .form-group-time { display: none; }
+.event-datetime-grid.all-day { grid-template-columns: 1fr 1fr; }
+.event-datetime-grid.all-day .form-group-date { grid-column: auto; }
+
+/* All-day switch */
+.event-allday-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+}
+.event-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 60px;
+  height: 34px;
+  border-radius: 17px;
+  background: #d6d6d6;
+  position: relative;
+  cursor: pointer;
+  transition: background .2s ease;
+  margin: 0;
+}
+.event-switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+  transition: transform .2s ease;
+}
+.event-switch:checked { background: #7dc4a0; }
+.event-switch:checked::after { transform: translateX(26px); }
+
+/* Delete confirmation */
+.event-confirm-text {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.5;
+  margin: 4px 0 8px;
+}
+.event-btn-danger {
+  background: #f8e5e5;
+  color: #d9534f;
+}
+.event-btn:disabled { opacity: .6; cursor: default; }
+
+/* Toast ("Event added", errors) */
+.calendar-editor-toast {
+  position: fixed;
+  left: 50%;
+  top: 28px;
+  transform: translate(-50%, calc(-100% - 48px)); /* fully off-screen (-140% left an 8px sliver showing) */
+  visibility: hidden;
+  z-index: 1000001;             /* above modals and the keyboard */
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: #374151;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+  transition: transform .25s ease, visibility 0s linear .25s;
+  pointer-events: none;
+}
+.calendar-editor-toast.show { transform: translate(-50%, 0); visibility: visible; transition: transform .25s ease; }
+.calendar-editor-toast[data-type="success"] { background: #3f9467; }   /* muted sage, matches the palette */
+.calendar-editor-toast[data-type="error"] { background: #d2604e; }     /* soft coral red */
+
+/* ========== Day view (tap a day) ========== */
+.day-event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 46vh;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+.day-event-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 18px;
+  border: none;
+  border-left: 6px solid var(--event-color, #9ca3af);
+  border-radius: 12px;
+  background: #f8f9fa;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.day-event-row:active { background: #eef1f4; }
+.day-event-time {
+  flex: 0 0 auto;
+  min-width: 96px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #555;
+}
+.day-event-title {
+  flex: 1;
+  font-size: 19px;
+  font-weight: 600;
+  color: #2c3e50;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.day-empty {
+  padding: 28px 0;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 18px;
+}
+.day-add-btn { width: 100%; }
+
+.event-back-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.event-back-btn svg { width: 22px; height: 22px; }

@@ -67,8 +67,10 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    card, photos from a folder/USB stick or Immich, generic pickup schedule + New Bedford preset).
    ✅ Calendar sources (public links in settings, private links in secrets.json, MagicMirror's own fetcher),
    ✅ Calendar page (MMM-CalendarExt3 pinned + patch, toolbar, taps, two-line fitting, palette colours).
-   Next: event editor (view/add/edit/delete popups + CalDAV backend), Lists (on-device + Todoist), docs + installer,
-   Settings, keyboard, word game, embed page.
+   ✅ On-device calendar (default, no account) + event editor (day list, view, add, edit, delete; linked calendars
+   read-only; changes go through the node helper).
+   Next: CalDAV calendar service (from the reference build's caldav-backend), Lists (on-device + Todoist),
+   docs + installer, Settings, keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

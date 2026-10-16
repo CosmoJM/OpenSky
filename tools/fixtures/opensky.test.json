@@ -8,7 +8,8 @@
   "calendar": {
     "sources": [
       { "name": "Family", "url": "http://localhost:8083/modules/opensky-fixtures/family.ics", "color": "pink" },
-      { "name": "School", "color": "teal" }
+      { "name": "School", "color": "teal" },
+      { "name": "Testers", "type": "local", "color": "blue" }
     ],
     "colors": { "calendars": { "Testers": "blue" }, "rules": [{ "match": "dentist", "color": "indigo" }] }
   },

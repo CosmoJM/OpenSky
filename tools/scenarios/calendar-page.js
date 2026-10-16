@@ -13,7 +13,7 @@ module.exports = async (page, h) => {
   ok("palette colours: Family pink, School teal, Dentist indigo", has("Family dinner")[0]?.cls === "evc-pink" && has("School assembly")[0]?.cls === "evc-teal" && has("Dentist")[0]?.cls === "evc-indigo", [has("Family dinner")[0]?.cls, has("School assembly")[0]?.cls, has("Dentist")[0]?.cls]);
   ok("colour is drawn (indigo bar)", has("Dentist")[0]?.bar === "rgb(74, 91, 216)", has("Dentist")[0]?.bar);
   ok("today is highlighted", await page.evaluate(() => !!document.querySelector(".CX3 .cell.today")));
-  ok("no Add Event without an editor", await page.evaluate(() => !document.querySelector(".os-nav-add")));
+  ok("Add Event in the toolbar (an editable calendar exists)", await page.evaluate(() => !!document.querySelector(".os-nav-add")));
   await h.shot("calendar-month");
   // toolbar
   await h.tap(".os-nav-next"); await h.sleep(1500);
@@ -28,8 +28,10 @@ module.exports = async (page, h) => {
     t.notificationReceived = (n, p, s) => { if (/^CALENDAR_(EVENT|DAY)_CLICKED$/.test(n)) window.__cal.push([n, p.title || (p.events || []).length]); return o(n, p, s); };
   });
   await h.tap('.CX3 .event[data-title="Family dinner"]'); await h.sleep(300);
+  await page.evaluate(() => document.querySelector(".event-close-btn")?.click()); await h.sleep(200);   // the editor popup opened
   const cell = await page.evaluate(() => { const c = [...document.querySelectorAll(".CX3 .cell.focusMonth")].find((x) => { const b = x.getBoundingClientRect(); return b.height > 0; }); const b = c.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + 20 }; });
   await page.mouse.click(cell.x, cell.y); await h.sleep(300);
+  await page.evaluate(() => document.querySelector(".event-close-btn")?.click()); await h.sleep(200);
   const got = await page.evaluate(() => window.__cal);
   ok("tap event → CALENDAR_EVENT_CLICKED; tap day → CALENDAR_DAY_CLICKED", got.some((g) => g[0] === "CALENDAR_EVENT_CLICKED" && g[1] === "Family dinner") && got.some((g) => g[0] === "CALENDAR_DAY_CLICKED"), got);
   // idle reset

@@ -18,6 +18,9 @@ const os = require("os");
 const MM = process.env.OPENSKY_MM || path.join(os.homedir(), "opensky-dev", "MagicMirror");
 const OUT = path.join(__dirname, "out");
 fs.mkdirSync(OUT, { recursive: true });
+// every run starts with an empty on-device calendar
+const LOCAL_CAL = path.join(OUT, "local-calendar.test.json");
+fs.rmSync(LOCAL_CAL, { force: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
@@ -34,6 +37,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_PORT: process.env.OPENSKY_PORT || "8083",
       OPENSKY_SETTINGS: process.env.OPENSKY_SETTINGS || path.join(__dirname, "fixtures", "opensky.test.json"),
       OPENSKY_SECRETS: process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json"),
+      OPENSKY_LOCAL_CALENDAR: LOCAL_CAL,
       ELECTRON_ENABLE_LOGGING: "1"
     },
     timeout: 90000

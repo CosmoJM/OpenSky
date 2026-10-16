@@ -3,7 +3,7 @@ module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const vis = (sel) => page.evaluate((s) => { const e = document.querySelector(s); if (!e || e.hidden) return false; const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0; }, sel);
   ok("Home is the first page and visible", await vis(".hd-root"));
-  ok("no 'Add Event' button without an event editor", !(await vis(".hd-add")));
+  ok("'Add Event' shows (the fixture has an on-device calendar)", await vis(".hd-add"));
 
   // events (any calendar source broadcasts CALENDAR_EVENTS; here we play one)
   await page.evaluate(() => {

@@ -58,6 +58,16 @@ function pickupSchedule(p) {
 // A folder setting may be relative to the settings file (e.g. the test fixture's "photos")
 const folderPath = (f) => (!f ? null : /^[~/]/.test(f) ? f : path.join(settingsDir || CONFIG_DIR, f));
 
+// Calendar sources (a module with no screen of its own; any page can use the events)
+const cal = s.calendar || {};
+const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name)
+  .map((c) => ({ name: String(c.name), type: ["local", "caldav"].includes(c.type) ? c.type : "link", url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5 }));
+if (cal.holidays === "US") calendarSources.push({ name: "Holidays", url: "https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics", color: "tan", fetchMinutes: 720 });
+
+// Calendars that can be changed from the screen: the on-device calendar(s) and CalDAV accounts
+const editableCalendars = calendarSources.filter((c) => c.type === "local" || c.type === "caldav").map((c) => ({ name: c.name, type: c.type }));
+const canAddEvents = editableCalendars.length > 0;
+
 // Each page = the modules that appear on it.
 const PAGES = {
   calendar: () => [
@@ -78,7 +88,7 @@ const PAGES = {
     {
       module: "MMM-OpenSky-Calendar",
       position: "fullscreen_above",
-      config: { instanceId: "OPENSKY", canAddEvents: false, eventColors: (s.calendar && s.calendar.colors) || null }
+      config: { instanceId: "OPENSKY", canAddEvents, eventColors: (s.calendar && s.calendar.colors) || null }
     }
   ],
   home: () => [{
@@ -86,7 +96,7 @@ const PAGES = {
     position: "fullscreen_above",
     config: {
       listsPage: pages.indexOf("lists") >= 0 ? pages.indexOf("lists") : null,
-      canAddEvents: false,
+      canAddEvents,
       maxEventsPerDay: 4,
       eventColors: (s.calendar && s.calendar.colors) || null,
       photos: {
@@ -123,14 +133,10 @@ const loc = s.location || {};
 const units = locale.units === "metric" ? "metric" : "imperial";
 const header = s.header || {};
 
-// Calendar sources (a module with no screen of its own; any page can use the events)
-const cal = s.calendar || {};
-const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name)
-  .map((c) => ({ name: String(c.name), type: ["local", "caldav"].includes(c.type) ? c.type : "link", url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5 }));
-if (cal.holidays === "US") calendarSources.push({ name: "Holidays", url: "https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics", color: "tan", fetchMinutes: 720 });
 
 // Modules shown on every page
 const fixed = [
+  ...(calendarSources.length ? [{ module: "MMM-OpenSky-EventEditor", config: { editable: editableCalendars, servicePort: (cal.service && cal.service.port) || 5050 } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources } }] : []),
   {
     module: "MMM-OpenSky-Header",
