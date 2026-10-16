@@ -51,3 +51,9 @@ One-time: `python3 -m venv ~/opensky-dev/venv && ~/opensky-dev/venv/bin/pip inst
 `--no-services`, e.g. `HOME=/path/to/scratch/home ./install.sh --yes --no-services`, then start it on the headless
 compositor with `WAYLAND_DISPLAY=wayland-1 OPENSKY_PORT=8084 OPENSKY_HOME=<scratch>/home/.local/share/opensky tools/opensky run`.
 The real end-to-end test is a fresh SD card.
+
+## Coverage notes
+Every provider has a unit test against a fake server and an on-screen scenario (`tools/scenarios/`) that patches a copy
+of the settings (`patchSettings` / `patchSecrets` / `env` in the scenario). Known gap: **CalDAV on the screen** —
+the calendar service is tested against Radicale (`test-calendar-service.py`) and its wiring by `test-config.js`, but
+no scenario runs the service and the screen together yet.
