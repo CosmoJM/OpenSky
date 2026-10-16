@@ -217,9 +217,9 @@ fi
 if ls /sys/class/backlight/* >/dev/null 2>&1; then
   # a display with a backlight (e.g. the official Pi touch display): let the video group set it
   if [ ! -f /etc/udev/rules.d/90-opensky-backlight.rules ] && ask "Let OpenSky set the display's brightness? (needs sudo)" y; then
-    echo 'SUBSYSTEM=="backlight", ACTION=="add", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"' \
+    echo 'SUBSYSTEM=="backlight", ACTION=="add", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"' \
       | sudo tee /etc/udev/rules.d/90-opensky-backlight.rules >/dev/null
-    for b in /sys/class/backlight/*/brightness; do sudo chgrp video "$b" && sudo chmod g+w "$b"; done
+    for b in /sys/class/backlight/*/brightness /sys/class/backlight/*/bl_power; do [ -e "$b" ] && sudo chgrp video "$b" && sudo chmod g+w "$b"; done
     id -nG | grep -qw video || sudo usermod -aG video "$USER"
     ok "Brightness control on"
   fi

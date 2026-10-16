@@ -66,6 +66,12 @@ case "${1:-help}" in
            done ;;
   update)  update ;;
   rollback) rollback ;;
+  backup)  # a backup now, to the place chosen in Settings / phone setup (opensky.json → backup)
+           export OPENSKY_SETTINGS="$CONFIG/opensky.json" OPENSKY_SECRETS="$CONFIG/secrets.json" \
+                  OPENSKY_LOCAL_CALENDAR="$CONFIG/local-calendar.json" OPENSKY_LOCAL_LISTS="$CONFIG/lists.json"
+           NODE="$(command -v node || echo "$RUNTIME/node/bin/node")"; [ -x "$NODE" ] || NODE="$RUNTIME/node/bin/node"
+           "$NODE" -e 'global.root_path = process.argv[1]; const b = require(process.argv[2]); const s = b.run();
+             if (s.ok) console.log("Backed up ✓ " + s.file); else { console.log("Backup failed: " + s.error); process.exit(1); }' "$RUNTIME/MagicMirror" "$REPO/lib/backup.js" ;;
   run)     # run in this terminal (for testing; Ctrl+C to stop)
            export OPENSKY_SETTINGS="$CONFIG/opensky.json" OPENSKY_SECRETS="$CONFIG/secrets.json" \
                   OPENSKY_LOCAL_CALENDAR="$CONFIG/local-calendar.json" OPENSKY_LOCAL_LISTS="$CONFIG/lists.json" \
@@ -84,6 +90,7 @@ opensky — your family screen
   opensky check        check the settings files for typos
   opensky update       get the newest OpenSky and restart (goes back by itself if it doesn't start)
   opensky rollback     go back to the version before the last update
+  opensky backup       make a backup now (to the place chosen in Settings)
 Settings + data: $CONFIG
 EOF
 esac

@@ -75,6 +75,9 @@ The easy way: **Settings → Set up from your phone → Backup → Download a ba
 for a complete copy, and keep that file private). To move to a new SD card or a new Pi: install OpenSky there, open
 phone setup, **Restore from a backup**, then **Finish**.
 
+Automatic: Settings → **Backups** (or the phone page) → pick a USB stick or network folder; a copy is made every night.
+`opensky backup` makes one right away.
+
 By hand: everything personal lives in **`~/OpenSky/config/`**: your settings, passwords and keys, and the on-device calendar and lists. Copy that folder somewhere safe, such as a USB stick or your computer. It holds passwords, so keep the copy private.
 
 ## Installer options
