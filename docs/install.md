@@ -60,7 +60,9 @@ To change settings, open Terminal and type `opensky edit`. Save with Ctrl+O, Ent
 ```bash
 opensky update
 ```
-This gets the newest OpenSky, re-runs the installer (no questions) and restarts. Your settings and data in `~/OpenSky/config/` are kept.
+This gets the newest OpenSky, re-runs the installer (no questions) and restarts. If the new version doesn't start
+properly, it goes back to the previous one by itself. To go back by hand: `opensky rollback`. (Settings → Update does
+the same from the screen.) Your settings and data in `~/OpenSky/config/` are kept.
 
 ## Uninstalling
 ```bash

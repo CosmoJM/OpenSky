@@ -3,6 +3,50 @@
 REPO="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
 RUNTIME="${OPENSKY_HOME:-$HOME/.local/share/opensky}"
 CONFIG="$REPO/config"
+PREV="$CONFIG/.previous-version"
+# tests swap these: OPENSKY_UPDATE_INSTALL (default: ./install.sh --yes + restart), OPENSKY_HEALTH_CMD, OPENSKY_HEALTH_WAIT
+install_and_restart() { if [ -n "${OPENSKY_UPDATE_INSTALL:-}" ]; then sh -c "$OPENSKY_UPDATE_INSTALL"; else ./install.sh --yes && "$0" restart; fi; }
+# OpenSky is healthy when its service runs and the screen's web server answers
+healthy() {
+  if [ -n "${OPENSKY_HEALTH_CMD:-}" ]; then sh -c "$OPENSKY_HEALTH_CMD"; return; fi
+  systemctl --user is-active -q opensky.service && curl -fs -o /dev/null --max-time 5 "http://localhost:${OPENSKY_PORT:-8080}/"
+}
+wait_healthy() {
+  local i
+  for i in $(seq 1 "${OPENSKY_HEALTH_WAIT:-30}"); do healthy && return 0; sleep 3; done
+  return 1
+}
+
+update() {
+  cd "$REPO" || exit 1
+  if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+    echo "OpenSky's files were changed by hand here, so it won't update over them:"; git status --short --untracked-files=no
+    echo "(Your settings in config/ are fine — they're not part of this check.)"; exit 1
+  fi
+  local before; before=$(git rev-parse HEAD)
+  git fetch -q || { echo "Couldn't reach GitHub — try again later."; exit 1; }
+  if [ "$(git rev-list --count HEAD..@{u})" = 0 ]; then echo "OpenSky is up to date ($(git describe --tags --always))."; exit 0; fi
+  echo "$before" > "$PREV"
+  echo "Updating OpenSky…"
+  git merge -q --ff-only @{u} || { echo "Couldn't update (the local copy has its own changes)."; exit 1; }
+  if install_and_restart && wait_healthy; then
+    echo "Updated to $(git describe --tags --always) ✓  (if anything is wrong: opensky rollback)"
+  else
+    echo "The new version didn't start properly — going back to the previous one."
+    git reset -q --hard "$before" && install_and_restart && wait_healthy && echo "Back on the previous version ✓" || echo "Still not starting — see: opensky logs"
+    exit 1
+  fi
+}
+
+rollback() {
+  cd "$REPO" || exit 1
+  [ -f "$PREV" ] || { echo "No earlier version to go back to."; exit 1; }
+  local to; to=$(cat "$PREV")
+  git cat-file -e "$to^{commit}" 2>/dev/null || { echo "The earlier version isn't available any more."; exit 1; }
+  git rev-parse HEAD > "$PREV.undo"
+  echo "Going back to the previous version…"
+  git reset -q --hard "$to" && install_and_restart && echo "Back on $(git describe --tags --always) ✓  ('opensky update' brings the newest again)"
+}
 
 case "${1:-help}" in
   start)   systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE 2>/dev/null
@@ -20,7 +64,8 @@ case "${1:-help}" in
                rm -f "/tmp/opensky-check.$$"
              else echo "– $f is missing (run ./install.sh)"; fi
            done ;;
-  update)  cd "$REPO" && git pull --ff-only && ./install.sh --yes && "$0" restart ;;
+  update)  update ;;
+  rollback) rollback ;;
   run)     # run in this terminal (for testing; Ctrl+C to stop)
            export OPENSKY_SETTINGS="$CONFIG/opensky.json" OPENSKY_SECRETS="$CONFIG/secrets.json" \
                   OPENSKY_LOCAL_CALENDAR="$CONFIG/local-calendar.json" OPENSKY_LOCAL_LISTS="$CONFIG/lists.json" \
@@ -37,7 +82,8 @@ opensky — your family screen
   opensky edit         edit settings (config/opensky.json), then check them
   opensky secrets      edit passwords and keys (config/secrets.json)
   opensky check        check the settings files for typos
-  opensky update       get the newest OpenSky and restart
+  opensky update       get the newest OpenSky and restart (goes back by itself if it doesn't start)
+  opensky rollback     go back to the version before the last update
 Settings + data: $CONFIG
 EOF
 esac

@@ -4,6 +4,7 @@
 cd "$(dirname "$0")/.." || exit 1
 fail=0
 for t in tools/test-*.js; do printf '%-28s ' "$(basename "$t")"; out=$(node "$t" 2>&1 | tail -1); echo "$out"; [[ "$out" == *"fail=0"* ]] || fail=1; done
+for t in tools/test-*.sh; do [ "$(basename "$t")" = test-all.sh ] && continue; printf '%-28s ' "$(basename "$t")"; out=$(timeout 180 bash "$t" 2>&1 | tail -1); echo "$out"; [[ "$out" == *"fail=0"* ]] || fail=1; done
 PY="${OPENSKY_PYTHON:-$HOME/opensky-dev/venv/bin/python}"
 for t in tools/test-*.py; do
   printf '%-28s ' "$(basename "$t")"
