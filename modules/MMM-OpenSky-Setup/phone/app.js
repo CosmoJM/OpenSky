@@ -321,30 +321,36 @@
 
   function listsCard() {
     const L = S.lists, rows = el("div", { class: "rows" });
-    L.lists.forEach((l, i) => rows.append(row(hex(l.color || "blue"), l.name, l.provider === "todoist" ? `Todoist${l.project && l.project !== l.name ? ` · project “${l.project}”` : ""}` : "On this screen", () => editList(i))));
+    const where = (l) => l.provider === "todoist" ? `Todoist${l.project && l.project !== l.name ? ` · project “${l.project}”` : ""}` : l.provider === "homeassistant" ? `Home Assistant · ${l.entity || "?"}` : "On this screen";
+    L.lists.forEach((l, i) => rows.append(row(hex(l.color || "blue"), l.name, where(l), () => editList(i))));
     if (!L.lists.length) rows.append(el("p", { class: "empty" }, "No lists yet."));
-    const usesTodoist = L.lists.some((l) => l.provider === "todoist");
+    const usesTodoist = L.lists.some((l) => l.provider === "todoist"), usesHA = L.lists.some((l) => l.provider === "homeassistant");
     return section("lists", "lists", "Lists", "Groceries, to-dos… the first three show on Home",
       rows,
       el("button", { type: "button", class: "add", onclick: addList }, icon("plus"), "Add a list"),
-      usesTodoist ? field("Todoist API token", secretInput("lists.todoist.token", "Paste your token"), "Todoist → Settings → Integrations → Developer → API token.") : null);
+      usesTodoist ? field("Todoist API token", secretInput("lists.todoist.token", "Paste your token"), "Todoist → Settings → Integrations → Developer → API token.") : null,
+      usesHA ? field("Home Assistant address", secretInput("homeassistant.url", "http://homeassistant.local:8123")) : null,
+      usesHA ? field("Home Assistant token", secretInput("homeassistant.token", "Paste a long-lived access token"), "In Home Assistant: your profile → Security → Long-lived access tokens → Create token.") : null);
   }
 
   function addList() {
-    const d = { name: "", color: COLORS[(S.lists.lists.length + 3) % COLORS.length], provider: "local", project: "" };
+    const d = { name: "", color: COLORS[(S.lists.lists.length + 3) % COLORS.length], provider: "local", project: "", entity: "" };
     const err = el("p", { class: "err" });
     sheet("Add a list", (b) => {
       const extra = el("div");
-      const draw = () => extra.replaceChildren(...(d.provider === "todoist" ? [field("Todoist project", text(d.project, (v) => { d.project = v.trim(); }, { placeholder: "Same as the list's name if empty" }))] : [el("p", { class: "hint" }, "Kept on the Pi — no account needed.")]));
+      const draw = () => extra.replaceChildren(...(d.provider === "todoist" ? [field("Todoist project", text(d.project, (v) => { d.project = v.trim(); }, { placeholder: "Same as the list's name if empty" }))]
+        : d.provider === "homeassistant" ? [field("Home Assistant to-do list", text(d.entity, (v) => { d.entity = v.trim().toLowerCase(); }, { placeholder: "todo.shopping_list", autocapitalize: "off" }), "Its entity ID (Settings → Entities in Home Assistant). Address and token go below the lists.")]
+        : [el("p", { class: "hint" }, "Kept on the Pi — no account needed.")]));
       b.append(field("Name", text("", (v) => { d.name = v.trim(); }, { placeholder: "e.g. Groceries" })),
         el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(d.color, (c) => { d.color = c; })),
-        field("Kept in", seg([["local", "On this screen"], ["todoist", "Todoist"]], d.provider, (v) => { d.provider = v; draw(); })), extra, err);
+        field("Kept in", seg([["local", "This screen"], ["todoist", "Todoist"], ["homeassistant", "Home Assistant"]], d.provider, (v) => { d.provider = v; draw(); })), extra, err);
       draw();
     }, [["Cancel", "", () => {}], ["Add", "primary", () => {
-      const bad = nameOk(d.name, S.lists.lists.map((l) => l.name));
+      const bad = nameOk(d.name, S.lists.lists.map((l) => l.name)) || (d.provider === "homeassistant" && !/^todo\.[a-z0-9_]+$/.test(d.entity) ? "The list's entity ID looks like todo.shopping_list" : null);
       if (bad) { err.textContent = bad; return false; }
       const l = { name: d.name, color: d.color };
       if (d.provider === "todoist") { l.provider = "todoist"; if (d.project && d.project !== d.name) l.project = d.project; }
+      if (d.provider === "homeassistant") { l.provider = "homeassistant"; l.entity = d.entity; }
       S.lists.lists.push(l);
       if (!S.pages.includes("lists") && S.lists.lists.length > 3) S.pages.splice(Math.min(3, S.pages.length), 0, "lists");
       change(); render();

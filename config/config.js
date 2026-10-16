@@ -71,8 +71,9 @@ if (cal.holidays === "US") calendarSources.push({ name: "Holidays", url: "https:
 // Lists (groceries, to-dos…): on-device by default; Todoist with a token in secrets.json
 const listSettings = s.lists || {};
 const familyLists = (Array.isArray(listSettings.lists) ? listSettings.lists : []).filter((l) => l && l.name)
-  .map((l) => ({ name: String(l.name), color: l.color || null, provider: l.provider === "todoist" ? "todoist" : "local",
-    ...(l.project ? { project: String(l.project) } : {}), ...(l.projectId ? { projectId: String(l.projectId) } : {}) }));
+  .map((l) => ({ name: String(l.name), color: l.color || null, provider: ["todoist", "homeassistant"].includes(l.provider) ? l.provider : "local",
+    ...(l.project ? { project: String(l.project) } : {}), ...(l.projectId ? { projectId: String(l.projectId) } : {}),
+    ...(l.entity ? { entity: String(l.entity) } : {}) }));
 const editableCalendars = calendarSources.filter((c) => c.type === "local" || c.type === "caldav").map((c) => ({ name: c.name, type: c.type }));
 const canAddEvents = editableCalendars.length > 0;
 

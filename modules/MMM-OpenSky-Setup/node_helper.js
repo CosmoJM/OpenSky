@@ -36,7 +36,7 @@ const STATIC = {
 };
 const CODE_MINUTES = 10, IDLE_MINUTES = 30;
 // secrets the phone may set (dotted paths under these)
-const SECRET_ROOTS = ["weather.openweathermap.", "lists.todoist.", "photos.immich.", "calendar.sources.", "calendar.caldav.", "embeds."];
+const SECRET_ROOTS = ["weather.openweathermap.", "lists.todoist.", "homeassistant.", "photos.immich.", "calendar.sources.", "calendar.caldav.", "embeds."];
 
 const readJson = (f, fallback) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { return fallback; } };
 function writeJson(file, data, mode) {

@@ -54,6 +54,13 @@ module.exports = async (page, h, app) => {
   await phone.click("#lists .add"); await h.sleep(400);
   await phone.fill(".sheet input.input", "Hardware");
   await phone.click(".sheet .btn.primary"); await h.sleep(400);
+  await phone.click("#lists .add"); await h.sleep(400);
+  await phone.fill(".sheet input.input", "Shopping");
+  await phone.click(".sheet .seg button:nth-child(3)"); await h.sleep(200);
+  await phone.fill(".sheet input[placeholder='todo.shopping_list']", "todo.shopping_list");
+  await phone.screenshot({ path: path.join(OUT, "setup-phone-ha-list.png") });
+  await phone.click(".sheet .btn.primary"); await h.sleep(400);
+  await phone.fill("#lists input[placeholder^='Paste a long-lived']", "ha-test-token-123");
   await phone.click("#calendars .add"); await h.sleep(400);
   await phone.fill(".sheet input.input", "Grandma");
   await phone.fill(".sheet textarea", "https://calendar.example.com/private-abc123/basic.ics");
@@ -65,7 +72,8 @@ module.exports = async (page, h, app) => {
   const S = JSON.parse(fs.readFileSync(path.join(OUT, "opensky.test.json"), "utf8"));
   const sec = JSON.parse(fs.readFileSync(path.join(OUT, "secrets.test.json"), "utf8"));
   ok("saved: settings updated (old copy kept), the private link only in secrets.json (chmod 600)",
-    S.family.name === "The Testers Too" && S.lists.lists.some((l) => l.name === "Hardware") && S.calendar.sources.some((c) => c.name === "Grandma" && !c.url) &&
+    S.family.name === "The Testers Too" && S.lists.lists.some((l) => l.name === "Hardware") &&
+    S.lists.lists.some((l) => l.name === "Shopping" && l.provider === "homeassistant" && l.entity === "todo.shopping_list") && sec.homeassistant && sec.homeassistant.token === "ha-test-token-123" && S.calendar.sources.some((c) => c.name === "Grandma" && !c.url) &&
     sec.calendar.sources.Grandma === "https://calendar.example.com/private-abc123/basic.ics" && sec.calendar.sources.School && fs.existsSync(path.join(OUT, "opensky.test.json.bak")) &&
     (fs.statSync(path.join(OUT, "secrets.test.json")).mode & 0o777) === 0o600, { family: S.family.name });
   const state = await phone.evaluate(() => fetch("/api/state").then((r) => r.text()));

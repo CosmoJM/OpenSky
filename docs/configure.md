@@ -184,6 +184,9 @@ In `opensky.json`: `{ "name": "Shared", "type": "caldav", "color": "green" }`. T
 - **Todoist** (`"provider": "todoist"`): shows a Todoist project, by default the one with the same name as the list. Use `"project": "…"` for a different name, or `"projectId": "…"`.
   - Add your token to `secrets.json → lists.todoist.token`. Find it in Todoist → Settings → *Integrations* → *Developer* → **API token**.
   - Changes on the screen show in the Todoist app, and the other way round. The screen checks every `refreshMinutes`.
+- **Home Assistant** (`"provider": "homeassistant", "entity": "todo.shopping_list"`): any Home Assistant to-do list
+  (the built-in Shopping List, Local To-do, Google Tasks or others connected to HA). Put your HA address and a
+  long-lived access token (HA → your profile → Security) in `secrets.json → homeassistant.url / .token`.
 - Home shows the first three lists; the **Lists** page shows them all (`columns` fit across, more scroll sideways). Tap **Add item** to add, tap the circle to check off (with Undo), or tap an item to edit or delete it.
 
 ## Photos

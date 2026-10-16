@@ -40,7 +40,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Sleep schedule | Settings page + HA automations ✅ | **built-in schedule** default ✅; Home Assistant optional | Don't require HA |
 | Calendar (read) | iCloud via CalDAV backend ✅ | 🔜 **ICS URL** default (Google/Outlook/iCloud "secret address"); iCloud CalDAV; generic CalDAV (Fastmail, Nextcloud…); Google Calendar API; Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
 | Calendar (add/edit) | iCloud CalDAV ✅ | CalDAV ✅; Google (OAuth) 🔜; Microsoft 365 💭; read-only mode | OAuth = setup friction; guide it |
-| Lists | Todoist (2 projects) ✅ | **on-device lists** default (no account) ✅; Todoist ✅; Home Assistant to-do; Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
+| Lists | Todoist (2 projects) ✅ | **on-device lists** default (no account) ✅; Todoist ✅; Home Assistant to-do ✅ (covers Google Tasks etc. connected to HA); Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
 | Weather (header + day tiles) | OpenWeatherMap (header) + Open-Meteo (7-day) ✅ | 🔜 **Open-Meteo** default (no key); OpenWeatherMap; 💭 NWS, Met.no | °F/°C, location by address search |
 | Photos | Immich ✅ | 🔜 **local folder / USB stick** default; Immich; PhotoPrism; Nextcloud/WebDAV; iCloud shared album link; 💭 Google Photos (API is very limited now) | Portrait pairing ✅ |
 | Smart Home page | Home Assistant dashboard (webview) ✅ | Home Assistant; **any URL** embed; none | Generic "embedded page" with optional PIN |

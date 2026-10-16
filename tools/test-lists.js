@@ -94,6 +94,45 @@ const server = http.createServer((req, res) => {
   server.close();
   ok("16 Todoist unreachable → friendly message", /Can't reach Todoist/.test(await fails(() => todo.items(shop))));
 
+  // ---- Home Assistant to-do ----
+  const haItems = [{ uid: "u1", summary: "Bread", status: "needs_action" }, { uid: "u2", summary: "Old", status: "completed" }];
+  const haCalls = [];
+  const haServer = http.createServer((req, res) => {
+    let body = ""; req.on("data", (c) => { body += c; });
+    req.on("end", () => {
+      const send = (code, obj) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(obj)); };
+      if (req.headers.authorization !== "Bearer ha-token") return send(401, {});
+      const b = JSON.parse(body || "{}"), svc = req.url.replace(/^\/api\/services\/todo\//, "");
+      haCalls.push(`${svc} ${JSON.stringify(b)}`);
+      if (b.entity_id !== "todo.shopping") return send(400, { message: "no such entity" });
+      if (svc === "get_items?return_response") return send(200, { changed_states: [], service_response: { "todo.shopping": { items: haItems } } });
+      if (svc === "add_item") { haItems.push({ uid: `u${haItems.length + 1}`, summary: b.item, status: "needs_action" }); return send(200, []); }
+      const it = haItems.find((x) => x.uid === (Array.isArray(b.item) ? b.item[0] : b.item));
+      if (!it) return send(400, { message: "not found" });
+      if (svc === "update_item") { if (b.status) it.status = b.status; if (b.rename) it.summary = b.rename; return send(200, []); }
+      if (svc === "remove_item") { haItems.splice(haItems.indexOf(it), 1); return send(200, []); }
+      send(404, {});
+    });
+  });
+  await new Promise((r) => haServer.listen(0, "127.0.0.1", r));
+  const shopping = { name: "Shopping", provider: "homeassistant", entity: "todo.shopping" }, hap = lists.provider(shopping);
+  ok("17 HA not set up → says what to add", /homeassistant\.url/.test(await fails(() => hap.items(shopping))));
+  fs.writeFileSync(SECRETS, JSON.stringify({ homeassistant: { url: `http://127.0.0.1:${haServer.address().port}/`, token: "ha-token" } }));
+  fs.utimesSync(SECRETS, new Date(), new Date(Date.now() + 10000));
+  items = await hap.items(shopping);
+  ok("18 HA: open items only, by uid", items.map((x) => x.text).join() === "Bread" && items[0].id === "u1", items);
+  await hap.add(shopping, "Milk"); items = await hap.items(shopping);
+  await hap.edit(shopping, items[0], "Rye bread"); await hap.check(shopping, items[1]);
+  items = await hap.items(shopping);
+  ok("19 HA: add / rename / check off use todo.add_item / update_item", items.map((x) => x.text).join() === "Rye bread" && haCalls.some((c) => /^update_item .*"rename":"Rye bread"/.test(c)) && haCalls.some((c) => /^update_item .*"status":"completed"/.test(c)), haCalls.slice(-3));
+  await hap.remove(shopping, items[0]);
+  ok("20 HA: delete uses todo.remove_item", (await hap.items(shopping)).length === 0);
+  ok("21 HA: a missing or wrong entity is explained", /needs its Home Assistant list/.test(await fails(() => hap.items({ name: "X", provider: "homeassistant" }))) && /didn't accept/.test(await fails(() => hap.items({ name: "X", provider: "homeassistant", entity: "todo.nope" }))));
+  fs.writeFileSync(SECRETS, JSON.stringify({ homeassistant: { url: `http://127.0.0.1:${haServer.address().port}`, token: "wrong" } }));
+  fs.utimesSync(SECRETS, new Date(), new Date(Date.now() + 20000));
+  ok("22 HA: a refused token is explained", /refused the token/.test(await fails(() => hap.items(shopping))));
+  haServer.close();
+
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`SUMMARY pass=${passed} fail=${failed}`);
 })().catch((e) => { console.log(`SUMMARY pass=${passed} fail=${failed + 1} (crashed: ${e.message})`); process.exit(1); });

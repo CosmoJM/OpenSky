@@ -50,6 +50,8 @@ The screen didn't accept brightness commands, so OpenSky dims the picture instea
 ## Lists
 - **Todoist: "refused the API token"**: copy the token again (Todoist → Settings → Integrations → Developer) into `secrets.json → lists.todoist.token`.
 - **"No Todoist project called …"**: the list's `project` (or its `name`) must match a Todoist project. Letter case doesn't matter.
+- **Home Assistant: "refused the token"** — make a new long-lived access token (HA → profile → Security) for
+  `secrets.json → homeassistant.token`. **"didn't accept that"** — check the list's `entity` (e.g. `todo.shopping_list`).
 - **Todoist changes take a minute or two** to show on the screen (`refreshMinutes`). Changes made on the screen show at once.
 
 ## Photos
