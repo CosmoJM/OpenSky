@@ -12,7 +12,7 @@
   border-radius: 20px;
   background: var(--list-tint);
 }
-.lc-list.alt { --list-accent: #ff9f7f; --list-tint: #fff7f3; --list-dark: #b4532f; }
+.lc-list.alt { --list-accent: var(--os-accent-mid); --list-tint: #fff7f3; --list-dark: #b4532f; }
 .lc-list-head { display: flex; align-items: center; gap: 10px; padding: 0 4px 10px; }
 .lc-list-title { font-size: 24px; font-weight: 800; color: var(--list-dark); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lc-badge {

@@ -41,13 +41,13 @@
 }
 
 /* Today: the peach accent (same as today's date badge) */
-.os-nav-today { background: #ffd8c9; color: #7a3419; }
+.os-nav-today { background: var(--os-accent-soft); color: #7a3419; }
 
 /* Add Event: primary action, a little apart from the month arrows */
 .os-nav-add {
   margin-right: 10px;
   padding: 0 20px 0 16px;
-  background: #ff9f7f;
+  background: var(--os-accent-mid);
   color: #ffffff;
 }
 .os-nav-add .os-nav-icon { width: 20px; height: 20px; }
@@ -197,7 +197,7 @@
   border-color: var(--celllinecolor) !important;
 }
 .CX3 .cell.today .cellDate {
-  background: #ff9f7f !important;
+  background: var(--os-accent-mid) !important;
   color: #ffffff !important;
   font-weight: 700;
 }

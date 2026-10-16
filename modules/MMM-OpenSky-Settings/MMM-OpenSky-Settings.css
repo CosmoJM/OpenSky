@@ -29,17 +29,17 @@
 
 .ost-section { padding: 16px 0; border-bottom: 1px solid #eef0f3; }
 .ost-section:last-child { border-bottom: 0; }
-.ost-section h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: #e8663f; }
+.ost-section h3 { margin: 0 0 10px; font-size: 15px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: var(--os-accent); }
 .ost-row { display: flex; align-items: center; gap: 16px; min-height: 60px; }
 .ost-label { flex: 0 0 auto; min-width: 120px; font-size: 20px; font-weight: 600; }
-.ost-sub { margin-left: 4px; padding-left: 18px; border-left: 3px solid #ffd8c9; }
+.ost-sub { margin-left: 4px; padding-left: 18px; border-left: 3px solid var(--os-accent-soft); }
 .ost-sub[hidden] { display: none; }
 .ost-note { margin: 2px 0 6px; font-size: 15px; color: #6b7280; }
 
 /* slider: a big thumb for fingers */
 .ost-slider { flex: 1; min-width: 0; height: 44px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; }
-.ost-slider::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: #ffd8c9; }
-.ost-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 36px; height: 36px; margin-top: -13px; border-radius: 50%; background: #e8663f; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+.ost-slider::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: var(--os-accent-soft); }
+.ost-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 36px; height: 36px; margin-top: -13px; border-radius: 50%; background: var(--os-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
 .ost-value { flex: 0 0 64px; text-align: right; font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; color: #374151; }
 
 .ost-toggle { flex: 0 0 auto; position: relative; width: 68px; height: 40px; padding: 0; border: 0; border-radius: 20px; background: #d1d5db; cursor: pointer; transition: background .2s; }
@@ -59,7 +59,7 @@
 .ost-btn[hidden] { display: none; }
 .ost-btn:disabled { opacity: .55; }
 .ost-update { background: #e6f4ec; color: #22603f; }
-.ost-phone { background: #fff1ea; color: #c2410c; }
+.ost-phone { background: var(--os-accent-tint); color: var(--os-accent-dark); }
 .ost-danger { background: #fde8e4; color: #a33a28; }
 .ost-confirm { background: #d2604e; color: #fff; }
 .ost-test { flex: 0 0 auto; min-height: 48px; }

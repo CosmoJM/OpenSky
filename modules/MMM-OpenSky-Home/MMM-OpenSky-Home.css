@@ -92,7 +92,7 @@
   letter-spacing: .2px;
   color: #1f2937;
 }
-.hd-card-label .hd-icon { width: 26px; height: 26px; color: #e8663f; }
+.hd-card-label .hd-icon { width: 26px; height: 26px; color: var(--os-accent); }
 .hd-icon { width: 20px; height: 20px; display: block; flex: 0 0 auto; }
 .hd-week-range { font-size: 19px; font-weight: 600; color: #9ca3af; }
 
@@ -114,7 +114,7 @@
   cursor: pointer;
 }
 .hd-prev, .hd-next { padding: 0; width: 42px; }
-.hd-today.active { background: #ffd8c9; color: #7a3419; }
+.hd-today.active { background: var(--os-accent-soft); color: #7a3419; }
 .hd-nav-btn:active, .hd-see-all:active { transform: scale(.95); }
 
 /* ---------- week grid ---------- */
@@ -161,7 +161,7 @@
   font-weight: 700;
   color: #6b7280;
 }
-.hd-day.hd-is-today .hd-day-num { background: #ff9f7f; color: #fff; }
+.hd-day.hd-is-today .hd-day-num { background: var(--os-accent-mid); color: #fff; }
 .hd-day-wx {
   margin-left: auto;
   display: inline-flex;
@@ -260,7 +260,7 @@
   gap: 6px;
   margin-right: 6px;
   padding: 0 18px 0 14px;
-  background: #ff9f7f;
+  background: var(--os-accent-mid);
   color: #fff;
   box-shadow: 0 6px 16px rgba(255, 138, 101, .3);
 }

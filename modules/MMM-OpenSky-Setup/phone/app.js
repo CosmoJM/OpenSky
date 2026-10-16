@@ -34,7 +34,7 @@
   };
   const palette = () => (window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE) || { blue: ["#b9ddff", "#2e8bd6"] };
   const COLORS = ["blue", "pink", "green", "orange", "purple", "teal", "red", "yellow", "emerald", "indigo", "tan", "gray"];
-  const hex = (name) => (palette()[name] || palette().blue)[1];
+  const hex = (name) => name === "peach" ? "#e8663f" : (palette()[name] || palette().blue)[1];
   const ICON = {
     logo: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></svg>`,
     family: `<svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9v11h14V9"/><path d="M10 20v-5h4v5"/></svg>`,
@@ -84,9 +84,9 @@
     b.onclick = () => { const v = !b.classList.contains("on"); b.classList.toggle("on", v); b.setAttribute("aria-checked", String(v)); onflip(v); };
     return b;
   }
-  function chips(value, onpick) {
+  function chips(value, onpick, colors = COLORS) {
     const box = el("div", { class: "chips" });
-    COLORS.forEach((c) => box.append(el("button", { type: "button", class: `chip${c === value ? " on" : ""}`, style: `--c:${hex(c)}`, "aria-label": c, onclick: (e) => { box.querySelectorAll(".chip").forEach((x) => x.classList.remove("on")); e.currentTarget.classList.add("on"); onpick(c); } })));
+    colors.forEach((c) => box.append(el("button", { type: "button", class: `chip${c === value ? " on" : ""}`, style: `--c:${hex(c)}`, "aria-label": c, onclick: (e) => { box.querySelectorAll(".chip").forEach((x) => x.classList.remove("on")); e.currentTarget.classList.add("on"); onpick(c); } })));
     return box;
   }
   function select(options, value, onpick) {
@@ -451,6 +451,8 @@
     const drawWeather = (p) => weatherKey.replaceChildren(...(p === "openweathermap" ? [field("OpenWeatherMap API key", secretInput("weather.openweathermap.apiKey", "Paste the key"))] : []));
     drawWeather(w.provider || "open-meteo");
     return section("extras", "extras", "Extras", null,
+      el("div", { class: "field" }, el("span", { class: "label" }, "Accent colour (buttons, highlights)"),
+        chips(S.look && S.look.accent ? S.look.accent : "peach", (c) => { S.look = S.look || {}; if (c === "peach") delete S.look.accent; else S.look.accent = c; change(); }, ["peach", ...COLORS.filter((c) => c !== "gray")])),
       field("Trash day", select(days, pk.trashDay || "", (v) => { pk.trashDay = v; change(); })),
       (info.presets || []).length ? field("City pickup schedule", select([["", "None — just my trash day"], ...info.presets.map((p) => [p, p.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace(/ (\w\w)$/, (m) => m.toUpperCase())])], pk.preset || "", (v) => { pk.preset = v; change(); }), "Adds recycling, yard waste and holiday delays.") : null,
       field("Or a pickup calendar link", el("input", { type: "password", class: "input", autocomplete: "off", inputmode: "url",

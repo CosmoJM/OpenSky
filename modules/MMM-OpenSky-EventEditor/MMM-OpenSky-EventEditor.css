@@ -76,7 +76,7 @@
   height: 44px;
   border-radius: 50%;
   border: none;
-  background: #ffd8c9;
+  background: var(--os-accent-soft);
   color: #b4532f;
   display: flex;
   align-items: center;
@@ -262,7 +262,7 @@
 }
 
 .event-btn-primary {
-  background: linear-gradient(135deg, #ffd8c9 0%, #ffc7b3 100%);
+  background: linear-gradient(135deg, var(--os-accent-soft) 0%, #ffc7b3 100%);
   color: #2c3e50;
   box-shadow: 0 4px 12px rgba(255, 216, 201, 0.3);
 }

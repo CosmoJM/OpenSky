@@ -55,7 +55,7 @@
 /* Top-right countdown to the next holiday/birthday: a quiet pill, themed per occasion
    (colours from the OpenSky palette; --cd-solid is used on the day itself) */
 .hb-countdown{
-  --cd-bg:#fff4ef; --cd-fg:#b4532f; --cd-solid:#ff9f7f;
+  --cd-bg:#fff4ef; --cd-fg:#b4532f; --cd-solid:var(--os-accent-mid);
   margin-left:auto;
   display:inline-flex;
   align-items:center;
@@ -87,7 +87,7 @@
 .hb-theme-fathers     { --cd-bg:#eaf4fd; --cd-fg:#1f6fb2; --cd-solid:#2e8bd6; }
 .hb-theme-labor       { --cd-bg:#fbf3e4; --cd-fg:#8a6a3a; --cd-solid:#b8864b; }
 .hb-theme-thanksgiving{ --cd-bg:#fdf0e4; --cd-fg:#a3531c; --cd-solid:#c46a2b; }
-.hb-theme-birthday    { --cd-bg:#fff4ef; --cd-fg:#b4532f; --cd-solid:#ff9f7f; }
+.hb-theme-birthday    { --cd-bg:#fff4ef; --cd-fg:#b4532f; --cd-solid:var(--os-accent-mid); }
 
 /* Sports game-day pill (left of the countdown) */
 .hb-game{

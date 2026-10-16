@@ -19,6 +19,7 @@ Module.register("MMM-OpenSky-Sidebar", {
     screenServiceUrl: null,      // e.g. "http://127.0.0.1:5000" when the OpenSky screen service is installed
     idleReturnMinutes: 5,
     showSettings: false,         // true once a settings page/module is installed
+    accent: null,                // opensky.json → look.accent: a palette colour name ("teal") or "#rrggbb"; null = peach
     ui: { width: 92, gap: 8, tile: 76, icon: 28, font: 12 }
   },
 
@@ -33,6 +34,21 @@ Module.register("MMM-OpenSky-Sidebar", {
     ["pointerdown", "touchstart", "keydown", "wheel"].forEach((ev) => document.addEventListener(ev, touch, { capture: true, passive: true }));
     if (this.config.idleReturnMinutes > 0) setInterval(() => this.checkIdle(), 10 * 1000);
     document.documentElement.style.setProperty("--os-side-width", `${this.config.ui.width}px`);
+    this.applyAccent(this.config.accent);
+  },
+
+  // The accent colour for every module (css/opensky.css defines the default peach tones)
+  applyAccent(accent) {
+    const pal = window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE;
+    const a = /^#[0-9a-f]{6}$/i.test(accent || "") ? accent : (pal && pal[accent] ? pal[accent][1] : null);
+    if (!a) return;
+    const root = document.documentElement.style, mix = (pct, other) => `color-mix(in srgb, ${a} ${pct}%, ${other})`;
+    root.setProperty("--os-accent", a);
+    root.setProperty("--os-accent-mid", mix(70, "white"));
+    root.setProperty("--os-accent-light", mix(60, "white"));
+    root.setProperty("--os-accent-soft", mix(28, "white"));
+    root.setProperty("--os-accent-tint", mix(9, "white"));
+    root.setProperty("--os-accent-dark", mix(78, "black"));
   },
 
   notificationReceived(n, payload) {

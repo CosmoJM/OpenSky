@@ -221,7 +221,8 @@ const fixed = [
       familyInitial: (familyName.replace(/^the\s+/i, "")[0] || "H").toUpperCase(),
       idleReturnMinutes: (s.sidebar && Number.isFinite(s.sidebar.idleReturnMinutes)) ? s.sidebar.idleReturnMinutes : 5,
       screenServiceUrl: (s.screen && s.screen.serviceUrl) || null,
-      showSettings: true
+      showSettings: true,
+      accent: (s.look && s.look.accent) || null
     }
   }
 ];

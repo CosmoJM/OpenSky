@@ -32,12 +32,12 @@
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 28px rgba(31, 41, 55, .07);
 }
-.oe-icon { width: 58px; height: 58px; padding: 14px; box-sizing: border-box; border-radius: 50%; background: #fff1ea; color: #e8663f; }
+.oe-icon { width: 58px; height: 58px; padding: 14px; box-sizing: border-box; border-radius: 50%; background: var(--os-accent-tint); color: var(--os-accent); }
 .oe-icon svg { width: 100%; height: 100%; display: block; }
 .oe-error .oe-icon { background: #fde8e4; color: #c2412c; }
 .oe-title { font-size: 28px; font-weight: 800; }
 .oe-sub { max-width: 520px; text-align: center; font-size: 18px; color: #6b7280; }
-.oe-btn { margin-top: 10px; min-height: 54px; padding: 0 28px; border: 0; border-radius: 999px; background: #e8663f; color: #fff; font: inherit; font-size: 19px; font-weight: 700; cursor: pointer; }
+.oe-btn { margin-top: 10px; min-height: 54px; padding: 0 28px; border: 0; border-radius: 999px; background: var(--os-accent); color: #fff; font: inherit; font-size: 19px; font-weight: 700; cursor: pointer; }
 
 .oe-dots { display: flex; gap: 16px; margin: 8px 0 2px; }
 .oe-dots i { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid #9ca3af; }

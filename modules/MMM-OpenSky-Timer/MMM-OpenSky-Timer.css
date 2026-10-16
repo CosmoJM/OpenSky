@@ -64,7 +64,7 @@
 .timer-input-field::-webkit-outer-spin-button,
 .timer-input-field::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .timer-input-field:focus {
-  border-color: #ff9f7f;
+  border-color: var(--os-accent-mid);
   box-shadow: 0 0 0 5px rgba(255, 159, 127, .18);
 }
 .timer-input-label {
@@ -85,7 +85,7 @@
   height: 72px;
   border: none;
   border-radius: 36px;
-  background: #ff9f7f;
+  background: var(--os-accent-mid);
   color: #fff;
   font-size: 24px;
   font-weight: 700;
@@ -151,7 +151,7 @@
 
 /* Finished */
 .timer-display.completed .timer-circle-bg { stroke: #ffe1d6; }
-.timer-display.completed .timer-time-display { color: #e8663f; animation: timerFlash 1s ease-in-out infinite; }
+.timer-display.completed .timer-time-display { color: var(--os-accent); animation: timerFlash 1s ease-in-out infinite; }
 .timer-display.completed .timer-ring { animation: timerPulse 1.2s ease-in-out infinite; }
 @keyframes timerFlash { 50% { opacity: .45; } }
 @keyframes timerPulse { 50% { transform: scale(1.03); } }
@@ -172,12 +172,12 @@
 }
 .timer-control-btn:active { transform: scale(.94); }
 .timer-control-btn svg { width: 30px; height: 30px; }
-.timer-control-btn.pause { background: #ff9f7f; color: #fff; }
+.timer-control-btn.pause { background: var(--os-accent-mid); color: #fff; }
 .timer-control-btn.cancel { background: #fff; color: #6b7280; }
 .timer-control-btn.stop.wide {
   width: 220px;
   border-radius: 38px;
-  background: #e8663f;
+  background: var(--os-accent);
   color: #fff;
   font-size: 24px;
   font-weight: 700;
@@ -216,7 +216,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
   transition: transform .15s ease, border-color .15s ease;
 }
-.timer-quickadd-btn:active { transform: scale(.96); border-color: #ff9f7f; color: #e8663f; }
+.timer-quickadd-btn:active { transform: scale(.96); border-color: var(--os-accent-mid); color: var(--os-accent); }
 
 /* ========== "Timer finished" banner (on <body>, every page) ========== */
 .timer-banner {
@@ -230,9 +230,9 @@
   gap: 16px;
   padding: 12px 14px 12px 22px;
   border-radius: 40px;
-  background: #e8663f;
+  background: var(--os-accent);
   color: #fff;
-  box-shadow: 0 10px 30px rgba(232, 102, 63, .45);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--os-accent) 45%, transparent);
   animation: timerBannerPulse 1.2s ease-in-out infinite;
 }
 .timer-banner-icon svg { width: 30px; height: 30px; display: block; }
@@ -243,12 +243,12 @@
   border: none;
   border-radius: 26px;
   background: #fff;
-  color: #e8663f;
+  color: var(--os-accent);
   font-size: 20px;
   font-weight: 800;
   cursor: pointer;
 }
-@keyframes timerBannerPulse { 50% { box-shadow: 0 10px 40px rgba(232, 102, 63, .8); } }
+@keyframes timerBannerPulse { 50% { box-shadow: 0 10px 40px color-mix(in srgb, var(--os-accent) 80%, transparent); } }
 
 /* On-screen keyboard open (body.kb-open is set by MMM-Keyboard): lift the setup
    screen so the inputs and Start stay above the keyboard */

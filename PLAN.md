@@ -52,7 +52,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Daily word game | NYT daily word ✅ | **NYT word default** ✅ (the maintainer's call); built-in SCOWL words as backup / opt-out ✅ | Rename (not "Wordle", a NYT trademark) |
 | On-screen keyboard | iPad-style US ✅ | own module ✅; 🔜 layouts (US, UK, intl.); 💭 languages | |
 | Brightness / volume (Settings) | ddcutil + wpctl ✅ | DDC/CI; Pi display backlight; none (hide slider) | Auto-detect |
-| Look & feel | family name in the header, pastel theme ✅ | family name ✅, 12/24 h ✅, units ✅, first day of week ✅; 🔜 accent colour, light/dark, 12/24 h, units, first day of week, date format; 💭 languages (i18n) | |
+| Look & feel | family name in the header, pastel theme ✅ | family name ✅, 12/24 h ✅, units ✅, first day of week ✅; accent colour ✅; 🔜 light/dark, date format; 💭 languages (i18n) | |
 | Updates | manual | "Update" button in Settings ✅ (git pull + installer); automatic rollback when it doesn't start ✅ + `opensky rollback`; 🔜 settings migrations | Big for friendliness |
 | Backups | nightly git + NAS (reference build) | export/import from the phone setup page ✅ (settings + on-device data; passwords optional) | |
 | Food (add-on) | Google Places + Routes ✅ | Google (own key); 💭 OpenStreetMap/Overpass (free, no key) | Later |

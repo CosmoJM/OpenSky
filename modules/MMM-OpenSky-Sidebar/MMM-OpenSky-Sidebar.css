@@ -7,7 +7,7 @@
   --side-bg: #f3f4f6;
   --tile-fg: #4b5563;         /* icon colour */
   --tile-label: #6b7280;
-  --tile-active: #e8663f;     /* peach, dark enough for icons/labels */
+  --tile-active: var(--os-accent);     /* peach, dark enough for icons/labels */
 }
 
 /* Fixed full-height strip */

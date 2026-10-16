@@ -41,10 +41,10 @@
 .okb-key svg { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vertical-align: middle; }
 /* special keys */
 .okb-shift, .okb-back, .okb-numbers, .okb-letters, .okb-enter { flex: 1.5 1 0; max-width: 180px; background: #aeb3bc; font-size: clamp(16px, 2.4vh, 24px); font-weight: 700; }
-.okb-shift.on { background: #fff; color: #e8663f; }
+.okb-shift.on { background: #fff; color: var(--os-accent); }
 .okb-shift.on svg { fill: currentColor; }
 .okb-space { flex: 5 1 0; max-width: 640px; font-size: clamp(16px, 2.2vh, 22px); color: #6b7280; }
-.okb-enter { flex: 2 1 0; max-width: 240px; background: #e8663f; color: #fff; }
+.okb-enter { flex: 2 1 0; max-width: 240px; background: var(--os-accent); color: #fff; }
 .okb-hide { position: absolute; right: 0; top: -58px; flex: none; width: 64px; height: 44px; border-radius: 12px 12px 0 0; background: #d5d8de; box-shadow: none; color: #4b5563; }
 
 /* popups move up above the keyboard while it's open */

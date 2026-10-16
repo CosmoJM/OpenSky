@@ -53,6 +53,17 @@ html, body {
 #remote-control-overlay,
 .remote-control-overlay { pointer-events: none !important; }
 
+/* Accent colour (opensky.json → look.accent). These are the default peach tones; another accent sets
+   --os-accent and the Sidebar derives the rest (lighter / softer / darker) from it. */
+:root {
+  --os-accent: #e8663f;
+  --os-accent-mid: #ff9f7f;
+  --os-accent-light: #ffb08f;
+  --os-accent-soft: #ffd8c9;
+  --os-accent-tint: #fff1ea;
+  --os-accent-dark: #c2410c;
+}
+
 /* Shared toast (window.OpenSkyToast / OPENSKY_TOAST) — short messages at the top of the screen */
 .os-toast {
   position: fixed;
