@@ -1,4 +1,5 @@
 # OpenSky
+<img width="2172" height="724" alt="OpenSky open-window calendar logo" src="https://github.com/user-attachments/assets/02481f6e-e7b1-4418-8ce7-6a9d387bf25a" />
 
 A friendly family wall calendar and home dashboard for a Raspberry Pi touchscreen — the week ahead, shared lists,
 timers, photos, weather and smart-home controls on one screen. Built on [MagicMirror²](https://magicmirror.builders/).
