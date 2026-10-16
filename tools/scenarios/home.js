@@ -35,6 +35,17 @@ module.exports = async (page, h) => {
   const expect = await page.evaluate(() => [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() + i); const c = window.OpenSkyPickup.collectionsOn(d, MM.getModules().withClass("MMM-OpenSky-Home")[0].config.pickup); return { trash: c.trash, yard: c.yard }; }));
   ok("pickup icons match the schedule engine for all 7 days", pick.every((p, i) => p.trash === expect[i].trash && p.yard === expect[i].yard) && pick.some((p) => p.trash), pick.filter((p) => p.trash || p.yard));
 
+  // a pickup calendar (calendar link with role "pickup") adds icons by keyword
+  await page.evaluate(() => {
+    const t = new Date(); const at = (dd) => String(new Date(t.getFullYear(), t.getMonth(), t.getDate() + dd).getTime());
+    MM.getModules().withClass("MMM-OpenSky-Home")[0].notificationReceived("OPENSKY_PICKUP_EVENTS", [
+      { title: "Recycling Collection", startDate: at(3), fullDayEvent: true }, { title: "Yard Waste", startDate: at(4), fullDayEvent: true }]);
+  });
+  await h.sleep(500);
+  const pc = await page.evaluate(() => [...document.querySelectorAll(".hd-week .hd-day:not(.hd-nextweek)")].map((t) => ({ rec: !!t.querySelector(".hd-pickup-recycle"), yard: !!t.querySelector(".hd-pickup-yard") })));
+  ok("pickup calendar: 'Recycling' and 'Yard Waste' events become icons on their days", pc[3] && pc[3].rec && pc[4] && pc[4].yard, pc.slice(2, 6));
+  await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Home")[0].notificationReceived("OPENSKY_PICKUP_EVENTS", []));
+
   // on-device lists (MMM-OpenSky-Lists, seeded by the harness) show on the lists card
   for (let i = 0; i < 20 && !(await page.evaluate(() => document.querySelectorAll(".hd-lists .lc-list").length)); i++) await h.sleep(500);
   const own = await page.evaluate(() => [...document.querySelectorAll(".hd-lists .lc-list")].map((c) => ({ title: c.querySelector(".lc-list-title").textContent, badge: c.querySelector(".lc-badge").textContent, items: [...c.querySelectorAll(".lc-item-text")].map((x) => x.textContent), empty: c.querySelector(".lc-empty")?.textContent || "" })));

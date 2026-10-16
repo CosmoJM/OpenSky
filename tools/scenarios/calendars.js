@@ -17,6 +17,20 @@ module.exports = async (page, h) => {
   const cfg = await page.evaluate(async () => (await fetch("/config")).text());
   ok("the private link is not in the config served to the network", !/school\.ics/.test(cfg) && /family\.ics/.test(cfg));
   await h.shot("calendars-home");
+  // a pickup calendar never shows as events; it goes to the Home page as OPENSKY_PICKUP_EVENTS
+  const pk = await page.evaluate(() => {
+    const m = MM.getModules().withClass("MMM-OpenSky-Calendars")[0];
+    const sent = []; const orig = m.sendNotification.bind(m);
+    m.sendNotification = (n, p) => { sent.push([n, p]); };
+    m.config.sources.push({ name: "Pickup", type: "link", role: "pickup" });
+    m.events.set("Pickup", [{ title: "Trash", startDate: String(Date.now() + 86400000), endDate: String(Date.now() + 2 * 86400000), fullDayEvent: true }]);
+    m.broadcast();
+    m.sendNotification = orig; m.config.sources.pop(); m.events.delete("Pickup"); m.broadcast();
+    const ev = sent.find(([n]) => n === "CALENDAR_EVENTS")[1], pe = (sent.find(([n]) => n === "OPENSKY_PICKUP_EVENTS") || [])[1];
+    return { inEvents: ev.some((e) => e.calendarName === "Pickup"), pickup: pe && pe.map((e) => e.title) };
+  });
+  ok("a pickup calendar is kept out of the events and sent for the icons", !pk.inEvents && pk.pickup && pk.pickup[0] === "Trash", pk);
+
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
 };

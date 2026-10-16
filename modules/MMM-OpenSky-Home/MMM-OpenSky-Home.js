@@ -46,6 +46,11 @@ Module.register("MMM-OpenSky-Home", {
   suspend() { clearInterval(this.photoTimer); this.photoTimer = null; },
 
   notificationReceived(n, payload, sender) {
+    if (n === "OPENSKY_PICKUP_EVENTS" && Array.isArray(payload)) {
+      const key = JSON.stringify(payload);
+      if (key !== this._pickupKey) { this._pickupKey = key; this.pickupEvents = payload; this.renderCalendar(); }
+      return;
+    }
     if (n === "CALENDAR_EVENTS" && Array.isArray(payload) && sender) {
       this.pools.set(sender.identifier, payload);
       this.renderCalendar();
@@ -358,11 +363,30 @@ Module.register("MMM-OpenSky-Home", {
 
   /* ======================= curbside pickup ======================= */
   // Small icons next to the "N events" counter: trash can (+ recycling) on trash day, leaf on yard-waste days.
+  // From a pickup calendar (calendar link with "role": "pickup"): what its events on that day say, by keyword
+  pickupFromCalendar(day) {
+    const c = { trash: false, recycling: false, yard: false, expected: false, moved: null };
+    const start = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime(), end = start + 86400000;
+    for (const ev of this.pickupEvents || []) {
+      const t = Number(ev.startDate);
+      if (!(t >= start && t < end)) continue;
+      const title = String(ev.title || "").toLowerCase();
+      if (/recycl/.test(title)) c.recycling = true;
+      if (/yard|leaf|leaves|garden|green ?waste|compost|organic|brush|christmas tree/.test(title)) c.yard = true;
+      if (/trash|garbage|refuse|rubbish|black bin|general waste|landfill|solid waste/.test(title) || (/waste|bin|collection|pickup|pick-up/.test(title) && !c.recycling && !c.yard)) c.trash = true;
+    }
+    return c;
+  },
+
   pickupIcons(day) {
-    if (!this.config.pickup || !window.OpenSkyPickup) return "";
-    const c = window.OpenSkyPickup.collectionsOn(day, this.config.pickup);
+    const fromCal = this.pickupEvents && this.pickupEvents.length ? this.pickupFromCalendar(day) : null;
+    if ((!this.config.pickup || !window.OpenSkyPickup) && !fromCal) return "";
+    const rules = this.config.pickup && window.OpenSkyPickup ? window.OpenSkyPickup.collectionsOn(day, this.config.pickup) : {};
+    // both can be on: the calendar adds to the trash-day rules
+    const c = fromCal ? { trash: !!(rules.trash || fromCal.trash), recycling: !!(rules.recycling || fromCal.recycling), yard: !!(rules.yard || fromCal.yard), expected: !!rules.expected && !fromCal.yard, moved: rules.moved || null } : rules;
     const why = c.moved ? ` (moved a day for ${c.moved})` : "";
-    const weeklyRecycling = !(this.config.pickup.recycling && this.config.pickup.recycling.every === 2);
+    // recycling gets its own icon unless it always comes with the trash (weekly, in the trash-day rules)
+    const weeklyRecycling = !fromCal && !(this.config.pickup && this.config.pickup.recycling && this.config.pickup.recycling.every === 2);
     const svg = (paths) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
     let html = "";
     if (c.trash) html += `<span class="hd-pickup hd-pickup-trash" title="${weeklyRecycling ? "Trash & recycling" : "Trash"}${why}">${svg(`<path d="M4 7h16M10 3.5h4M6 7l1 13a1.5 1.5 0 0 0 1.5 1.4h7A1.5 1.5 0 0 0 17 20l1-13"/><path d="M10 11v6M14 11v6"/>`)}</span>`;

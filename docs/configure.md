@@ -209,6 +209,10 @@ In `opensky.json`: `{ "name": "Shared", "type": "caldav", "color": "green" }`. T
 A small trash-can icon appears on pickup days in the week view. It moves a day later after a holiday.
 - `trashDay`: `"monday"` … `"friday"`. Leave it `""` for no icons.
 - `preset`: a city's full schedule, including yard waste and holidays. Current presets: `"new-bedford-ma"`. Want your city added? Open an issue on GitHub with a link to its schedule, or ask an AI assistant to make one with `lib/pickup-presets/new-bedford-ma.json` as the example.
+- **From a calendar:** many cities (and services like ReCollect) publish pickup days as a calendar link.
+  `"pickup": { "url": "https://…" }` — or keep it private (it can contain your address): `"url": "secret"` and the
+  link in `secrets.json → calendar.sources.Pickup`. Events with "trash/garbage/refuse", "recycling" or
+  "yard/leaf/compost" in their names become the icons (they don't show as events). Works together with `trashDay`.
 - Your own rules (every-other-week recycling, yard-waste weeks…) can go here too; see the notes at the top of `lib/client/pickup.js`.
 
 ## Screen and timers
