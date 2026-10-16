@@ -9,6 +9,9 @@ config/*.local.*
 # Runtime data
 node_modules/
 **/data/cache/
+config/calendar-cache/
+config/local-calendar.json*
+__pycache__/
 *.log
 
 # Editors / OS

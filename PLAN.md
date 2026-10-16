@@ -69,7 +69,9 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    ✅ Calendar page (MMM-CalendarExt3 pinned + patch, toolbar, taps, two-line fitting, palette colours).
    ✅ On-device calendar (default, no account) + event editor (day list, view, add, edit, delete; linked calendars
    read-only; changes go through the node helper).
-   Next: CalDAV calendar service (from the reference build's caldav-backend), Lists (on-device + Todoist),
+   ✅ CalDAV calendar service (services/calendar-service: iCloud/Fastmail/Nextcloud…, add/edit/delete, offline
+   cache, tested against a throwaway Radicale server).
+   Next: Lists (on-device + Todoist),
    docs + installer, Settings, keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.

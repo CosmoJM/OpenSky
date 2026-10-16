@@ -50,7 +50,10 @@ MMM-pages (edward-shen), MMM-Remote-Control (Jopyth), MMM-HomeAssistant (ambarus
 ## Services
 - **Screen service** (from the reference build's `monitor_control.py`): on/off/status HTTP API, wake-on-touch,
   night re-sleep, idle time. Back-ends: DPMS/wlr-randr (default), DDC/CI, soft sleep, HDMI-CEC, Pi display backlight.
-- **Calendar backend** (from `caldav-backend`): CalDAV read/write behind a local-only HTTP API; more providers later.
+- **Calendar service** (`services/calendar-service`, Python/Flask, 127.0.0.1 only, port `calendar.service.port`, default 5050):
+  CalDAV read/write. Accounts in `secrets.json` → `calendar.caldav.<name>`. `config.js` points `type: "caldav"` sources at
+  `http://127.0.0.1:<port>/<name>/calendar.ics`; the event editor POSTs `<name>/create|update|delete-event`. Keeps the last
+  good feed in `config/calendar-cache/`. Repeating events are read-only (409).
 
 ## MagicMirror 2.38 notes
 - `config.js` is read as text and evaluated (`requireFromString`), so `__dirname` inside it is not the config

@@ -37,6 +37,11 @@ tools/headless.sh stop
 - Use `page.mouse.click` (or `h.tap`) for taps; Playwright's `page.click` actionability checks can time out on
   MagicMirror's layered regions.
 
+## Calendar service test (Python)
+`tools/test-calendar-service.py` runs the CalDAV calendar service against a throwaway **Radicale** CalDAV server.
+One-time: `python3 -m venv ~/opensky-dev/venv && ~/opensky-dev/venv/bin/pip install -r services/calendar-service/requirements.txt radicale`
+(`tools/test-all.sh` uses that venv, or `OPENSKY_PYTHON=/path/to/python`).
+
 ## Unit tests (no screen needed)
 - `node tools/test-pickup.js` — pickup schedule engine; reproduces New Bedford's official 2026 yard-waste flyer
 - `node tools/test-photos.js` — photo folder provider with the synthetic photos in `tools/fixtures/photos/`

@@ -62,6 +62,9 @@ const folderPath = (f) => (!f ? null : /^[~/]/.test(f) ? f : path.join(settingsD
 const cal = s.calendar || {};
 const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name)
   .map((c) => ({ name: String(c.name), type: ["local", "caldav"].includes(c.type) ? c.type : "link", url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5 }));
+// CalDAV calendars are read through OpenSky's calendar service on this Pi (the account stays in secrets.json)
+const servicePort = (cal.service && cal.service.port) || 5050;
+calendarSources.filter((c) => c.type === "caldav").forEach((c) => { c.url = `http://127.0.0.1:${servicePort}/${encodeURIComponent(c.name)}/calendar.ics`; });
 if (cal.holidays === "US") calendarSources.push({ name: "Holidays", url: "https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics", color: "tan", fetchMinutes: 720 });
 
 // Calendars that can be changed from the screen: the on-device calendar(s) and CalDAV accounts
@@ -136,7 +139,7 @@ const header = s.header || {};
 
 // Modules shown on every page
 const fixed = [
-  ...(calendarSources.length ? [{ module: "MMM-OpenSky-EventEditor", config: { editable: editableCalendars, servicePort: (cal.service && cal.service.port) || 5050 } }] : []),
+  ...(calendarSources.length ? [{ module: "MMM-OpenSky-EventEditor", config: { editable: editableCalendars, servicePort } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources } }] : []),
   {
     module: "MMM-OpenSky-Header",
