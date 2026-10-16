@@ -7,7 +7,8 @@ MagicMirror². This file is the entry point; read it first, then the docs it poi
 
 ## Read in this order
 1. `PLAN.md` — goals, principles, the options matrix (which providers exist or are planned) and the roadmap.
-2. `docs/` — user documentation (install, configure, troubleshoot). *(being written)*
+2. `docs/` — user documentation: `install.md`, `configure.md` (every setting in `opensky.json` / `secrets.json`),
+   `troubleshooting.md`. Point people there rather than re-explaining.
 3. `docs/development/architecture.md` — how OpenSky is put together (distribution on upstream MagicMirror²,
    settings vs secrets, module names, services, lessons learned). Testing guide: `docs/development/testing.md`.
 
@@ -19,3 +20,29 @@ MagicMirror². This file is the entry point; read it first, then the docs it poi
 - **Prefer configuration over code edits** for a user's personal setup; if you add a provider, follow the provider
   pattern so it shows up in settings for everyone.
 - **Keep docs in step with code** — a feature isn't done until `docs/` and this file say how to use it.
+
+## Where things are on an installed Pi
+| What | Where |
+|---|---|
+| The user's settings + data (back this up) | `~/OpenSky/config/`: `opensky.json`, `secrets.json` (chmod 600), `local-calendar.json`, `lists.json`, `calendar-cache/` |
+| Runtime (re-creatable by `./install.sh`) | `~/.local/share/opensky/`: `MagicMirror/` (pinned tag, OpenSky linked in by `tools/link-mm.sh`), `node/` (only if the system Node is too old), `venv/` |
+| Services | systemd **user** units `opensky.service` (Electron) + `opensky-calendar.service` (CalDAV helper); started by `~/.config/autostart/opensky.desktop` |
+| Commands | `opensky status · logs · check · restart · edit · secrets · update` (`tools/opensky`) |
+
+The settings files are found through environment variables set by the services (`OPENSKY_SETTINGS`, `OPENSKY_SECRETS`,
+`OPENSKY_LOCAL_CALENDAR`, `OPENSKY_LOCAL_LISTS`, `OPENSKY_CALENDAR_CACHE`), so nothing personal lives in the runtime.
+
+## Helping a user (checklist)
+1. `opensky status`, `opensky check`, `opensky logs` — most problems are a JSON typo or a wrong link/password.
+2. Change **settings**, not code: `config/opensky.json` / `config/secrets.json`, then `opensky restart`.
+3. Never print, paste or commit the contents of `secrets.json`, private calendar links or tokens.
+4. Don't edit files in `~/.local/share/opensky/MagicMirror` — they are replaced on update.
+
+## Conventions for code changes
+- Module fields/methods must not reuse MagicMirror's `Module` names (`data`, `show`, `hide`, `config`, `name`…).
+- No emoji in the UI (Raspberry Pi OS has no colour-emoji font) — use inline SVG.
+- Errors people see are plain and say what to do ("check the app-specific password in secrets.json").
+- Private values never reach a log or the page: node helpers read `secrets.json`; the test harness fails a run if
+  any `secrets.json` value appears in MagicMirror's output.
+- `tools/test-all.sh` must pass before a commit (see `docs/development/testing.md`).
+

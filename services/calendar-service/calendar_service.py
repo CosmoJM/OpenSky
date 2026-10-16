@@ -33,7 +33,18 @@ from icalendar import Calendar, Event as ICalEvent
 MM_ROOT = os.environ.get("OPENSKY_MM") or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SECRETS = os.environ.get("OPENSKY_SECRETS") or os.path.join(MM_ROOT, "config", "secrets.json")
 CACHE_DIR = os.environ.get("OPENSKY_CALENDAR_CACHE") or os.path.join(MM_ROOT, "config", "calendar-cache")
-PORT = int(os.environ.get("OPENSKY_CALENDAR_PORT", "5050"))
+
+
+def settings_port():
+    """calendar.service.port from opensky.json (OPENSKY_SETTINGS), else 5050."""
+    try:
+        with open(os.environ.get("OPENSKY_SETTINGS") or os.path.join(MM_ROOT, "config", "opensky.json")) as f:
+            return int(((json.load(f).get("calendar") or {}).get("service") or {}).get("port") or 5050)
+    except (OSError, ValueError, TypeError, AttributeError):
+        return 5050
+
+
+PORT = int(os.environ.get("OPENSKY_CALENDAR_PORT") or settings_port())
 DEFAULT_URL = "https://caldav.icloud.com/"
 
 

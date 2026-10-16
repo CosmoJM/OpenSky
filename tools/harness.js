@@ -47,6 +47,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     },
     timeout: 90000
   });
+  // MagicMirror's own output (node helpers): kept to check that no private value from secrets.json is ever logged
+  let serverLog = "";
+  app.process().stdout.on("data", (d) => { serverLog += d; });
+  app.process().stderr.on("data", (d) => { serverLog += d; });
   const page = await app.firstWindow({ timeout: 90000 });
   const logs = [];
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") logs.push(`[${m.type()}] ${m.text()}`); });
@@ -68,5 +72,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const noise = /gbm|dma_buf|Autofill|DevTools|Electron Security Warning/;
     console.log("---- page errors/warnings ----\n" + logs.filter((l) => !noise.test(l)).slice(0, 30).join("\n"));
     await app.close().catch(() => {});
+    // every run: private values (secrets.json) must never reach the log
+    const secretsFile = process.env.OPENSKY_SECRETS || path.join(__dirname, "fixtures", "secrets.test.json");
+    const values = [];
+    const collect = (v, key) => { if (typeof v === "string" && v.length >= 8 && !key.startsWith("_")) values.push(v); else if (v && typeof v === "object") Object.entries(v).forEach(([k, x]) => collect(x, k)); };
+    try { collect(JSON.parse(fs.readFileSync(secretsFile, "utf8")), ""); } catch (e) { /* no secrets file */ }
+    const leaked = values.filter((v) => serverLog.includes(v));
+    if (leaked.length) console.log(`SCENARIO ERROR: ${leaked.length} private value(s) from secrets.json appeared in MagicMirror's log`);
   }
 })().catch((e) => { console.error("HARNESS ERROR:", e); process.exit(1); });

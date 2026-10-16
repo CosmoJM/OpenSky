@@ -1,0 +1,43 @@
+#!/bin/bash
+# The `opensky` command (install.sh links it to ~/.local/bin/opensky).
+REPO="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+RUNTIME="${OPENSKY_HOME:-$HOME/.local/share/opensky}"
+CONFIG="$REPO/config"
+
+case "${1:-help}" in
+  start)   systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE 2>/dev/null
+           systemctl --user start opensky-calendar.service opensky.service ;;
+  stop)    systemctl --user stop opensky.service ;;
+  restart) systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE 2>/dev/null
+           systemctl --user restart opensky-calendar.service opensky.service ;;
+  status)  systemctl --user --no-pager status opensky.service opensky-calendar.service | grep -E "●|Active:|Main PID" ;;
+  logs)    journalctl --user -u opensky.service -u opensky-calendar.service -n "${2:-80}" --no-pager ;;
+  check)   # settings sanity check: is the JSON valid, what would be shown?
+           for f in opensky.json secrets.json; do
+             if [ -f "$CONFIG/$f" ]; then
+               python3 -m json.tool "$CONFIG/$f" >/dev/null 2>"/tmp/opensky-check.$$" && echo "✓ $f is valid" \
+                 || { echo "✗ $f has a mistake: $(tail -1 "/tmp/opensky-check.$$")"; }
+               rm -f "/tmp/opensky-check.$$"
+             else echo "– $f is missing (run ./install.sh)"; fi
+           done ;;
+  update)  cd "$REPO" && git pull --ff-only && ./install.sh --yes && "$0" restart ;;
+  run)     # run in this terminal (for testing; Ctrl+C to stop)
+           export OPENSKY_SETTINGS="$CONFIG/opensky.json" OPENSKY_SECRETS="$CONFIG/secrets.json" \
+                  OPENSKY_LOCAL_CALENDAR="$CONFIG/local-calendar.json" OPENSKY_LOCAL_LISTS="$CONFIG/lists.json" \
+                  OPENSKY_CALENDAR_CACHE="$CONFIG/calendar-cache"
+           cd "$RUNTIME/MagicMirror" && exec ./node_modules/.bin/electron js/electron.js --ozone-platform=wayland ;;
+  edit)    "${EDITOR:-nano}" "$CONFIG/opensky.json" && "$0" check && echo "Run 'opensky restart' to see the changes." ;;
+  secrets) "${EDITOR:-nano}" "$CONFIG/secrets.json" && "$0" check && echo "Run 'opensky restart' to use them." ;;
+  *) cat <<EOF
+opensky — your family screen
+  opensky restart      apply changed settings (or after an update)
+  opensky start|stop   show / close the screen
+  opensky status       is it running?
+  opensky logs [N]     the last N lines of its log (default 80)
+  opensky edit         edit settings (config/opensky.json), then check them
+  opensky secrets      edit passwords and keys (config/secrets.json)
+  opensky check        check the settings files for typos
+  opensky update       get the newest OpenSky and restart
+Settings + data: $CONFIG
+EOF
+esac

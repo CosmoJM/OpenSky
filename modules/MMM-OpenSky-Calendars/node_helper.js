@@ -10,6 +10,22 @@ const path = require("path");
 const CalendarFetcher = require(path.join(global.root_path, "defaultmodules", "calendar", "calendarfetcher.js"));
 const { secret } = require(path.join(global.root_path, "modules", "opensky-lib", "secrets.js"));
 const local = require(path.join(global.root_path, "modules", "opensky-lib", "local-calendar.js"));
+const Log = require("logger");
+
+// MagicMirror's fetcher writes each calendar's link into the log ("Broadcasting 12 events from <url>"). A private link
+// IS the password to that calendar, so every log line and error message shows the calendar's name instead.
+const privateLinks = new Map();   // link → 'calendar "Mom"'
+const redact = (v) => {
+  if (typeof v !== "string") return v;
+  for (const [link, label] of privateLinks) v = v.split(link).join(label);
+  return v;
+};
+for (const level of ["debug", "log", "info", "warn", "error"]) {
+  const orig = Log[level];
+  if (typeof orig === "function" && !orig.__openskyRedacted) {
+    Log[level] = Object.assign((...args) => orig(...args.map(redact)), { __openskyRedacted: true });
+  }
+}
 
 module.exports = NodeHelper.create({
   start() {
@@ -17,6 +33,14 @@ module.exports = NodeHelper.create({
     this.localNames = new Set();
     // the on-device calendar changed (event editor) → show it at once
     local.on("change", () => this.localNames.forEach((name) => this.sendLocal(name)));
+  },
+
+  // to the page (calendar status) and, once per new problem, to the log (`opensky logs`)
+  error(name, message) {
+    this.lastError = this.lastError || new Map();
+    if (this.lastError.get(name) !== message) Log.error(`[OpenSky] calendar "${name}": ${message}`);
+    this.lastError.set(name, message);
+    this.sendSocketNotification("OS_CAL_ERROR", { name, message });
   },
 
   sendLocal(name) { this.sendSocketNotification("OS_CAL_EVENTS", { name, events: local.mmEvents(name) }); },
@@ -32,12 +56,16 @@ module.exports = NodeHelper.create({
       if (src.type === "local") { this.localNames.add(src.name); this.sendLocal(src.name); continue; }   // on this Pi
       if (this.fetchers.has(src.name)) { this.fetchers.get(src.name).broadcastEvents(); continue; }   // page reload
       let url = src.url || secret(`calendar.sources.${src.name}`);
-      if (!url) { this.sendSocketNotification("OS_CAL_ERROR", { name: src.name, message: `no link for "${src.name}" (set calendar.sources in opensky.json or secrets.json)` }); continue; }
+      if (!url) { this.error(src.name, `no link for "${src.name}" (set calendar.sources in opensky.json or secrets.json)`); continue; }
       url = String(url).replace(/^webcal:\/\//i, "https://");
-      try { new URL(url); } catch (e) { this.sendSocketNotification("OS_CAL_ERROR", { name: src.name, message: `"${src.name}" link isn't a valid URL` }); continue; }
+      if (!src.url) privateLinks.set(url, `calendar "${src.name}"`);   // from secrets.json (or the CalDAV feed)
+      try { new URL(url); } catch (e) { this.error(src.name, `"${src.name}" link isn't a valid URL`); continue; }
       const f = new CalendarFetcher(url, Math.max(1, src.fetchMinutes || 5) * 60 * 1000, [], 1000, p.days || 400, undefined, true, false);
-      f.onReceive((fetcher) => this.sendSocketNotification("OS_CAL_EVENTS", { name: src.name, events: fetcher.events }));
-      f.onError((fetcher, err) => this.sendSocketNotification("OS_CAL_ERROR", { name: src.name, message: (err && err.message) || String(err) }));
+      f.onReceive((fetcher) => {
+        if (this.lastError) this.lastError.delete(src.name);
+        this.sendSocketNotification("OS_CAL_EVENTS", { name: src.name, events: fetcher.events });
+      });
+      f.onError((fetcher, err) => this.error(src.name, redact((err && err.message) || String(err))));
       this.fetchers.set(src.name, f);
       f.fetchCalendar();
     }

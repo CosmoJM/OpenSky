@@ -367,7 +367,7 @@ Module.register("MMM-OpenSky-Home", {
       else if (list.error && !(list.items || []).length) {
         items.innerHTML = `<div class="hd-empty hd-list-error"></div>`;
         items.firstChild.textContent = list.error;
-      } else if (!(list.items || []).length) items.innerHTML = `<div class="hd-empty">All done! 🎉</div>`;
+      } else if (!(list.items || []).length) items.innerHTML = `<div class="hd-empty hd-all-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>All done!</div>`;   // (no emoji: Raspberry Pi OS has no colour-emoji font)
       (list.items || []).forEach((item) => {
         const row = document.createElement("div");
         row.className = "hd-item" + (item.done ? " is-done" : "");

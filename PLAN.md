@@ -72,7 +72,9 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    ✅ CalDAV calendar service (services/calendar-service: iCloud/Fastmail/Nextcloud…, add/edit/delete, offline
    cache, tested against a throwaway Radicale server).
    ✅ Lists (on-device default + Todoist; add / edit / delete / check off with Undo; shared toast).
-   Next: docs + installer, a full-screen Lists page (Home shows up to 3 lists), Settings, keyboard, word game, embed page.
+   ✅ Installer (`install.sh`: private Node only if needed, pinned MagicMirror, CalDAV venv, first-run questions,
+   systemd user services + desktop autostart, `opensky` command) and user docs (install, configure, troubleshooting).
+   Next: a full-screen Lists page (Home shows up to 3 lists), Settings, keyboard, word game, embed page.
 3. **First public milestone:** Home + Calendar (ICS + CalDAV) + Lists (on-device + Todoist) + Timer + Settings,
    Open-Meteo weather, local photos — installable from scratch with the installer and a config file.
 4. **Phone setup page** (first-run wizard + settings), secrets file, friendly error cards.

@@ -45,3 +45,9 @@ One-time: `python3 -m venv ~/opensky-dev/venv && ~/opensky-dev/venv/bin/pip inst
 ## Unit tests (no screen needed)
 - `node tools/test-pickup.js` — pickup schedule engine; reproduces New Bedford's official 2026 yard-waste flyer
 - `node tools/test-photos.js` — photo folder provider with the synthetic photos in `tools/fixtures/photos/`
+
+## Installer test
+`install.sh` can be tried without touching the real desktop: run a copy of the repo with a throwaway `HOME` and
+`--no-services`, e.g. `HOME=/path/to/scratch/home ./install.sh --yes --no-services`, then start it on the headless
+compositor with `WAYLAND_DISPLAY=wayland-1 OPENSKY_PORT=8084 OPENSKY_HOME=<scratch>/home/.local/share/opensky tools/opensky run`.
+The real end-to-end test is a fresh SD card.

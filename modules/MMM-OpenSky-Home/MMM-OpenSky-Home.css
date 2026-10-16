@@ -383,6 +383,8 @@
 }
 .hd-item.is-done .hd-item-text { text-decoration: line-through; opacity: .45; }
 .hd-empty { padding: 18px 4px; font-size: 17px; color: #9ca3af; }
+.hd-all-done { display: flex; align-items: center; gap: 8px; }
+.hd-all-done svg { width: 22px; height: 22px; color: var(--list-accent); opacity: .7; }
 .hd-empty.hd-list-error { color: #b4432f; font-size: 15px; line-height: 1.35; }
 
 /* No lists from any provider: the photo card takes the whole right column */
