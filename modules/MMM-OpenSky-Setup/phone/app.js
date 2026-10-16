@@ -50,7 +50,8 @@
     trash: `<svg viewBox="0 0 24 24"><path d="M4 7h16M10 3.5h4M6 7l1 13h10l1-13"/></svg>`,
     check: `<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
     lock: `<svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="11" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>`,
-    chevron: `<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>`
+    chevron: `<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>`,
+    backup: `<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>`
   };
   const icon = (n, cls = "ic") => el("span", { class: cls, html: ICON[n] });
   const change = () => { dirty = true; saved = false; renderBar(); };
@@ -138,7 +139,7 @@
   }
 
   /* ---------------- main ---------------- */
-  async function load() {
+  async function load() {   // (returns a promise; the backup restore waits on it)
     try {
       const d = await api("GET", "/api/state");
       S = d.settings; secretsSet = new Set(d.secretsSet || []); pending = {}; info = d; dirty = false; saved = false;
@@ -155,8 +156,8 @@
     $app.innerHTML = "";
     $app.append(
       el("header", { class: "top" }, el("div", { class: "brand" }, el("span", { class: "logo sm" }, icon("logo")), el("div", {}, el("b", {}, "OpenSky"), el("small", {}, S.family.name || "Setup")))),
-      el("nav", { class: "jump" }, ...[["family", "Family"], ["calendars", "Calendars"], ["lists", "Lists"], ["photos", "Photos"], ["pages", "Pages"], ["web", "Web pages"], ["extras", "Extras"]].map(([id, t]) => el("a", { href: `#${id}` }, t))),
-      familyCard(), calendarsCard(), listsCard(), photosCard(), pagesCard(), webCard(), extrasCard(),
+      el("nav", { class: "jump" }, ...[["family", "Family"], ["calendars", "Calendars"], ["lists", "Lists"], ["photos", "Photos"], ["pages", "Pages"], ["web", "Web pages"], ["extras", "Extras"], ["backup", "Backup"]].map(([id, t]) => el("a", { href: `#${id}` }, t))),
+      familyCard(), calendarsCard(), listsCard(), photosCard(), pagesCard(), webCard(), extrasCard(), backupCard(),
       el("p", { class: "fine end" }, "Changes reach the screen when you tap Finish."),
       el("div", { class: "bar" }));
     renderBar();
@@ -458,6 +459,30 @@
       field("Word game", seg([["nyt", "NYT's daily word"], ["opensky", "OpenSky's words"]], wg.source === "opensky" ? "opensky" : "nyt", (v) => { wg.source = v; change(); })),
       field("Weather from", seg([["open-meteo", "Open-Meteo (free)"], ["openweathermap", "OpenWeatherMap"]], w.provider || "open-meteo", (v) => { w.provider = v; change(); drawWeather(v); })),
       weatherKey);
+  }
+
+  function backupCard() {
+    const link = el("a", { class: "btn primary block", href: "/api/backup", download: "" }, "Download a backup");
+    const file = el("input", { type: "file", accept: "application/json,.json", class: "hidden-file", onchange: async (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      let backup;
+      try { backup = JSON.parse(await f.text()); } catch (x) { return toast("That file isn't an OpenSky backup", "bad"); }
+      if (!backup || backup.opensky !== "backup") return toast("That file isn't an OpenSky backup", "bad");
+      const when = backup.created ? new Date(backup.created).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "an earlier day";
+      sheet("Restore this backup?", (b) => b.append(
+        el("p", { class: "hint" }, `From ${when}. It replaces this screen's settings${backup.data && Object.keys(backup.data).length ? ", calendar events on the screen, lists and word-game stats" : ""}${backup.secrets ? ", and its passwords and keys" : ""}.`),
+        el("p", { class: "hint" }, "The current files are kept as .bak copies on the Pi.")),
+      [["Cancel", "", () => {}], ["Restore", "primary", () => {
+        api("POST", "/api/restore", { backup }).then(() => { toast("Restored — tap Finish to restart the screen", "good"); load().then(() => { saved = true; renderBar(); }); }, (x) => toast(x.message, "bad"));
+      }]]);
+    } });
+    return section("backup", "backup", "Backup", "Keep a copy of this screen's setup — handy for a new SD card or a new Pi",
+      el("div", { class: "line top" }, el("span", {}, el("b", {}, "Include passwords & keys"), el("small", {}, "Keep that file somewhere private")),
+        toggle(false, (v) => { link.setAttribute("href", v ? "/api/backup?secrets=1" : "/api/backup"); }, "Include passwords")),
+      link,
+      el("button", { type: "button", class: "btn block", onclick: () => file.click() }, "Restore from a backup"), file);
   }
 
   /* ---------------- start ---------------- */

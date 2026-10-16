@@ -46,7 +46,7 @@ module.exports = async (page, h, app) => {
   ok("phone: a wrong code is refused kindly", await phone.evaluate(() => /not the code/.test(document.querySelector(".pair-msg").textContent)));
   await phone.fill(".code-input", card.code);
   await until(() => phone.evaluate(() => !!document.querySelector("#family")));
-  ok("phone: the right code opens the settings; the screen says the phone is connected", await phone.evaluate(() => document.querySelectorAll("section.card").length === 7) && /Phone connected/.test(await status()));
+  ok("phone: the right code opens the settings; the screen says the phone is connected", await phone.evaluate(() => document.querySelectorAll("section.card").length === 8) && /Phone connected/.test(await status()));
   await phone.screenshot({ path: path.join(OUT, "setup-phone-main.png"), fullPage: true });
 
   // edit: family name, a list, a private calendar link
@@ -79,6 +79,20 @@ module.exports = async (page, h, app) => {
   const state = await phone.evaluate(() => fetch("/api/state").then((r) => r.text()));
   ok("the phone is told WHICH secrets are set, never their values", /calendar\.sources\.Grandma/.test(state) && !/private-abc123/.test(state) && !/school\.ics/.test(state));
   ok("the screen follows along ('Saved!')", /Saved/.test(await status()));
+
+  // backup + restore
+  const bk = await phone.evaluate(async () => {
+    const plain = await fetch("/api/backup").then((r) => r.json());
+    const full = await fetch("/api/backup?secrets=1").then((r) => r.json());
+    return { plain, full };
+  });
+  ok("backup: settings + on-device data; passwords only when asked for", bk.plain.opensky === "backup" && bk.plain.settings.family.name === "The Testers Too" && bk.plain.data.lists && !bk.plain.secrets && bk.full.secrets && bk.full.secrets.homeassistant.token === "ha-test-token-123", Object.keys(bk.plain.data));
+  const restoreBody = { ...bk.plain, settings: { ...bk.plain.settings, family: { name: "Restored Family" } } };
+  const rs = await phone.evaluate((b) => fetch("/api/restore", { method: "POST", headers: { "Content-Type": "application/json", "X-OpenSky": "1" }, body: JSON.stringify({ backup: b }) }).then((r) => r.json()), restoreBody);
+  const bad = await phone.evaluate(() => fetch("/api/restore", { method: "POST", headers: { "Content-Type": "application/json", "X-OpenSky": "1" }, body: JSON.stringify({ backup: { hello: 1 } }) }).then((r) => r.status));
+  const S2 = JSON.parse(fs.readFileSync(path.join(OUT, "opensky.test.json"), "utf8"));
+  const sec2 = JSON.parse(fs.readFileSync(path.join(OUT, "secrets.test.json"), "utf8"));
+  ok("restore: settings + data back, passwords untouched by a backup without them, a non-backup refused", rs.ok && S2.family.name === "Restored Family" && sec2.homeassistant.token === "ha-test-token-123" && bad === 400, { restored: rs.restored, bad });
 
   await phone.click(".bar .btn.primary");
   await until(() => phone.evaluate(() => /All set/.test(document.body.textContent)));

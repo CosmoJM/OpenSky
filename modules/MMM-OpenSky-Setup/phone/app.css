@@ -149,3 +149,9 @@ details.help p { margin: 10px 0 0; }
 .toast.show { transform: translate(-50%, 0); }
 .toast.good { background: var(--good); }
 .toast.bad { background: #d2604e; }
+
+/* backup */
+.btn.block { display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 10px; text-decoration: none; }
+.line.top { margin: 0 0 6px; padding: 0 0 14px; border-top: 0; border-bottom: 1px solid var(--line); }
+.hidden-file { display: none; }
+

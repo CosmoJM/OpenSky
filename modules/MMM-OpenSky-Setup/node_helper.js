@@ -12,6 +12,7 @@
  *   OS_SETUP_NEWCODE → OS_SETUP_READY   OS_SETUP_STOP   → events OS_SETUP_PAIRED, OS_SETUP_SAVED, OS_SETUP_STOPPED {reason}
  * Phone ↔ server (JSON; POSTs need the header "X-OpenSky: 1"):
  *   POST /api/pair {code} · GET /api/state · POST /api/save {settings, secrets} · GET /api/geocode?q= · POST /api/done
+ *   GET /api/backup[?secrets=1] (a download: settings + on-device data, passwords only when asked) · POST /api/restore {backup}
  */
 const NodeHelper = require("node_helper");
 const http = require("http");
@@ -26,6 +27,13 @@ const MM_CONFIG = path.join(global.root_path || process.cwd(), "config");
 const SETTINGS = process.env.OPENSKY_SETTINGS || path.join(MM_CONFIG, "opensky.json");
 const SECRETS = process.env.OPENSKY_SECRETS || path.join(path.dirname(SETTINGS), "secrets.json");
 const WELCOMED = process.env.OPENSKY_WELCOME_FILE || path.join(path.dirname(SETTINGS), ".welcomed");
+// what a backup holds besides opensky.json (same places the modules use)
+const DATA = {
+  localCalendar: process.env.OPENSKY_LOCAL_CALENDAR || path.join(MM_CONFIG, "local-calendar.json"),
+  lists: process.env.OPENSKY_LOCAL_LISTS || path.join(MM_CONFIG, "lists.json"),
+  wordgame: process.env.OPENSKY_WORDGAME || path.join(path.dirname(SETTINGS), "wordgame.json"),
+  device: process.env.OPENSKY_DEVICE_SETTINGS || path.join(path.dirname(SETTINGS), "device.json")
+};
 const EXAMPLE = path.join(__dirname, "..", "..", "config", "opensky.example.json");
 const PHONE = path.join(__dirname, "phone");
 const STATIC = {
@@ -167,10 +175,10 @@ module.exports = NodeHelper.create({
     return !!(m && this.sessions.has(m[1]));
   },
 
-  body(req) {
+  body(req, limit = 256 * 1024) {
     return new Promise((resolve, reject) => {
       let size = 0; const chunks = [];
-      req.on("data", (c) => { size += c.length; if (size > 256 * 1024) { reject(new Error("too big")); req.destroy(); } else chunks.push(c); });
+      req.on("data", (c) => { size += c.length; if (size > limit) { reject(new Error("That's too big")); req.destroy(); } else chunks.push(c); });
       req.on("end", () => { try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) : {}); } catch (e) { reject(new Error("bad JSON")); } });
       req.on("error", reject);
     });
@@ -247,6 +255,32 @@ module.exports = NodeHelper.create({
       } catch (e) {
         return this.send(res, 502, { error: "Couldn't look that up — is the Pi online?" });
       }
+    }
+
+    if (url.pathname === "/api/backup" && req.method === "GET") {
+      const backup = { opensky: "backup", version: 1, created: new Date().toISOString(), settings: readJson(SETTINGS, {}), data: {} };
+      for (const [k, f] of Object.entries(DATA)) { const d = readJson(f, null); if (d) backup.data[k] = d; }
+      const withSecrets = url.searchParams.get("secrets") === "1";
+      if (withSecrets) backup.secrets = readJson(SECRETS, {});
+      console.log(`[OpenSky] phone setup: backup downloaded${withSecrets ? " (with passwords)" : ""}`);
+      const day = new Date().toISOString().slice(0, 10);
+      return this.send(res, 200, JSON.stringify(backup, null, 2), { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="opensky-backup-${day}.json"` });
+    }
+
+    if (url.pathname === "/api/restore" && req.method === "POST") {
+      const { backup } = await this.body(req, 20 * 1024 * 1024);
+      if (!backup || backup.opensky !== "backup" || !backup.settings || typeof backup.settings !== "object") return this.send(res, 400, { error: "That isn't an OpenSky backup file" });
+      if (fs.existsSync(SETTINGS)) fs.copyFileSync(SETTINGS, `${SETTINGS}.bak`);
+      writeJson(SETTINGS, backup.settings);
+      const restored = ["settings"];
+      for (const [k, f] of Object.entries(DATA)) {
+        const d = backup.data && backup.data[k];
+        if (d && typeof d === "object") { if (fs.existsSync(f)) fs.copyFileSync(f, `${f}.bak`); writeJson(f, d); restored.push(k); }
+      }
+      if (backup.secrets && typeof backup.secrets === "object") { if (fs.existsSync(SECRETS)) { fs.copyFileSync(SECRETS, `${SECRETS}.bak`); fs.chmodSync(`${SECRETS}.bak`, 0o600); } writeJson(SECRETS, backup.secrets, 0o600); restored.push("secrets"); }
+      console.log(`[OpenSky] phone setup: restored a backup (${restored.join(", ")})`);
+      this.sendSocketNotification("OS_SETUP_SAVED", {});
+      return this.send(res, 200, { ok: true, restored });
     }
 
     if (url.pathname === "/api/done" && req.method === "POST") {

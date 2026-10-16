@@ -69,7 +69,11 @@ cd ~/OpenSky && ./install.sh --uninstall
 This stops OpenSky and removes its start-up entries. It asks before deleting the downloaded parts. Your `config/` folder is never deleted. Remove `~/OpenSky` yourself if you want it gone completely.
 
 ## Backing up
-Everything personal lives in **`~/OpenSky/config/`**: your settings, passwords and keys, and the on-device calendar and lists. Copy that folder somewhere safe, such as a USB stick or your computer. It holds passwords, so keep the copy private.
+The easy way: **Settings → Set up from your phone → Backup → Download a backup** (switch on "Include passwords & keys"
+for a complete copy, and keep that file private). To move to a new SD card or a new Pi: install OpenSky there, open
+phone setup, **Restore from a backup**, then **Finish**.
+
+By hand: everything personal lives in **`~/OpenSky/config/`**: your settings, passwords and keys, and the on-device calendar and lists. Copy that folder somewhere safe, such as a USB stick or your computer. It holds passwords, so keep the copy private.
 
 ## Installer options
 | Option | What it does |
