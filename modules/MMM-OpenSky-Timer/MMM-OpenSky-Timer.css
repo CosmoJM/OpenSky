@@ -1,0 +1,258 @@
+/* MMM-OpenSky-Timer styles */
+
+.timer-wrapper {
+  position: fixed;
+  top: 90px;                       /* below the header */
+  bottom: 0;
+  left: var(--hb-left, 112px);     /* right of the sidebar */
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 40px;
+  box-sizing: border-box;
+}
+
+/* ========== SETUP ========== */
+.timer-setup-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  width: 100%;
+  max-width: 980px;
+  padding: 48px 56px 44px;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 26px;
+  box-shadow: 0 8px 28px rgba(31, 41, 55, .07);
+}
+.timer-setup-title {
+  font-size: 44px;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: -0.5px;
+}
+.timer-input-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.timer-number-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.timer-input-field {
+  width: 156px;
+  height: 132px;
+  font-size: 76px;
+  font-weight: 700;
+  text-align: center;
+  border: 3px solid #eceef1;
+  border-radius: 22px;
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.timer-input-field::-webkit-outer-spin-button,
+.timer-input-field::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.timer-input-field:focus {
+  border-color: #ff9f7f;
+  box-shadow: 0 0 0 5px rgba(255, 159, 127, .18);
+}
+.timer-input-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.timer-input-colon {
+  font-size: 64px;
+  font-weight: 600;
+  color: #c4c8ce;
+  line-height: 132px;
+}
+.timer-start-btn {
+  width: 280px;
+  height: 72px;
+  border: none;
+  border-radius: 36px;
+  background: #ff9f7f;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(255, 138, 101, .35);
+  transition: transform .15s ease;
+}
+.timer-start-btn:active { transform: scale(.97); }
+
+/* ========== RUNNING TIMERS ========== */
+.timer-displays {
+  display: flex;
+  gap: 80px;
+  align-items: center;
+  justify-content: center;
+}
+.timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+.timer-ring { position: relative; width: 460px; height: 460px; }
+.timer-display.dual .timer-ring { width: 380px; height: 380px; }
+
+.timer-circle { width: 100%; height: 100%; display: block; }
+.timer-circle-bg { fill: none; stroke: #f1f2f4; stroke-width: 12; }
+.timer-circle-progress {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timer-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.timer-time-display {
+  font-size: 88px;
+  font-weight: 700;
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.timer-display.dual .timer-time-display { font-size: 70px; }
+.timer-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.timer-display.paused .timer-time-display { color: #9ca3af; }
+
+/* Finished */
+.timer-display.completed .timer-circle-bg { stroke: #ffe1d6; }
+.timer-display.completed .timer-time-display { color: #e8663f; animation: timerFlash 1s ease-in-out infinite; }
+.timer-display.completed .timer-ring { animation: timerPulse 1.2s ease-in-out infinite; }
+@keyframes timerFlash { 50% { opacity: .45; } }
+@keyframes timerPulse { 50% { transform: scale(1.03); } }
+
+/* Controls */
+.timer-controls { display: flex; gap: 20px; }
+.timer-control-btn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .1);
+  transition: transform .15s ease;
+}
+.timer-control-btn:active { transform: scale(.94); }
+.timer-control-btn svg { width: 30px; height: 30px; }
+.timer-control-btn.pause { background: #ff9f7f; color: #fff; }
+.timer-control-btn.cancel { background: #fff; color: #6b7280; }
+.timer-control-btn.stop.wide {
+  width: 220px;
+  border-radius: 38px;
+  background: #e8663f;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* ========== QUICK TIMERS ========== */
+.timer-quickadd-container {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 900px;
+  margin-top: 8px;
+}
+.timer-quickadd-label {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.timer-displays + .timer-quickadd-container { margin-top: 44px; }
+.timer-quickadd-btn {
+  min-width: 128px;
+  height: 58px;
+  padding: 0 26px;
+  background: #fff;
+  border: 2px solid #eceef1;
+  border-radius: 29px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+  transition: transform .15s ease, border-color .15s ease;
+}
+.timer-quickadd-btn:active { transform: scale(.96); border-color: #ff9f7f; color: #e8663f; }
+
+/* ========== "Timer finished" banner (on <body>, every page) ========== */
+.timer-banner {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px 12px 22px;
+  border-radius: 40px;
+  background: #e8663f;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(232, 102, 63, .45);
+  animation: timerBannerPulse 1.2s ease-in-out infinite;
+}
+.timer-banner-icon svg { width: 30px; height: 30px; display: block; }
+.timer-banner-text { font-size: 24px; font-weight: 700; }
+.timer-banner-stop {
+  height: 52px;
+  padding: 0 30px;
+  border: none;
+  border-radius: 26px;
+  background: #fff;
+  color: #e8663f;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+@keyframes timerBannerPulse { 50% { box-shadow: 0 10px 40px rgba(232, 102, 63, .8); } }
+
+/* On-screen keyboard open (body.kb-open is set by MMM-Keyboard): lift the setup
+   screen so the inputs and Start stay above the keyboard */
+body.kb-open .timer-wrapper { justify-content: flex-start; padding-top: 24px; }
+body.kb-open .timer-setup-screen { gap: 24px; }
+body.kb-open .timer-quickadd-container { display: none; }
+

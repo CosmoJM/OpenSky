@@ -1,0 +1,56 @@
+/* =========================================================================
+   OpenSky — base theme (global styles)
+   A light, Skylight-style theme on top of MagicMirror's default (dark) theme.
+   Module-specific styles live in each module's own CSS file; this file holds
+   page-wide rules and fixes for MagicMirror itself.
+   ========================================================================= */
+/* ===== Base page ===== */
+html, body {
+  height: 100%;
+  width: 100%;          /* main.css shrinks body by its default side gaps (120px), which left
+                           a big empty strip on the right of the Lists page */
+  margin: 0;
+  background: #ffffff;
+  color: #222;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
+  overflow: hidden;
+}
+
+/* The HTML "hidden" attribute must always win. Several popups (Settings panel, timer
+   banner) set display:flex, which otherwise overrides [hidden] and leaves them on
+   screen after they are "closed" (learned the hard way). */
+[hidden] { display: none !important; }
+
+/* Sidebar width + gutter; MMM-OpenSky-Header overwrites this from its config */
+:root { --hb-left: 112px; }
+
+/* Fullscreen regions fill the viewport */
+.region.fullscreen.above,
+.region.fullscreen.below {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Hidden modules must never catch taps.
+   MMM-pages hides modules with opacity:0 (they stay in the layout), and some
+   rules below force pointer-events:auto (e.g. .CX3 .cellDate). */
+.module.hidden,
+.module.hidden * {
+  pointer-events: none !important;
+}
+
+/* The default calendar module is only an event source for CalendarExt3 */
+.module.calendar { display: none !important; }
+
+/* CalendarExt3's own popover is replaced by the OpenSky event editor's popups */
+#CX3_POPOVER { display: none !important; }
+
+/* MMM-Remote-Control's overlay must never swallow taps */
+#remote-control-overlay-temp,
+#remote-control-overlay,
+.remote-control-overlay { pointer-events: none !important; }
+
+

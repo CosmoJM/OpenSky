@@ -1,0 +1,59 @@
+// OpenSky off-screen test harness: launches the REAL MagicMirror/Electron app on a headless Wayland compositor
+// and runs a scenario against it with Playwright. It never touches a physical screen.
+//
+//   1. start a headless compositor once:   tools/headless.sh start      (creates WAYLAND_DISPLAY=wayland-1)
+//   2. run a scenario:                     node tools/harness.js tools/scenarios/<name>.js
+//   3. stop the compositor:                tools/headless.sh stop
+//
+// Options (environment): OPENSKY_MM = MagicMirror folder (default ~/opensky-dev/MagicMirror),
+// OPENSKY_PORT = server port (default 8083, so it never clashes with a MagicMirror already running on 8080/8081).
+// A scenario exports `async (page, h, app) => {}`; screenshots go to tools/out/.
+const { _electron } = require("playwright-core");
+const path = require("path");
+const fs = require("fs");
+const os = require("os");
+
+const MM = process.env.OPENSKY_MM || path.join(os.homedir(), "opensky-dev", "MagicMirror");
+const OUT = path.join(__dirname, "out");
+fs.mkdirSync(OUT, { recursive: true });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+(async () => {
+  const scenario = require(path.resolve(process.argv[2]));
+  const app = await _electron.launch({
+    executablePath: path.join(MM, "node_modules/electron/dist/electron"),
+    args: ["js/electron.js", "--ozone-platform=wayland"],
+    cwd: MM,
+    env: {
+      ...process.env,
+      XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR || `/run/user/${process.getuid()}`,
+      WAYLAND_DISPLAY: process.env.OPENSKY_TEST_DISPLAY || "wayland-1",   // the headless compositor, NOT a real screen
+      DISPLAY: "",
+      OPENSKY_PORT: process.env.OPENSKY_PORT || "8083",
+      ELECTRON_ENABLE_LOGGING: "1"
+    },
+    timeout: 90000
+  });
+  const page = await app.firstWindow({ timeout: 90000 });
+  const logs = [];
+  page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") logs.push(`[${m.type()}] ${m.text()}`); });
+  page.on("pageerror", (e) => logs.push(`[pageerror] ${e.message}`));
+  const h = {
+    sleep,
+    shot: (n) => page.screenshot({ path: path.join(OUT, `${n}.png`) }),
+    log: (...a) => console.log(...a),
+    box: async (sel) => (await page.$(sel))?.boundingBox(),
+    tap: async (sel) => { const b = await h.box(sel); if (!b) throw new Error("no element " + sel); await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2); }
+  };
+  try {
+    await sleep(8000);   // let modules load
+    await scenario(page, h, app);
+  } catch (e) {
+    console.log("SCENARIO ERROR:", e.message.split("\n")[0]);
+    await h.shot("error-state").catch(() => {});
+  } finally {
+    const noise = /gbm|dma_buf|Autofill|DevTools|Electron Security Warning/;
+    console.log("---- page errors/warnings ----\n" + logs.filter((l) => !noise.test(l)).slice(0, 30).join("\n"));
+    await app.close().catch(() => {});
+  }
+})().catch((e) => { console.error("HARNESS ERROR:", e); process.exit(1); });

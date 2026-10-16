@@ -1,7 +1,7 @@
 # Never commit secrets or a user's personal settings
 secrets.json
 *.secrets.json
-config/config.js
+config/opensky.json
 config/*.local.*
 .env
 *.env
@@ -14,3 +14,4 @@ node_modules/
 # Editors / OS
 .DS_Store
 *.swp
+tools/out/

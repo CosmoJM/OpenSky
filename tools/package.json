@@ -1,0 +1,8 @@
+{
+  "name": "opensky-tools",
+  "private": true,
+  "description": "OpenSky development tools: off-screen test harness (Electron + Playwright)",
+  "devDependencies": {
+    "playwright-core": "^1.57.0"
+  }
+}

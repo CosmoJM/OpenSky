@@ -1,0 +1,27 @@
+{
+  "_readme": "OpenSky settings. Copy this file to opensky.json and edit it (a phone setup page will do this for you later). No passwords or API keys here — those go in secrets.json.",
+
+  "family": {
+    "name": "Our Family"
+  },
+
+  "locale": {
+    "language": "en",
+    "locale": "en-US",
+    "timeFormat": 12,
+    "units": "imperial"
+  },
+
+  "location": {
+    "name": "",
+    "latitude": null,
+    "longitude": null
+  },
+
+  "pages": ["timer"],
+
+  "timer": {
+    "quickAddMinutes": [5, 10, 15, 30, 45, 60],
+    "chimeVolume": 0.6
+  }
+}
