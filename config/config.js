@@ -25,7 +25,17 @@ function readSettings() {
 const { file: settingsFile, settings: s } = readSettings();
 const locale = s.locale || {};
 
-// Each page = the modules that appear on it. Order of `pages` in opensky.json = order in the sidebar.
+// Sidebar label + icon for every page OpenSky knows (order of `pages` in opensky.json = order in the sidebar)
+const PAGE_INFO = {
+  home: { label: "Home" },
+  calendar: { label: "Calendar" },
+  lists: { label: "Lists" },
+  smarthome: { label: "Smart Home" },
+  wordgame: { label: "Word Game" },
+  timer: { label: "Timer" }
+};
+
+// Each page = the modules that appear on it.
 const PAGES = {
   timer: () => [{
     module: "MMM-OpenSky-Timer",
@@ -44,6 +54,21 @@ const pages = (Array.isArray(s.pages) && s.pages.length ? s.pages : ["timer"]).f
   return false;
 });
 const pageModules = pages.map((p) => PAGES[p]());
+const familyName = ((s.family && s.family.name) || "").trim();
+
+// Modules shown on every page
+const fixed = [
+  {
+    module: "MMM-OpenSky-Sidebar",
+    position: "fullscreen_above",
+    config: {
+      pages: pages.map((key, index) => ({ key, index, label: (PAGE_INFO[key] || {}).label || key, icon: key })),
+      familyInitial: (familyName.replace(/^the\s+/i, "")[0] || "H").toUpperCase(),
+      idleReturnMinutes: (s.sidebar && Number.isFinite(s.sidebar.idleReturnMinutes)) ? s.sidebar.idleReturnMinutes : 5,
+      screenServiceUrl: (s.screen && s.screen.serviceUrl) || null
+    }
+  }
+];
 
 let config = {
   address: process.env.OPENSKY_ADDRESS || "localhost",
@@ -63,9 +88,10 @@ let config = {
         timings: { default: 0 },
         animationTime: 0,
         modules: pageModules.map((mods) => mods.map((m) => m.module)),
-        fixed: []
+        fixed: fixed.map((m) => m.module)
       }
     },
+    ...fixed,
     ...pageModules.flat()
   ]
 };

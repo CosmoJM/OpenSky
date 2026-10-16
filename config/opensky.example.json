@@ -20,6 +20,10 @@
 
   "pages": ["timer"],
 
+  "sidebar": {
+    "idleReturnMinutes": 5
+  },
+
   "timer": {
     "quickAddMinutes": [5, 10, 15, 30, 45, 60],
     "chimeVolume": 0.6

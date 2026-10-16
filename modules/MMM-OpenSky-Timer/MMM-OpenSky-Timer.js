@@ -3,7 +3,7 @@
  * - Counts against real end times, so timers survive a page reload (localStorage).
  * - When a timer finishes, a chime plays through the Pi's own audio output
  *   (Web Audio, no sound files) until someone taps Stop, and a banner with a
- *   Stop button appears on every page.
+ *   Stop button appears on every page. A sleeping screen wakes up (OPENSKY_WAKE).
  */
 Module.register("MMM-OpenSky-Timer", {
   defaults: {
@@ -187,6 +187,7 @@ Module.register("MMM-OpenSky-Timer", {
 
   startRinging() {
     if (this.ringTimer) return;
+    this.sendNotification("OPENSKY_WAKE");   // a sleeping screen wakes so the Stop button is right there
     this.ringStartedAt = Date.now();
     this.playChime();
     this.ringTimer = setInterval(() => {

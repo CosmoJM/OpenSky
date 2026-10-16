@@ -22,8 +22,8 @@ html, body {
    screen after they are "closed" (learned the hard way). */
 [hidden] { display: none !important; }
 
-/* Sidebar width + gutter; MMM-OpenSky-Header overwrites this from its config */
-:root { --hb-left: 112px; }
+/* Left edge of page content = sidebar width + gutter (pages position themselves with it) */
+:root { --os-content-left: 112px; }
 
 /* Fullscreen regions fill the viewport */
 .region.fullscreen.above,

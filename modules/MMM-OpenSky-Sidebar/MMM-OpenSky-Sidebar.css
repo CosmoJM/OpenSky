@@ -1,0 +1,120 @@
+/* MMM-OpenSky-Sidebar
+   Every tile has the same height, icon box and single-line label, so everything lines up.
+   The active page gets a soft white card with a peach icon; the Home tile ("M" badge)
+   never shows the card. */
+
+:root {
+  --side-bg: #f3f4f6;
+  --tile-fg: #4b5563;         /* icon colour */
+  --tile-label: #6b7280;
+  --tile-active: #e8663f;     /* peach, dark enough for icons/labels */
+}
+
+/* Fixed full-height strip */
+.os-side-wrap {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--os-side-width, 92px);
+  z-index: 300;
+  pointer-events: none;       /* only the tiles take taps */
+}
+.os-side-track {
+  position: absolute;
+  inset: 0;
+  background: var(--side-bg);
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .05);
+}
+
+/* Column of tiles */
+.os-side-col {
+  position: absolute;
+  inset: 12px 8px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--tile-gap, 8px);
+  pointer-events: auto;
+}
+.os-side-spacer { flex: 1; }
+
+/* Tiles */
+.os-tile {
+  width: 100%;
+  height: var(--tile-size, 76px);
+  flex: 0 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--tile-fg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.os-tile:active { transform: scale(.94); }
+
+.os-icon {
+  width: var(--icon-size, 28px);
+  height: var(--icon-size, 28px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+.os-icon svg { width: 100%; height: 100%; display: block; }
+
+.os-label {
+  font-size: var(--label-size, 12px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .1px;
+  white-space: nowrap;        /* one line for every label ("Smart Home" too) */
+  color: var(--tile-label);
+}
+
+/* Active page: soft white card, peach icon + label */
+.os-tile.active {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(31, 41, 55, .08);
+  color: var(--tile-active);
+}
+.os-tile.active .os-label { color: var(--tile-active); }
+
+/* Home ("M") tile never shows the card: the badge is its own marker */
+.os-tile.os-page-home.active {
+  background: transparent;
+  box-shadow: none;
+}
+.os-tile.os-page-home.active .os-label { color: var(--tile-label); }
+
+/* Sleep / Settings are actions, never "active" */
+.os-utility.active { background: transparent !important; box-shadow: none !important; }
+
+/* Home badge (the family initial): same slot as the other icons, just a bit larger */
+.os-page-home .os-icon { width: 44px; height: 44px; }
+.os-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #ffb79b 0%, #ff8a65 100%);
+  color: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(255, 138, 101, .35);
+}
+.os-page-home { gap: 5px; }
+
+/* Soft sleep: black cover over everything (used when no screen service is installed); any touch wakes */
+.os-sleep-cover { position: fixed; inset: 0; z-index: 2147483000; background: #000; cursor: none; }

@@ -4,7 +4,7 @@
   position: fixed;
   top: 90px;                       /* below the header */
   bottom: 0;
-  left: var(--hb-left, 112px);     /* right of the sidebar */
+  left: var(--os-content-left, 112px);     /* right of the sidebar */
   right: 24px;
   display: flex;
   flex-direction: column;
