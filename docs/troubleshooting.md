@@ -19,7 +19,8 @@ Settings → **Sleep turns off by** → try each option with **Test**. Monitors 
 stops, some reconnect and come back on (OpenSky notices and switches to Black screen + dim), TVs often prefer HDMI-CEC.
 **Black screen + dim** works on every screen. If a screen ever stays dark after waking, press its power button — OpenSky
 then switches to Black screen + dim by itself. A touch always wakes it (OpenSky watches the touchscreen even while the
-screen is off; your user must be in the `input` group, which it is on Raspberry Pi OS).
+screen is off; your user must be in the `input` group, which it is on Raspberry Pi OS). If OpenSky restarts while the
+screen is off (an update, a crash), it turns the screen back on as it starts.
 
 ## The screen goes blank by itself after a few minutes
 Raspberry Pi OS blanks the screen when idle. Run `sudo raspi-config nonint do_blanking 1` (or re-run `./install.sh` and answer yes), then restart the Pi.
