@@ -98,8 +98,16 @@ const PAGES = {
         maxEventLines: 3, showMore: true, fontSize: "20px", eventHeight: "38px",
         eventTimeOptions: { hour: "numeric", minute: "2-digit", hour12: locale.timeFormat !== 24 },
         cellDateOptions: { day: "numeric" }, displayEndTime: false, useSymbol: false, calendars: [],
-        // colour class from the shared palette (window.OpenSkyEventColors, loaded by MMM-OpenSky-Calendar)
-        eventTransformer: (ev) => { if (typeof window !== "undefined" && window.OpenSkyEventColors) ev.class = `evc-${window.OpenSkyEventColors.name(ev)}`; return ev; }
+        // CX3 puts an event's title, place and notes into the page as HTML. Anyone who can name an event (a Google
+        // invitation, a shared calendar link) must not be able to run code on the screen, so they go in as plain
+        // text (MMM-OpenSky-Calendar decodes them again). A copy: CX3 hands the same event objects in on every redraw.
+        // Plus a colour class from the shared palette (window.OpenSkyEventColors, loaded by MMM-OpenSky-Calendar).
+        eventTransformer: (ev) => {
+          const esc = (v) => (typeof v === "string" ? v.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`) : v);
+          const out = { ...ev, title: esc(ev.title), description: esc(ev.description), location: esc(ev.location) };
+          if (typeof window !== "undefined" && window.OpenSkyEventColors) out.class = `evc-${window.OpenSkyEventColors.name(ev)}`;
+          return out;
+        }
       }
     },
     {
