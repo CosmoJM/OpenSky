@@ -71,5 +71,17 @@ const back = calModule.eventFromElement.call(calModule, { dataset: { ...shown, s
 ok("15 tapping that event gives back the real title, place and notes (the editor finds it by title)",
   back.title === evil.title && back.location === evil.location && back.description === evil.description, back.title);
 
+// Odd but plausible hand edits give a working screen, never a crash (MagicMirror can't start without its config)
+const timerOf = (cfg) => mod(cfg, "MMM-OpenSky-Timer").config.quickAddButtons.map((b) => b.seconds / 60).join(",");
+let odd = null;
+try {
+  odd = [build(null), build({ family: { name: 1990 }, pages: ["timer", "cams"], timer: { quickAddMinutes: 10 }, embeds: { cams: { title: 7, url: "http://x" } } }),
+    build({ pages: ["timer"], timer: { quickAddMinutes: ["5", "soon", -3] } })];
+} catch (e) { odd = e.message; }
+ok("16 odd settings (a null file, a number for the family name / a page name, one timer minute) → no crash", Array.isArray(odd) &&
+  mod(odd[1], "MMM-OpenSky-Header").config.title === "1990" && timerOf(odd[1]) === "10" && timerOf(odd[2]) === "5" &&
+  mod(odd[1], "MMM-OpenSky-Embed").config.title === "7", typeof odd === "string" ? odd : undefined);
+
+
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log(`SUMMARY pass=${passed} fail=${failed}`);
