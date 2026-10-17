@@ -97,10 +97,20 @@ try:
     ok("10 unknown calendar name → 404 with the secrets.json hint", st == 404 and "secrets.json" in body, body)
     st, body = call("/Broken/create-event", {"title": "x", "startDate": "2026-10-20T13:00:00Z", "endDate": "2026-10-20T14:00:00Z"})
     ok("11 wrong password → says what to check (401)", st == 401 and "app-specific" in body, f"{st} {body[:100]}")
-    # 12. server down → the last good copy is served
+    # 12. one occurrence of a repeating event moved in the calendar app (kept with the series as a RECURRENCE-ID copy):
+    # deleting it on the screen must not delete the whole series
+    cal.save_event("BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:test\nBEGIN:VEVENT\nUID:soccer@test\nDTSTAMP:20260101T000000Z\n"
+                   "DTSTART:20261006T210000Z\nDTEND:20261006T220000Z\nRRULE:FREQ=WEEKLY;COUNT=10\nSUMMARY:Soccer practice\nEND:VEVENT\n"
+                   "BEGIN:VEVENT\nUID:soccer@test\nDTSTAMP:20260101T000000Z\nRECURRENCE-ID:20261013T210000Z\n"
+                   "DTSTART:20261014T210000Z\nDTEND:20261014T220000Z\nSUMMARY:Soccer practice\nEND:VEVENT\nEND:VCALENDAR\n")
+    st, body = call("/Family/delete-event", {"originalTitle": "Soccer practice", "originalStart": "2026-10-14T21:00:00.000Z"})
+    left = [str(c.get("summary")) for e in cal.events() for c in __import__("icalendar").Calendar.from_ical(e.data).walk("VEVENT")]
+    ok("12 a moved occurrence of a repeating event: delete refused (409), the series is still there",
+       st == 409 and "Soccer practice" in left, f"{st} {body[:80]}")
+    # 13. server down → the last good copy is served
     procs[0].terminate(); procs[0].wait(timeout=10)
     st, body = call("/Family/calendar.ics")
-    ok("12 CalDAV server down → last good copy of the feed", st == 200 and "Dentist (moved)" in body)
+    ok("13 CalDAV server down → last good copy of the feed", st == 200 and "Dentist (moved)" in body)
 finally:
     for p in procs:
         if p.poll() is None:
