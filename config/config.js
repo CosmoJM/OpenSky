@@ -18,7 +18,9 @@ function readSettings() {
     const p = path.isAbsolute(file) ? file : path.join(CONFIG_DIR, file);
     if (!fs.existsSync(p)) continue;
     try {
-      return { file, dir: path.dirname(p), settings: JSON.parse(fs.readFileSync(p, "utf8")) };
+      const settings = JSON.parse(fs.readFileSync(p, "utf8"));
+      // (a file holding just null, a list or a number still gives a working screen)
+      return { file, dir: path.dirname(p), settings: settings && typeof settings === "object" && !Array.isArray(settings) ? settings : {} };
     } catch (e) {
       console.error(`[OpenSky] ${file} is not valid JSON (${e.message}) — fix it or delete it to use the example settings`);
     }
@@ -84,6 +86,12 @@ if (pk.url) calendarSources.push({ name: "Pickup", type: "link", role: "pickup",
 const editableCalendars = calendarSources.filter((c) => c.type === "local" || c.type === "caldav" || (c.type === "google" && !c.readOnly))
   .map((c) => ({ name: c.name, type: c.type, ...(c.type === "google" ? { calendarId: c.calendarId } : {}) }));
 const canAddEvents = editableCalendars.length > 0;
+
+// Timer buttons: whole minutes; anything else (one number instead of a list, words) → the usual buttons
+function quickMinutes(v) {
+  const list = (Array.isArray(v) ? v : [v]).map(Number).filter((m) => Number.isInteger(m) && m > 0 && m <= 24 * 60);
+  return list.length ? list : [5, 10, 15, 30, 45, 60];
+}
 
 // Each page = the modules that appear on it.
 const PAGES = {
@@ -152,7 +160,7 @@ const PAGES = {
     module: "MMM-OpenSky-Timer",
     position: "fullscreen_below",
     config: {
-      quickAddButtons: ((s.timer && s.timer.quickAddMinutes) || [5, 10, 15, 30, 45, 60])
+      quickAddButtons: quickMinutes(s.timer && s.timer.quickAddMinutes)
         .map((m) => ({ label: m % 60 === 0 && m >= 60 ? `+${m / 60} hr` : `+${m} min`, seconds: m * 60 })),
       alarm: { volume: (s.timer && s.timer.chimeVolume) ?? 0.6, repeatEverySeconds: 2.5, maxRingSeconds: 180 }
     }
@@ -172,7 +180,7 @@ function embedPin(key) {
 for (const [key, e] of Object.entries(embeds)) {
   if (PAGES[key] || !/^[a-z][a-z0-9-]{0,30}$/.test(key) || !e) continue;
   const pinLength = embedPin(key);
-  PAGE_INFO[key] = { label: e.title || (PAGE_INFO[key] || {}).label || key, icon: e.icon || (key === "smarthome" ? "smarthome" : "embed") };
+  PAGE_INFO[key] = { label: String(e.title || (PAGE_INFO[key] || {}).label || key), icon: e.icon || (key === "smarthome" ? "smarthome" : "embed") };
   PAGES[key] = () => [{
     module: "MMM-OpenSky-Embed",
     classes: `opensky-embed-${key}`,   // MMM-pages tells embed pages apart by this class
@@ -187,7 +195,7 @@ const pages = (Array.isArray(s.pages) && s.pages.length ? s.pages : ["home", "ti
   return false;
 });
 const pageModules = pages.map((p) => PAGES[p]());
-const familyName = ((s.family && s.family.name) || "").trim();
+const familyName = String((s.family && s.family.name) || "").trim();
 
 const loc = s.location || {};
 const units = locale.units === "metric" ? "metric" : "imperial";
