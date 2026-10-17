@@ -45,6 +45,10 @@ One-time: `python3 -m venv ~/opensky-dev/venv && ~/opensky-dev/venv/bin/pip inst
 ## Unit tests (no screen needed)
 - `node tools/test-pickup.js` — pickup schedule engine; reproduces New Bedford's official 2026 yard-waste flyer
 - `node tools/test-photos.js` — photo folder provider with the synthetic photos in `tools/fixtures/photos/`
+- `node tools/test-setup.js` — the phone setup server: pairing limits (also when many guesses arrive at once), secrets
+  stay write-only, damaged settings files are never overwritten
+- `node tools/test-settings.js` — the Settings helper: a screen left off by a stopped run comes back on, damaged
+  settings files are never overwritten
 
 ## Installer test
 `install.sh` can be tried without touching the real desktop: run a copy of the repo with a throwaway `HOME` and
