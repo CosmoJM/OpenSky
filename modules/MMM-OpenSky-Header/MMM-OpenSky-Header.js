@@ -415,8 +415,9 @@ Module.register("MMM-OpenSky-Header", {
   _gamePill(g) {
     const el = document.createElement("div");
     el.className = `hb-game hb-game-${g.state}`;
-    const logo = (t) => /^https:\/\//.test(t.logo || "") ? `<img class="hb-game-logo" src="${t.logo}" alt="" onerror="this.remove()">` : "";
     const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[x]));
+    // (the logo address comes from ESPN's feed too: escaped like the names, so it can't add attributes)
+    const logo = (t) => /^https:\/\//.test(t.logo || "") ? `<img class="hb-game-logo" src="${esc(t.logo)}" alt="" onerror="this.remove()">` : "";
     if (g.state === "off") {
       el.innerHTML = `${logo(g.us)}<span class="hb-game-vs">${g.home ? "vs" : "@"}</span>${logo(g.them)}<span class="hb-game-team">${esc(g.them.name)}</span>`
         + `<span class="hb-game-when">${esc(g.detail)}</span>`;
