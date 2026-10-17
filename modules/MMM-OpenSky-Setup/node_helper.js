@@ -185,7 +185,6 @@ module.exports = NodeHelper.create({
 
   async handle(req, res) {
     if (!this.hostOk(req)) return this.send(res, 421, { error: "Wrong address" });
-    this.touch();
     const url = new URL(req.url, "http://x");
     if (req.method === "GET" && STATIC[url.pathname]) {
       const [file, type] = STATIC[url.pathname];
@@ -195,24 +194,30 @@ module.exports = NodeHelper.create({
     if (req.method === "POST" && req.headers["x-opensky"] !== "1") return this.send(res, 403, { error: "Refused" });
 
     if (url.pathname === "/api/pair" && req.method === "POST") {
+      const { code } = await this.body(req);
+      // checked once the code has arrived: many requests can be waiting for their bodies at the same moment
       const now = Date.now();
       if (this.lockedUntil > now) return this.send(res, 429, { error: `Too many tries — wait ${Math.ceil((this.lockedUntil - now) / 1000)} s` });
       if (now > this.codeUntil) return this.send(res, 410, { error: "That code has expired — tap \"New code\" on the screen" });
-      const { code } = await this.body(req);
       const a = Buffer.from(String(code || "").replace(/\D/g, "")), b = Buffer.from(this.code);
       if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
         const token = crypto.randomBytes(32).toString("hex");
         this.sessions.add(token);
+        this.touch();
         this.sendSocketNotification("OS_SETUP_PAIRED", { phones: this.sessions.size });
         return this.send(res, 200, { ok: true }, { "Set-Cookie": `os_setup=${token}; HttpOnly; SameSite=Strict; Path=/` });
       }
       this.wrong += 1;
       if (this.wrong % 5 === 0) this.lockedUntil = now + 60 * 1000;
-      if (this.wrong >= 15) { this.newCode(); this.ready(); return this.send(res, 401, { error: "Too many wrong codes — the screen shows a new one" }); }
+      if (this.wrong >= 15) {   // a new code, and the pause still holds
+        this.newCode(); this.lockedUntil = now + 60 * 1000; this.ready();
+        return this.send(res, 401, { error: "Too many wrong codes — the screen shows a new one" });
+      }
       return this.send(res, 401, { error: "That's not the code on the screen" });
     }
 
     if (!this.authed(req)) return this.send(res, 401, { error: "Not paired", pair: true });
+    this.touch();   // only a paired phone keeps setup open (anyone else on the Wi-Fi can't hold it open forever)
 
     if (url.pathname === "/api/state" && req.method === "GET") {
       const settings = readJson(SETTINGS, null) || readJson(EXAMPLE, {});
