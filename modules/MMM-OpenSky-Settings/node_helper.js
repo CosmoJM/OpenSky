@@ -287,13 +287,22 @@ module.exports = NodeHelper.create({
     });
   },
 
-  readSecrets() { try { return JSON.parse(fs.readFileSync(backup.SECRETS, "utf8")); } catch (e) { return {}; } },
+  // a damaged secrets.json (a typo from editing it by hand) throws: writing it back would lose every other password
+  readSecrets() {
+    try { return JSON.parse(fs.readFileSync(backup.SECRETS, "utf8")); } catch (e) {
+      if (e.code === "ENOENT") return {};
+      throw new Error("secrets.json has a mistake, so nothing was changed — fix it first (opensky check shows where)");
+    }
+  },
   writeSecrets(sec) {
     fs.writeFileSync(`${backup.SECRETS}.tmp`, JSON.stringify(sec, null, 2) + "\n", { mode: 0o600 });
     fs.renameSync(`${backup.SECRETS}.tmp`, backup.SECRETS);
     fs.chmodSync(backup.SECRETS, 0o600);
   },
-  embedLocked(key) { const e = (this.readSecrets().embeds || {})[key]; return !!(e && /^\d{4,8}$/.test(String(e.pin || ""))); },
+  embedLocked(key) {
+    let sec; try { sec = this.readSecrets(); } catch (e) { return false; }
+    const e = (sec.embeds || {})[key]; return !!(e && /^\d{4,8}$/.test(String(e.pin || "")));
+  },
 
   // Add / change / remove a web page (a page of its own in the sidebar, like Smart Home)
   webPage(s, w) {
