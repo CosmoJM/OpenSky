@@ -171,6 +171,14 @@ def cache_file(name):
     return os.path.join(CACHE_DIR, f"{safe}.ics")
 
 
+@app.before_request
+def only_this_pi():
+    """Only requests addressed to this Pi itself: a web page can't use DNS tricks (a name that points at 127.0.0.1)
+    to read the family's calendars or change them from the screen's browser."""
+    if request.host.rsplit(":", 1)[0].lower() not in ("127.0.0.1", "localhost", "[::1]"):
+        return jsonify({"error": "Wrong address"}), 421
+
+
 @app.errorhandler(UserError)
 def user_error(e):
     return jsonify({"error": str(e)}), e.status

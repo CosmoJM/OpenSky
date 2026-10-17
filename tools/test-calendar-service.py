@@ -27,9 +27,9 @@ def ok(name, cond, info=""):
     print(f"{'PASS' if cond else 'FAIL'}  {name} {info}")
 
 
-def call(path, body=None):
+def call(path, body=None, host=None):
     req = urllib.request.Request(f"http://127.0.0.1:{SVC_PORT}{path}", data=json.dumps(body).encode() if body is not None else None,
-                                 headers={"Content-Type": "application/json"}, method="POST" if body is not None else "GET")
+                                 headers={"Content-Type": "application/json", **({"Host": host} if host else {})}, method="POST" if body is not None else "GET")
     try:
         with urllib.request.urlopen(req, timeout=20) as r:
             return r.status, r.read().decode()
@@ -107,10 +107,14 @@ try:
     left = [str(c.get("summary")) for e in cal.events() for c in __import__("icalendar").Calendar.from_ical(e.data).walk("VEVENT")]
     ok("12 a moved occurrence of a repeating event: delete refused (409), the series is still there",
        st == 409 and "Soccer practice" in left, f"{st} {body[:80]}")
-    # 13. server down → the last good copy is served
+    # 13. a web page that made its own name point at 127.0.0.1 (DNS rebinding) gets nothing
+    st, body = call("/Family/calendar.ics", host=f"rebind.example:{SVC_PORT}")
+    st2, _ = call("/Family/delete-event", {"originalTitle": "Dentist (moved)", "originalStart": "2026-10-21T13:00:00.000Z"}, host="rebind.example")
+    ok("13 a request for another name → 421, no calendar, nothing deleted", st == 421 and "Dentist" not in body and st2 == 421 and "Dentist (moved)" in call("/Family/calendar.ics")[1], st)
+    # 14. server down → the last good copy is served
     procs[0].terminate(); procs[0].wait(timeout=10)
     st, body = call("/Family/calendar.ics")
-    ok("13 CalDAV server down → last good copy of the feed", st == 200 and "Dentist (moved)" in body)
+    ok("14 CalDAV server down → last good copy of the feed", st == 200 and "Dentist (moved)" in body)
 finally:
     for p in procs:
         if p.poll() is None:
