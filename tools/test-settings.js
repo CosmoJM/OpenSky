@@ -1,5 +1,6 @@
-// Unit test for the Settings node helper (modules/MMM-OpenSky-Settings/node_helper.js): changes made on the screen
-// never wipe a settings file that has a typo in it. Fictional "Testers" family, fake secrets. OPENSKY_DRY_RUN=1.
+// Unit test for the Settings node helper (modules/MMM-OpenSky-Settings/node_helper.js): a screen left off by a
+// stopped run comes back on, and changes made on the screen never wipe a settings file
+// that has a typo in it. Fictional "Testers" family, fake secrets. OPENSKY_DRY_RUN=1.
 const fs = require("fs"), os = require("os"), path = require("path"), Module = require("module");
 const REPO = path.join(__dirname, "..");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "opensky-settings-"));
@@ -9,6 +10,8 @@ global.root_path = path.join(tmp, "mm");
 process.env.OPENSKY_DRY_RUN = "1";
 process.env.OPENSKY_SETTINGS = path.join(tmp, "opensky.json");
 process.env.OPENSKY_SECRETS = path.join(tmp, "secrets.json");
+process.env.OPENSKY_SCREEN_STATE = path.join(tmp, "screen-off.json");
+const logs = []; const origLog = console.log; console.log = (...a) => { logs.push(a.join(" ")); origLog(...a); };
 const sent = [];
 const origResolve = Module._resolveFilename;
 Module._resolveFilename = function (req, ...a) { return req === "node_helper" ? path.join(tmp, "nh.js") : origResolve.call(this, req, ...a); };
@@ -23,31 +26,40 @@ const notice = () => (sent.filter(([n]) => n === "OS_SET_NOTICE").pop() || [])[1
 (async () => {
   const goodSettings = JSON.stringify({ family: { name: "The Testers" }, pages: ["home", "timer"] });
   fs.writeFileSync(process.env.OPENSKY_SETTINGS, goodSettings);
+  // the last run turned the screen's signal off and stopped before turning it on (a crash, an update…)
+  fs.writeFileSync(process.env.OPENSKY_SCREEN_STATE, JSON.stringify({ method: "output", outputs: ["HDMI-A-1"], backlight: null }));
   const h = require(path.join(REPO, "modules", "MMM-OpenSky-Settings", "node_helper.js"));
   h.start();
   await h.ready;
+  ok("1 a screen left off by the last run is turned back on at start",
+    logs.some((l) => l.includes("wlr-randr --output HDMI-A-1 --on")) && !fs.existsSync(process.env.OPENSKY_SCREEN_STATE));
+  const screen = require(path.join(REPO, "lib", "screen.js"));
+  await screen.off("backlight", { outputs: [], backlight: "/sys/class/backlight/test/bl_power" });
+  const kept = fs.existsSync(process.env.OPENSKY_SCREEN_STATE);
+  await screen.on("backlight", { outputs: [], backlight: "/sys/class/backlight/test/bl_power" });
+  ok("2 turning the screen off is remembered until it's on again", kept && !fs.existsSync(process.env.OPENSKY_SCREEN_STATE));
 
-  // 1-2 a damaged secrets.json (a typo from editing it by hand) is never replaced by just the new web page
+  // 3-4 a damaged secrets.json (a typo from editing it by hand) is never replaced by just the new web page
   const damaged = '{ "google": { "refreshToken": "rt-testers" }, "embeds": { } ';
   fs.writeFileSync(process.env.OPENSKY_SECRETS, damaged);
   await h.socketNotificationReceived("OS_SET_PREFS_SAVE", { patch: { webPage: { title: "Cameras", url: "http://192.168.1.50", pin: "2468" } } });
-  ok("1 add a locked web page with a damaged secrets.json → refused, nothing lost", read(process.env.OPENSKY_SECRETS) === damaged && read(process.env.OPENSKY_SETTINGS) === goodSettings, notice());
+  ok("3 add a locked web page with a damaged secrets.json → refused, nothing lost", read(process.env.OPENSKY_SECRETS) === damaged && read(process.env.OPENSKY_SETTINGS) === goodSettings, notice());
   fs.writeFileSync(process.env.OPENSKY_SECRETS, JSON.stringify({ google: { refreshToken: "rt-testers" } }));
   await h.socketNotificationReceived("OS_SET_PREFS_SAVE", { patch: { webPage: { title: "Cameras", url: "http://192.168.1.50", pin: "2468" } } });
   const sec = JSON.parse(read(process.env.OPENSKY_SECRETS));
-  ok("2 a good secrets.json: the page's address + PIN added, the Google sign-in kept",
+  ok("4 a good secrets.json: the page's address + PIN added, the Google sign-in kept",
     sec.google.refreshToken === "rt-testers" && sec.embeds.cameras.pin === "2468" && !read(process.env.OPENSKY_SETTINGS).includes("192.168.1.50"));
 
-  // 3-4 a damaged opensky.json is never replaced by just the one setting changed on the screen
+  // 5-6 a damaged opensky.json is never replaced by just the one setting changed on the screen
   const damagedSettings = '{ "family": { "name": "The Testers" }, "pages": ["home", "cameras", "timer"], "look": { "accent": "teal" }, }';
   fs.writeFileSync(process.env.OPENSKY_SETTINGS, damagedSettings);
   await h.socketNotificationReceived("OS_SET_PREFS_SAVE", { patch: { accent: "green" } });
-  ok("3 change the accent with a damaged opensky.json → refused, the file is untouched",
+  ok("5 change the accent with a damaged opensky.json → refused, the file is untouched",
     read(process.env.OPENSKY_SETTINGS) === damagedSettings && /mistake/.test((notice() || {}).message || ""), notice());
   fs.writeFileSync(process.env.OPENSKY_SETTINGS, damagedSettings.replace(", }", " }"));
   await h.socketNotificationReceived("OS_SET_PREFS_SAVE", { patch: { accent: "green" } });
   const now = JSON.parse(read(process.env.OPENSKY_SETTINGS));
-  ok("4 fixed → the change is saved and everything else kept", now.look.accent === "green" && now.family.name === "The Testers" && now.pages.length === 3);
+  ok("6 fixed → the change is saved and everything else kept", now.look.accent === "green" && now.family.name === "The Testers" && now.pages.length === 3);
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`SUMMARY pass=${passed} fail=${failed}`);

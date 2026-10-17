@@ -80,6 +80,7 @@ module.exports = NodeHelper.create({
   async detect() {
     this.method = "software";
     this.audio = null;
+    await screen.restoreAfterRestart();   // first: a screen left off by the last run is on again before we look at it
     this.screenAvail = await screen.detect();
     if (DRY) { this.method = process.env.OPENSKY_FAKE_BRIGHTNESS || "software"; this.audio = { name: "Test speaker", volume: 50 }; this.fake = { level: null, volume: 50 }; return; }
     // 1. a display with a backlight the system exposes (official Pi touch displays, some DSI panels)
