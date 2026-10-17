@@ -89,6 +89,15 @@
     colors.forEach((c) => box.append(el("button", { type: "button", class: `chip${c === value ? " on" : ""}`, style: `--c:${hex(c)}`, "aria-label": c, onclick: (e) => { box.querySelectorAll(".chip").forEach((x) => x.classList.remove("on")); e.currentTarget.classList.add("on"); onpick(c); } })));
     return box;
   }
+  // the same icons as the screen's sidebar (OpenSkyIcons in opensky-client.js)
+  function iconPicker(value, onpick) {
+    const box = el("div", { class: "icon-grid" });
+    const names = (window.OpenSkyIcons && window.OpenSkyIcons.webPage) || ["embed"];
+    names.forEach((n) => box.append(el("button", { type: "button", class: `icon-pick${n === value ? " on" : ""}`, "aria-label": n, html: window.OpenSkyIcons ? window.OpenSkyIcons.svg(n) : "",
+      onclick: (e) => { box.querySelectorAll(".icon-pick").forEach((x) => x.classList.remove("on")); e.currentTarget.classList.add("on"); onpick(n); } })));
+    return box;
+  }
+
   function select(options, value, onpick) {
     const s = el("select", { class: "input", onchange: (e) => onpick(e.target.value) });
     options.forEach(([v, label]) => s.append(el("option", { value: v, selected: v === value }, label)));
@@ -445,20 +454,28 @@
     return section("pages", "pages", "Pages", "The buttons down the left side, top to bottom. The first is where the screen goes back to when idle.", box);
   }
 
+  function webRow(k, e, sub, onclick, extra) {
+    const r = row("#6b7280", (e && e.title) || k, sub, onclick, extra);
+    const ic = el("span", { class: "row-icon", html: window.OpenSkyIcons ? window.OpenSkyIcons.svg((e && e.icon) || (k === "smarthome" ? "smarthome" : "embed")) : "" });
+    r.querySelector(".dot").replaceWith(ic);
+    return r;
+  }
+
   function webCard() {
     const rows = el("div", { class: "rows" });
-    Object.entries(S.embeds).forEach(([k, e]) => rows.append(row("#6b7280", (e && e.title) || k, isSet(`embeds.${k}.pin`) ? "Locked with a PIN" : (e && e.url) || "Private address", () => editWeb(k), isSet(`embeds.${k}.pin`) ? icon("lock", "row-go") : null)));
+    Object.entries(S.embeds).forEach(([k, e]) => rows.append(webRow(k, e, isSet(`embeds.${k}.pin`) ? "Locked with a PIN" : (e && e.url) || "Private address", () => editWeb(k), isSet(`embeds.${k}.pin`) ? icon("lock", "row-go") : null)));
     if (!Object.keys(S.embeds).length) rows.append(el("p", { class: "empty" }, "None yet."));
     return section("web", "web", "Web pages", "A page of its own for a Home Assistant dashboard, a camera, a website…",
       rows, el("button", { type: "button", class: "add", onclick: addWeb }, icon("plus"), "Add a web page"));
   }
 
   function addWeb() {
-    const d = { title: "", url: "", pin: "" };
+    const d = { title: "", url: "", pin: "", icon: "globe" };
     const err = el("p", { class: "err" });
     sheet("Add a web page", (b) => b.append(
       field("Button label", text("", (v) => { d.title = v.trim(); }, { placeholder: "e.g. Smart Home", maxlength: "14" })),
       field("Address", text("", (v) => { d.url = v.trim(); }, { placeholder: "http://homeassistant.local:8123", inputmode: "url", autocapitalize: "off" })),
+      el("div", { class: "field" }, el("span", { class: "label" }, "Icon"), iconPicker(d.icon, (i) => { d.icon = i; })),
       field("PIN (optional)", el("input", { type: "password", class: "input", inputmode: "numeric", maxlength: "8", placeholder: "4–8 digits to lock the page", oninput: (e) => { d.pin = e.target.value.replace(/\D/g, ""); } }), "With a PIN, the page asks for it every time it opens."),
       err), [["Cancel", "", () => {}], ["Add", "primary", () => {
       let key = d.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "web";
@@ -467,7 +484,7 @@
       while (S.embeds[key] || reserved.includes(key)) key += "-2";
       const bad = !d.title ? "Please give it a label" : !/^https?:\/\/\S+$/i.test(d.url) ? "The address starts with http:// or https://" : d.pin && !/^\d{4,8}$/.test(d.pin) ? "A PIN is 4 to 8 digits" : null;
       if (bad) { err.textContent = bad; return false; }
-      S.embeds[key] = d.pin ? { title: d.title } : { title: d.title, url: d.url };
+      S.embeds[key] = d.pin ? { title: d.title, icon: d.icon } : { title: d.title, icon: d.icon, url: d.url };
       if (d.pin) { pending[`embeds.${key}.url`] = d.url; pending[`embeds.${key}.pin`] = d.pin; }
       if (!S.pages.includes(key)) S.pages.splice(Math.max(1, S.pages.length - 1), 0, key);
       change(); render();

@@ -86,7 +86,8 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    Next: clean-install test on a spare SD card (needs the maintainer), then providers from the matrix.
    Since: Google Calendar (read + write), Home Assistant lists, holidays for ~200 countries, pickup from a calendar
    link, backups (download/restore + nightly automatic), safe updates with rollback, accent colour, screen-off methods
-   with Test + wake on touch, Settings on the screen = the phone's core settings, web-page touches count as activity.
+   with Test + wake on touch, Settings on the screen = the phone's core settings, web-page touches count as activity,
+   **add your own web page** from Settings or the phone (name, address, 16 icons, optional PIN).
 3. **First public milestone (v1.0)** — everything above. ✅ built and tested off-screen. Left before tagging v1.0.0:
    the real-monitor screen test, the **clean install on a spare SD card**, README screenshots, release notes.
 4. ~~Phone setup page~~ ✅ (done in 2).  5. ~~Providers from the matrix~~ ✅ most of them (done in 2).
@@ -94,8 +95,6 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 7. **Public release v1.0.0**: tag, GitHub release notes, announcement (MagicMirror forum "Showcase").
 
 ## v2 (nice to have — after v1.0)
-- **Create your own web-app page from the screen/phone**: a Create button → address, name, pick an icon from a set →
-  a new sidebar page that works like the Smart Home page (embed + optional PIN). (Today: phone setup → Web pages.)
 - Look: dark mode, date format, more themes; languages (i18n); keyboard layouts (UK, international).
 - More providers: Microsoft 365 / Outlook (Graph) calendars, Google Tasks direct, Apple Reminders (CalDAV VTODO),
   PhotoPrism / Nextcloud photos, NWS / Met.no weather.

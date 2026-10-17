@@ -78,7 +78,9 @@ tried again until someone guesses. For OpenSky's own words only: `"wordgame": { 
 A word you know is real but isn't accepted? Add it: `"wordgame": { "extraWords": ["emoji"] }`.
 
 ## Web pages on the screen (Smart Home, cameras…)
-Any web page can be a page of its own — a Home Assistant dashboard, a camera, a school portal:
+Any web page can be a page of its own — a Home Assistant dashboard, a camera, a school portal, a recipe site.
+**Easiest:** Settings → Pages → **+ Add a web page** (or the phone page → Web pages): type a name and the address,
+pick an icon, optionally lock it with a PIN, then **Restart now**. Edit or remove it the same way. By hand:
 ```json
 "pages": ["home", "calendar", "lists", "smarthome", "timer"],
 "embeds": {
@@ -86,7 +88,8 @@ Any web page can be a page of its own — a Home Assistant dashboard, a camera, 
 }
 ```
 - The key (`smarthome` here) is what you put in `pages`. Lower-case letters, digits and `-`.
-- `title` is the sidebar label; `icon` can be `smarthome` or `embed`; `zoom` (e.g. `0.8`) fits more of a busy page.
+- `title` is the sidebar label; `icon` is one of `embed globe smarthome camera play music cart food school briefcase
+  heart chart cloud car paw book`; `zoom` (e.g. `0.8`) fits more of a busy page.
 - Log in once on the screen (the keyboard appears); the page remembers it like a browser does.
 - **Back** and **Reload** buttons sit in the bottom-right corner.
 - **Private address or a PIN:** put them in `secrets.json`, not here (opensky.json can be read by devices on your Wi-Fi):

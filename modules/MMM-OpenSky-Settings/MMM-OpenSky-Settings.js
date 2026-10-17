@@ -231,15 +231,19 @@ Module.register("MMM-OpenSky-Settings", {
     const last = st.last ? `${st.ok ? "Last backup" : "Last try"}: ${new Date(st.last).toLocaleString(config.locale || "en-US", { dateStyle: "medium", timeStyle: "short" })}${st.ok ? " ✓" : " — " + esc(st.error || "")}` : "No automatic backup yet.";
     box.innerHTML = `
       ${this.restartNeeded ? `<div class="ost-restart"><span>Some changes show after a restart.</span><button class="ost-btn ost-primary" data-act="${(this.state && this.state.canRestart) ? "restart-app" : "reload"}">Restart now</button></div>` : ""}
+      ${this.webForm ? this.webFormHtml(P, esc) : ""}
       <section class="ost-section">
         <h3>Pages</h3>
         <div class="ost-note">The buttons down the left side, top to bottom.</div>
         ${all.map((k) => { const on = P.pages.includes(k), i = P.pages.indexOf(k); return `
           <div class="ost-row ost-page${on ? "" : " off"}" data-page="${esc(k)}">
-            <span class="ost-label">${esc(P.names[k])}</span>
+            <span class="ost-label">${(P.embeds || []).some((e) => e.key === k) ? `<span class="ost-page-ic">${window.OpenSkyIcons.svg(P.embeds.find((e) => e.key === k).icon)}</span>` : ""}${esc(P.names[k])}</span>
+            ${(P.embeds || []).some((e) => e.key === k) ? `<button class="ost-btn ost-small ost-edit-web" data-key="${esc(k)}">Edit</button>` : ""}
             <span class="ost-order">${on ? `<button class="ost-mini" data-move="-1" ${i === 0 ? "disabled" : ""} aria-label="Up">▲</button><button class="ost-mini" data-move="1" ${i === P.pages.length - 1 ? "disabled" : ""} aria-label="Down">▼</button>` : ""}</span>
             ${this.toggle(`page-${k}`, on)}
           </div>`; }).join("")}
+        <div class="ost-buttons"><button class="ost-btn ost-add-web">+ Add a web page</button></div>
+        <div class="ost-note">A web page gets its own button down the side — a Home Assistant dashboard, a camera, a school portal, any website.</div>
       </section>
       <section class="ost-section">
         <h3>Look &amp; extras</h3>
@@ -269,6 +273,9 @@ Module.register("MMM-OpenSky-Settings", {
       };
       row.querySelectorAll("[data-move]").forEach((b) => { b.onclick = () => { const pages = [...P.pages], i = pages.indexOf(k), j = i + Number(b.dataset.move); [pages[i], pages[j]] = [pages[j], pages[i]]; this.savePrefs({ pages }); }; });
     });
+    box.querySelector(".ost-add-web").onclick = () => { this.webForm = { title: "", url: "", icon: "globe", pin: "" }; this.renderPrefs(); this.focusWebForm(); };
+    box.querySelectorAll(".ost-edit-web").forEach((b) => { b.onclick = () => { const e = P.embeds.find((x) => x.key === b.dataset.key); this.webForm = { key: e.key, title: e.title, url: e.url || "", icon: e.icon, locked: e.locked, pin: null }; this.renderPrefs(); this.focusWebForm(); }; });
+    if (this.webForm) this.bindWebForm(box);
     box.querySelectorAll("[data-accent]").forEach((b) => {
       b.style.setProperty("--c", hex(b.dataset.accent));
       b.onclick = () => { const sb = MM.getModules().withClass("MMM-OpenSky-Sidebar")[0]; if (sb) sb.applyAccent(b.dataset.accent === "peach" ? "#e8663f" : b.dataset.accent); this.savePrefs({ accent: b.dataset.accent }); };
@@ -281,6 +288,62 @@ Module.register("MMM-OpenSky-Settings", {
     box.querySelector(".ost-backup-now").onclick = (e) => { e.currentTarget.disabled = true; e.currentTarget.textContent = "Backing up…"; this.sendSocketNotification("OS_SET_BACKUP_RUN"); };
     const rb = box.querySelector(".ost-restart [data-act]");
     if (rb) rb.onclick = () => this.system(rb);
+  },
+
+  /* ---------------- add / edit a web page ---------------- */
+  webFormHtml(P, esc) {
+    const f = this.webForm;
+    return `
+      <section class="ost-section ost-webform">
+        <h3>${f.key ? "Edit web page" : "Add a web page"}</h3>
+        <div class="ost-row"><span class="ost-label">Name</span><input class="ost-input" data-wf="title" maxlength="24" placeholder="e.g. Smart Home, Cameras, School" value="${esc(f.title)}"></div>
+        <div class="ost-row"><span class="ost-label">Address</span><input class="ost-input" data-wf="url" inputmode="url" data-okb-caps="off" placeholder="${f.locked && !f.url ? "Kept private — type to change" : "https://… or http://192.168.1.20:8123"}" value="${esc(f.url)}"></div>
+        <div class="ost-row ost-top"><span class="ost-label">Icon</span><span class="ost-icons">${window.OpenSkyIcons.webPage.map((i) => `<button class="ost-icon${i === f.icon ? " on" : ""}" data-icon="${i}" aria-label="${i}">${window.OpenSkyIcons.svg(i)}</button>`).join("")}</span></div>
+        <div class="ost-row">${this.toggle("wf-lock", f.locked || !!f.pin)}<span class="ost-label">Lock with a PIN</span>
+          <input class="ost-input ost-pin" data-wf="pin" inputmode="numeric" maxlength="8" placeholder="${f.locked ? "PIN set — type a new one" : "4–8 digits"}" ${f.locked || f.pin ? "" : "hidden"}></div>
+        <div class="ost-note">With a PIN, the page asks for it every time it opens. Logins inside the page (e.g. Home Assistant) are remembered.</div>
+        <div class="ost-err" hidden></div>
+        <div class="ost-buttons">
+          ${f.key ? `<button class="ost-btn ost-danger ost-wf-remove">Remove</button>` : ""}
+          <button class="ost-btn ost-wf-cancel">Cancel</button>
+          <button class="ost-btn ost-primary ost-wf-save">${f.key ? "Save" : "Add page"}</button>
+        </div>
+      </section>`;
+  },
+
+  focusWebForm() { setTimeout(() => { const b = this.panel && this.panel.querySelector(".ost-webform"); if (b) { b.scrollIntoView({ block: "start" }); } }, 50); },
+
+  bindWebForm(box) {
+    const f = this.webForm, q = (sel) => box.querySelector(sel);
+    box.querySelectorAll("[data-wf]").forEach((el) => { el.oninput = () => { f[el.dataset.wf] = el.value; }; });
+    box.querySelectorAll("[data-icon]").forEach((b) => { b.onclick = () => { f.icon = b.dataset.icon; box.querySelectorAll("[data-icon]").forEach((x) => x.classList.toggle("on", x === b)); }; });
+    const lock = q('.ost-toggle[data-id="wf-lock"]'), pin = q(".ost-pin");
+    lock.onclick = () => {
+      const on = !lock.classList.contains("on");
+      lock.classList.toggle("on", on); pin.hidden = !on;
+      if (on) { f.pin = f.pin || ""; pin.focus(); } else { f.pin = f.locked ? "" : null; }   // "" = take the PIN off
+      f.lockOn = on;
+    };
+    const err = (m) => { const e = q(".ost-err"); e.textContent = m; e.hidden = !m; };
+    q(".ost-wf-cancel").onclick = () => { this.webForm = null; this.renderPrefs(); };
+    const rm = q(".ost-wf-remove");
+    if (rm) rm.onclick = () => {
+      if (!rm.classList.contains("ost-confirm")) { rm.classList.add("ost-confirm"); rm.textContent = "Tap again to remove"; return; }
+      this.savePrefs({ webPage: { remove: f.key } }); this.webForm = null;
+    };
+    q(".ost-wf-save").onclick = () => {
+      const title = String(f.title || "").trim(), url = String(f.url || "").trim();
+      if (!title) return err("Please give it a name");
+      if (!f.key && !url) return err("Please type the page's address");
+      if (url && !/^https?:\/\/\S+$/i.test(url)) return err("The address starts with http:// or https:// (e.g. http://homeassistant.local:8123)");
+      const lockOn = f.lockOn !== undefined ? f.lockOn : !!f.locked;
+      if (lockOn && !f.locked && !/^\d{4,8}$/.test(String(f.pin || ""))) return err("A PIN is 4 to 8 digits");
+      if (lockOn && f.pin && !/^\d{4,8}$/.test(String(f.pin))) return err("A PIN is 4 to 8 digits");
+      const pinOut = lockOn ? (f.pin ? String(f.pin) : null) : (f.locked ? "" : null);
+      this.savePrefs({ webPage: { key: f.key, title, url, icon: f.icon, pin: pinOut } });
+      this.webForm = null;
+      window.OpenSkyToast(f.key ? "Saved — restart to see the change" : `“${title}” added — restart to see it in the sidebar`, "success");
+    };
   },
 
   renderStatus() {

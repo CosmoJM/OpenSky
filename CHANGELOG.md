@@ -9,7 +9,8 @@ The first public version: a friendly family wall calendar for a Raspberry Pi tou
 - **Calendar**: month view; tap a day or event to see, add, edit or delete events.
 - **Lists**: every list side by side. **Timer**: kitchen timers with a chime. **Word game**: a daily family puzzle
   (the New York Times' daily word by default, OpenSky's own words as backup or by choice).
-- **Web pages as pages** (Home Assistant dashboards, cameras…), optionally locked with a PIN.
+- **Your own web pages as pages** (Home Assistant dashboards, cameras, school portals…): add them from Settings or
+  the phone with a name, an address and an icon; optionally locked with a PIN.
 - Header: family name, clock, weather, countdown to the next holiday or birthday, your team's game day.
 - **Settings on the screen**: brightness (backlight, monitor over HDMI or picture dimming), evening dim, sleep at
   night, how Sleep turns your screen off (with a Test button and wake on touch), volume, pages, accent colour,

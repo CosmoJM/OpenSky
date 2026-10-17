@@ -25,6 +25,8 @@ const backup = require(path.join(global.root_path || process.cwd(), "modules", "
 const screen = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "screen.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
+// the icons a web page can have (same list as OpenSkyIcons.webPage in lib/client/opensky-client.js)
+const WEB_ICONS = ["embed", "smarthome", "globe", "camera", "play", "music", "cart", "food", "school", "briefcase", "heart", "chart", "cloud", "car", "paw", "book"];
 const REPO = path.resolve(__dirname, "..", "..");   // (MagicMirror links the module in; Node resolves the real folder)
 const SETTINGS_DIR = path.dirname(process.env.OPENSKY_SETTINGS || path.join(global.root_path || process.cwd(), "config", "opensky.json"));
 const FILE = process.env.OPENSKY_DEVICE_SETTINGS || path.join(SETTINGS_DIR, "device.json");
@@ -279,13 +281,70 @@ module.exports = NodeHelper.create({
         photos: !(s.photos && s.photos.enabled === false),
         trashDay: (s.pickup && s.pickup.trashDay) || ""
       },
+      // web pages: what the screen needs to list / edit them (a PIN page's address and PIN stay in secrets.json)
+      embeds: Object.entries(s.embeds || {}).map(([key, e]) => ({ key, title: (e && e.title) || key, icon: (e && e.icon) || (key === "smarthome" ? "smarthome" : "embed"), url: (e && e.url) || null, locked: this.embedLocked(key) })),
       backup: backup.settings(), places: backup.destinations(), status: backup.status(), ...extra
     });
+  },
+
+  readSecrets() { try { return JSON.parse(fs.readFileSync(backup.SECRETS, "utf8")); } catch (e) { return {}; } },
+  writeSecrets(sec) {
+    fs.writeFileSync(`${backup.SECRETS}.tmp`, JSON.stringify(sec, null, 2) + "\n", { mode: 0o600 });
+    fs.renameSync(`${backup.SECRETS}.tmp`, backup.SECRETS);
+    fs.chmodSync(backup.SECRETS, 0o600);
+  },
+  embedLocked(key) { const e = (this.readSecrets().embeds || {})[key]; return !!(e && /^\d{4,8}$/.test(String(e.pin || ""))); },
+
+  // Add / change / remove a web page (a page of its own in the sidebar, like Smart Home)
+  webPage(s, w) {
+    const err = (m) => { throw new Error(m); };
+    s.embeds = s.embeds || {};
+    s.pages = Array.isArray(s.pages) ? s.pages : ["home"];
+    const sec = this.readSecrets();
+    sec.embeds = sec.embeds || {};
+    if (w.remove) {
+      delete s.embeds[w.remove]; delete sec.embeds[w.remove];
+      s.pages = s.pages.filter((p) => p !== w.remove);
+      this.writeSecrets(sec);
+      return;
+    }
+    const title = String(w.title || "").trim().slice(0, 24);
+    const url = String(w.url || "").trim();
+    const icon = (WEB_ICONS.includes(w.icon) ? w.icon : "embed");
+    if (!title) err("Please give it a name");
+    if (url && !/^https?:\/\/\S+$/i.test(url)) err("The address starts with http:// or https://");
+    const pin = w.pin == null ? null : String(w.pin).replace(/\D/g, "");
+    if (pin && !/^\d{4,8}$/.test(pin)) err("A PIN is 4 to 8 digits");
+    let key = w.key;
+    if (!key) {   // a new page
+      if (!url) err("Please type the page's address");
+      key = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "web";
+      if (/^[^a-z]/.test(key)) key = `web-${key}`;
+      const taken = ["home", "calendar", "lists", "wordgame", "timer", "settings"];
+      while (s.embeds[key] || taken.includes(key)) key += "-2";
+      s.pages.splice(Math.max(1, s.pages.length - (s.pages[s.pages.length - 1] === "timer" ? 1 : 0)), 0, key);
+    }
+    const old = s.embeds[key] || {}, oldSec = sec.embeds[key] || {};
+    const address = url || old.url || oldSec.url || "";
+    const locked = pin === "" ? false : (pin ? true : !!oldSec.pin);   // "" = take the PIN off
+    if (locked) {   // the address goes with the PIN into secrets.json, never into opensky.json
+      sec.embeds[key] = { url: address, pin: pin || oldSec.pin };
+      s.embeds[key] = { title, icon };
+    } else {
+      delete sec.embeds[key];
+      s.embeds[key] = { title, icon, url: address };
+    }
+    if (old.zoom) s.embeds[key].zoom = old.zoom;
+    this.writeSecrets(sec);
   },
 
   savePrefs(patch) {
     const s = this.readSettings();
     let restartNeeded = false;
+    if (patch.webPage) {
+      try { this.webPage(s, patch.webPage); restartNeeded = true; }
+      catch (e) { return this.sendSocketNotification("OS_SET_NOTICE", { type: "error", message: e.message }); }
+    }
     if (Array.isArray(patch.pages) && patch.pages.length) { s.pages = patch.pages.map(String).filter((p) => /^[a-z][a-z0-9-]{0,30}$/.test(p)); restartNeeded = true; }
     if ("accent" in patch) { s.look = s.look || {}; if (patch.accent === "peach") delete s.look.accent; else s.look.accent = String(patch.accent); }
     if ("wordgame" in patch) { s.wordgame = s.wordgame || {}; s.wordgame.source = patch.wordgame === "opensky" ? "opensky" : "nyt"; restartNeeded = true; }

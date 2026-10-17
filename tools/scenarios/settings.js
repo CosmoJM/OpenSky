@@ -101,6 +101,44 @@ module.exports = async (page, h) => {
   const bfile = fs.readdirSync(path.join(nas, "OpenSky-backups"))[0];
   const bdata = JSON.parse(fs.readFileSync(path.join(nas, "OpenSky-backups", bfile), "utf8"));
   ok("Back up now → a backup on the network folder (no passwords unless switched on)", /^opensky-backup-\d{4}-\d\d-\d\d\.json$/.test(bfile) && bdata.opensky === "backup" && !bdata.secrets, bfile);
+  // ---- add your own web page (name, address, icon, optional PIN) ----
+  const SEC = () => JSON.parse(fs.readFileSync(path.join(__dirname, "..", "out", "secrets.test.json"), "utf8"));
+  const fillWf = (k, v) => page.evaluate(([k, v]) => { const el = document.querySelector(`[data-wf="${k}"]`); el.value = v; el.dispatchEvent(new Event("input")); }, [k, v]);
+  await page.evaluate(() => document.querySelector(".ost-add-web").click());
+  await until(async () => page.evaluate(() => !!document.querySelector(".ost-webform")));
+  const icons = await page.evaluate(() => document.querySelectorAll(".ost-webform .ost-icon").length);
+  await page.evaluate(() => document.querySelector(".ost-wf-save").click()); await h.sleep(200);
+  const emptyErr = await page.evaluate(() => document.querySelector(".ost-err").textContent);
+  await fillWf("title", "Recipes"); await fillWf("url", "http://localhost:8083/modules/opensky-fixtures/embed.html");
+  await page.evaluate(() => document.querySelector('.ost-icon[data-icon="food"]').click());
+  await page.evaluate(() => document.querySelector(".ost-wf-save").click());
+  await until(async () => S().embeds && S().embeds.recipes);
+  const rec = S().embeds.recipes;
+  ok("Add a web page on the screen: name + address + icon → its own page in the sidebar (before Timer)", icons === 16 && /name/.test(emptyErr) && rec.title === "Recipes" && rec.icon === "food" && /embed\.html$/.test(rec.url) && S().pages.includes("recipes") && S().pages.indexOf("recipes") < S().pages.indexOf("timer"), { rec, pages: S().pages, emptyErr });
+  await until(async () => page.evaluate(() => !!document.querySelector('.ost-edit-web[data-key="recipes"]')));
+  await page.evaluate(() => document.querySelector('.ost-edit-web[data-key="recipes"]').click());
+  await until(async () => page.evaluate(() => !!document.querySelector(".ost-webform")));
+  await page.evaluate(() => document.querySelector('.ost-toggle[data-id="wf-lock"]').click());
+  await fillWf("pin", "2580");
+  await page.evaluate(() => document.querySelector(".ost-wf-save").click());
+  await until(async () => (SEC().embeds || {}).recipes);
+  ok("lock it with a PIN: the address moves to secrets.json with the PIN; opensky.json keeps only name + icon", SEC().embeds.recipes.pin === "2580" && /embed\.html$/.test(SEC().embeds.recipes.url) && !S().embeds.recipes.url && S().embeds.recipes.icon === "food", { set: S().embeds.recipes });
+  await until(async () => page.evaluate(() => !!document.querySelector('.ost-edit-web[data-key="recipes"]')));
+  await page.evaluate(() => document.querySelector('.ost-edit-web[data-key="recipes"]').click());
+  await until(async () => page.evaluate(() => !!document.querySelector(".ost-webform")));
+  await page.evaluate(() => document.querySelector('.ost-toggle[data-id="wf-lock"]').click());
+  await page.evaluate(() => document.querySelector(".ost-wf-save").click());
+  await until(async () => S().embeds.recipes.url);
+  ok("PIN off again: the address comes back to opensky.json, nothing left in secrets", /embed\.html$/.test(S().embeds.recipes.url) && !(SEC().embeds || {}).recipes);
+  await until(async () => page.evaluate(() => !!document.querySelector('.ost-edit-web[data-key="recipes"]')));
+  await page.evaluate(() => document.querySelector('.ost-edit-web[data-key="recipes"]').click());
+  await until(async () => page.evaluate(() => !!document.querySelector(".ost-wf-remove")));
+  await page.evaluate(() => document.querySelector(".ost-wf-remove").click());
+  await page.evaluate(() => document.querySelector(".ost-wf-remove").click());
+  await until(async () => !S().embeds.recipes);
+  ok("Remove (tap twice): gone from the sidebar and the settings", !S().embeds.recipes && !S().pages.includes("recipes"));
+  await h.shot("settings-webpage");
+
   await page.evaluate(() => document.querySelector(".ost-x").click());
   await page.evaluate(() => { const sb = MM.getModules().withClass("MMM-OpenSky-Sidebar")[0]; ["--os-accent", "--os-accent-mid", "--os-accent-light", "--os-accent-soft", "--os-accent-tint", "--os-accent-dark"].forEach((p) => document.documentElement.style.removeProperty(p)); });
 

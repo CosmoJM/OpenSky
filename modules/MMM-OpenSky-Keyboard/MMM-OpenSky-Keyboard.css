@@ -49,10 +49,12 @@
 
 /* popups move up above the keyboard while it's open */
 body.kb-open .osl-overlay,
+body.kb-open .ost-overlay,
 body.kb-open .calendar-editor-overlay {
   align-items: flex-start;
   padding-top: calc(3 * var(--vh));
   padding-bottom: calc(calc(40 * var(--vh)) + calc(2 * var(--vh)));
   box-sizing: border-box;
 }
+body.kb-open .ost-panel { max-height: calc(54 * var(--vh)); }
 body.kb-open .calendar-editor-modal { max-height: calc(calc(100 * var(--vh)) - calc(40 * var(--vh)) - calc(6 * var(--vh))); }
