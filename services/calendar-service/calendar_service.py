@@ -287,10 +287,11 @@ def delete_event(name):
     data = request.get_json(silent=True) or {}
 
     def do(calendar):
-        target, comp = find_event(calendar, data)
+        target, _ = find_event(calendar, data)
         if not target:
             raise UserError("Event not found (it may have been changed elsewhere)", 404)
-        if "rrule" in comp:
+        # the whole resource goes, so look at all of it: a moved occurrence (RECURRENCE-ID) lives with its series
+        if any("rrule" in c or "recurrence-id" in c for c in Calendar.from_ical(target.data).walk("VEVENT")):
             raise UserError("Repeating events can only be deleted in your calendar app", 409)
         target.delete()
     try:
