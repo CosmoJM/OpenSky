@@ -57,5 +57,19 @@ ok("12 security basics: localhost only, webview on", c.address === "localhost" &
 const d = build({});
 ok("13 empty settings → a working default (home + timer, no crash)", JSON.stringify(mod(d, "MMM-pages").config.modules) === JSON.stringify([["MMM-OpenSky-Home"], ["MMM-OpenSky-Timer"]]));
 
+// Event names come from anyone who can send an invitation: the month view (CX3 draws them as HTML) gets plain text,
+// and a tapped event reads back exactly as it was named
+const cx3 = mod(c, "MMM-CalendarExt3").config;
+const evil = { title: `Party <img src=x onerror="alert(1)"> & 'cake'`, location: "<b>Gym</b>", description: "<script>x()</script>", startDate: "1", endDate: "2" };
+const shown = cx3.eventTransformer(evil);
+ok("14 month view: event title, place and notes can't carry HTML", !/[<>"']/.test(shown.title + shown.location + shown.description) && evil.title.startsWith("Party <img"),
+  shown.title);
+let calModule = null;
+global.Module = { register: (n, o) => { calModule = o; } };
+require(path.join(__dirname, "..", "modules", "MMM-OpenSky-Calendar", "MMM-OpenSky-Calendar.js"));
+const back = calModule.eventFromElement.call(calModule, { dataset: { ...shown, startDate: "1", endDate: "2", fullDayEvent: "false" } });
+ok("15 tapping that event gives back the real title, place and notes (the editor finds it by title)",
+  back.title === evil.title && back.location === evil.location && back.description === evil.description, back.title);
+
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log(`SUMMARY pass=${passed} fail=${failed}`);

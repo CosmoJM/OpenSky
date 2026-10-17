@@ -78,13 +78,15 @@ Module.register("MMM-OpenSky-Calendar", {
     this.sendNotification("CX3_RESET", { instanceId: this.config.instanceId });
   },
 
-  // CX3 keeps the event on the element's data attributes (dates are epoch milliseconds as strings)
+  // CX3 keeps the event on the element's data attributes (dates are epoch milliseconds as strings). Title, place and
+  // notes were made safe for HTML by config.js (eventTransformer): turn them back into the real text.
   eventFromElement(el) {
     const d = el.dataset;
+    const text = (v) => (typeof v === "string" ? v.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n))) : v);
     const start = Number(d.startDate), end = Number(d.endDate);
     if (!d.title || !Number.isFinite(start)) return null;
-    return this.normalize({ title: d.title, calendarName: d.calendarName, startDate: start, endDate: Number.isFinite(end) ? end : start,
-      fullDayEvent: d.fullDayEvent === "true", location: d.location, description: d.description, color: d.color });
+    return this.normalize({ title: text(d.title), calendarName: d.calendarName, startDate: start, endDate: Number.isFinite(end) ? end : start,
+      fullDayEvent: d.fullDayEvent === "true", location: text(d.location), description: text(d.description), color: d.color });
   },
 
   normalize(ev) {
