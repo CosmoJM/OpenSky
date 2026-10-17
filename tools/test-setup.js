@@ -101,6 +101,11 @@ function burst(n) {
   ok("8 a good secrets.json: the new key is added, the others kept, the phone only learns names",
     r.status === 200 && sec.lists.todoist.token === "tok-testers-123" && sec.weather.openweathermap.apiKey === "owm-testers" && !JSON.stringify(r.body).includes("tok-testers"), r.body);
 
+  // 9 a damaged opensky.json: the phone is told, not shown the example settings (which Save would then write)
+  fs.writeFileSync(process.env.OPENSKY_SETTINGS, '{ "family": { "name": "The Testers" }, }');
+  r = await call("GET", "/api/state", undefined, as);
+  ok("9 damaged opensky.json → the phone says so instead of offering the example settings", r.status === 409 && /mistake/.test(r.body.error), r.status);
+
   h.stopServer("test over");
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`SUMMARY pass=${passed} fail=${failed}`);

@@ -266,7 +266,14 @@ module.exports = NodeHelper.create({
   },
 
   /* ---------- core settings (the same ones the phone page edits) ---------- */
-  readSettings() { try { return JSON.parse(fs.readFileSync(backup.SETTINGS, "utf8")); } catch (e) { return {}; } },
+  // forChange: a damaged opensky.json (a typo from editing it by hand) throws, or the change would replace it with
+  // little more than that one setting
+  readSettings(forChange) {
+    try { return JSON.parse(fs.readFileSync(backup.SETTINGS, "utf8")); } catch (e) {
+      if (forChange && e.code !== "ENOENT") throw new Error("opensky.json has a mistake, so nothing was changed — fix it first (opensky check shows where)");
+      return {};
+    }
+  },
 
   sendPrefs(extra = {}) {
     const s = this.readSettings();
@@ -348,7 +355,8 @@ module.exports = NodeHelper.create({
   },
 
   savePrefs(patch) {
-    const s = this.readSettings();
+    let s;
+    try { s = this.readSettings(true); } catch (e) { return this.sendSocketNotification("OS_SET_NOTICE", { type: "error", message: e.message }); }
     let restartNeeded = false;
     if (patch.webPage) {
       try { this.webPage(s, patch.webPage); restartNeeded = true; }

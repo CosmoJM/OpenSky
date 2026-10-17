@@ -38,6 +38,17 @@ const notice = () => (sent.filter(([n]) => n === "OS_SET_NOTICE").pop() || [])[1
   ok("2 a good secrets.json: the page's address + PIN added, the Google sign-in kept",
     sec.google.refreshToken === "rt-testers" && sec.embeds.cameras.pin === "2468" && !read(process.env.OPENSKY_SETTINGS).includes("192.168.1.50"));
 
+  // 3-4 a damaged opensky.json is never replaced by just the one setting changed on the screen
+  const damagedSettings = '{ "family": { "name": "The Testers" }, "pages": ["home", "cameras", "timer"], "look": { "accent": "teal" }, }';
+  fs.writeFileSync(process.env.OPENSKY_SETTINGS, damagedSettings);
+  await h.socketNotificationReceived("OS_SET_PREFS_SAVE", { patch: { accent: "green" } });
+  ok("3 change the accent with a damaged opensky.json → refused, the file is untouched",
+    read(process.env.OPENSKY_SETTINGS) === damagedSettings && /mistake/.test((notice() || {}).message || ""), notice());
+  fs.writeFileSync(process.env.OPENSKY_SETTINGS, damagedSettings.replace(", }", " }"));
+  await h.socketNotificationReceived("OS_SET_PREFS_SAVE", { patch: { accent: "green" } });
+  const now = JSON.parse(read(process.env.OPENSKY_SETTINGS));
+  ok("4 fixed → the change is saved and everything else kept", now.look.accent === "green" && now.family.name === "The Testers" && now.pages.length === 3);
+
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`SUMMARY pass=${passed} fail=${failed}`);
   process.exit(failed ? 1 : 0);

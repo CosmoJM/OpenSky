@@ -228,11 +228,13 @@ module.exports = NodeHelper.create({
     this.touch();   // only a paired phone keeps setup open (anyone else on the Wi-Fi can't hold it open forever)
 
     if (url.pathname === "/api/state" && req.method === "GET") {
-      const settings = readJson(SETTINGS, null) || readJson(EXAMPLE, {});
+      const settings = readJson(SETTINGS, null);
+      // a damaged opensky.json: showing the example instead would let Save replace the family's settings with it
+      if (!settings && fs.existsSync(SETTINGS)) return this.send(res, 409, { error: "opensky.json on the Pi has a mistake — fix it first (opensky check shows where)" });
       let presets = [];
       try { presets = fs.readdirSync(path.join(__dirname, "..", "..", "lib", "pickup-presets")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)); } catch (e) { /* none */ }
       return this.send(res, 200, {
-        settings, secretsSet: secretPaths(readJson(SECRETS, {})), presets,
+        settings: settings || readJson(EXAMPLE, {}), secretsSet: secretPaths(readJson(SECRETS, {})), presets,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY
       });
     }
