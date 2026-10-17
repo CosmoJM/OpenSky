@@ -251,6 +251,7 @@ module.exports = NodeHelper.create({
       if (cur) {
         for (const [k, v] of changes) {
           if (!SECRET_ROOTS.some((r) => k.startsWith(r)) || !/^[\w .'&()-]+(\.[\w .'&()-]+)*$/.test(k)) continue;
+          if (k.split(".").some((p) => ["__proto__", "constructor", "prototype"].includes(p.trim()))) continue;   // (would change every object on the Pi)
           applySecret(cur, k, v);
         }
         writeJson(SECRETS, cur, 0o600);

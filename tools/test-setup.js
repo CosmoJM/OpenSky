@@ -101,10 +101,15 @@ function burst(n) {
   ok("8 a good secrets.json: the new key is added, the others kept, the phone only learns names",
     r.status === 200 && sec.lists.todoist.token === "tok-testers-123" && sec.weather.openweathermap.apiKey === "owm-testers" && !JSON.stringify(r.body).includes("tok-testers"), r.body);
 
-  // 9 a damaged opensky.json: the phone is told, not shown the example settings (which Save would then write)
+  // 9 a secret's name can't reach into JavaScript itself ("embeds.__proto__.x" passed the allowed-names check)
+  r = await call("POST", "/api/save", { settings, secrets: { "embeds.__proto__.pin": "1234", "calendar.sources.constructor.prototype.url": "http://x" } }, as);
+  ok("9 secret names like embeds.__proto__.pin are ignored (no change to every object on the Pi)", r.status === 200 && ({}).pin === undefined && ({}).url === undefined, ({}).pin);
+  delete Object.prototype.pin;
+
+  // 10 a damaged opensky.json: the phone is told, not shown the example settings (which Save would then write)
   fs.writeFileSync(process.env.OPENSKY_SETTINGS, '{ "family": { "name": "The Testers" }, }');
   r = await call("GET", "/api/state", undefined, as);
-  ok("9 damaged opensky.json → the phone says so instead of offering the example settings", r.status === 409 && /mistake/.test(r.body.error), r.status);
+  ok("10 damaged opensky.json → the phone says so instead of offering the example settings", r.status === 409 && /mistake/.test(r.body.error), r.status);
 
   h.stopServer("test over");
   fs.rmSync(tmp, { recursive: true, force: true });
