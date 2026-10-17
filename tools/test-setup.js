@@ -78,6 +78,29 @@ function burst(n) {
   await call("GET", "/api/state");
   ok("3 requests from a phone that isn't paired don't keep setup open", h.idleTimer === idle);
 
+  // a paired phone
+  h.lockedUntil = 0; h.codeUntil = Date.now() + 60000;
+  const cookie = (await call("POST", "/api/pair", { code: h.code })).cookie;
+  const as = { Cookie: cookie };
+  ok("4 the right code pairs the phone", /^os_setup=[a-f0-9]{64}$/.test(cookie), cookie.slice(0, 12));
+
+  // 5-7 a damaged secrets.json (a typo from editing it by hand) is never replaced by just the new value
+  const damaged = '{ "lists": { "todoist": { "token": "tok-testers-123" } }, }';
+  fs.writeFileSync(process.env.OPENSKY_SECRETS, damaged);
+  const settings = { family: { name: "The Testers" }, pages: ["home"] };
+  let r = await call("POST", "/api/save", { settings, secrets: { "weather.openweathermap.apiKey": "owm-testers" } }, as);
+  ok("5 damaged secrets.json + a new password → refused, nothing lost", r.status === 409 && fs.readFileSync(process.env.OPENSKY_SECRETS, "utf8") === damaged, r.body);
+  r = await call("POST", "/api/save", { settings: { ...settings, pages: ["home", "timer"] }, secrets: {} }, as);
+  ok("6 damaged secrets.json + only settings changed → settings saved, secrets.json untouched",
+    r.status === 200 && JSON.parse(fs.readFileSync(process.env.OPENSKY_SETTINGS, "utf8")).pages.length === 2 && fs.readFileSync(process.env.OPENSKY_SECRETS, "utf8") === damaged, r.status);
+  r = await call("POST", "/api/google/start", { clientId: "123-testers.apps.googleusercontent.com", clientSecret: "cs-testers" }, as);
+  ok("7 Google sign-in with a damaged secrets.json → refused, nothing lost", r.status === 409 && fs.readFileSync(process.env.OPENSKY_SECRETS, "utf8") === damaged, r.status);
+  fs.writeFileSync(process.env.OPENSKY_SECRETS, JSON.stringify({ lists: { todoist: { token: "tok-testers-123" } } }));
+  r = await call("POST", "/api/save", { settings, secrets: { "weather.openweathermap.apiKey": "owm-testers" } }, as);
+  const sec = JSON.parse(fs.readFileSync(process.env.OPENSKY_SECRETS, "utf8"));
+  ok("8 a good secrets.json: the new key is added, the others kept, the phone only learns names",
+    r.status === 200 && sec.lists.todoist.token === "tok-testers-123" && sec.weather.openweathermap.apiKey === "owm-testers" && !JSON.stringify(r.body).includes("tok-testers"), r.body);
+
   h.stopServer("test over");
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`SUMMARY pass=${passed} fail=${failed}`);

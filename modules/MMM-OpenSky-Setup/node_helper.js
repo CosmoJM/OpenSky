@@ -46,6 +46,14 @@ const CODE_MINUTES = 10, IDLE_MINUTES = 30;
 const SECRET_ROOTS = ["weather.openweathermap.", "lists.todoist.", "homeassistant.", "photos.immich.", "calendar.sources.", "calendar.caldav.", "embeds."];
 
 const readJson = (f, fallback) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { return fallback; } };
+// secrets.json before a change: a damaged file (a typo from editing it by hand) is never replaced, or every other
+// password in it would be lost
+function secretsForChange() {
+  try { return JSON.parse(fs.readFileSync(SECRETS, "utf8")); } catch (e) {
+    if (e.code === "ENOENT") return {};
+    throw Object.assign(new Error("secrets.json on the Pi has a mistake, so nothing was saved — fix it first (opensky check shows where)"), { status: 409 });
+  }
+}
 function writeJson(file, data, mode) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(`${file}.tmp`, JSON.stringify(data, null, 2) + "\n", mode ? { mode } : undefined);
@@ -233,11 +241,13 @@ module.exports = NodeHelper.create({
       const { settings, secrets } = await this.body(req);
       if (!settings || typeof settings !== "object" || Array.isArray(settings)) return this.send(res, 400, { error: "Nothing to save" });
       if (settings.pages && !Array.isArray(settings.pages)) return this.send(res, 400, { error: "Pages must be a list" });
+      const changes = secrets && typeof secrets === "object" ? Object.entries(secrets) : [];
+      let cur = null;
+      if (changes.length) { try { cur = secretsForChange(); } catch (e) { return this.send(res, e.status, { error: e.message }); } }
       if (fs.existsSync(SETTINGS)) fs.copyFileSync(SETTINGS, `${SETTINGS}.bak`);
       writeJson(SETTINGS, settings);
-      if (secrets && typeof secrets === "object") {
-        const cur = readJson(SECRETS, {});
-        for (const [k, v] of Object.entries(secrets)) {
+      if (cur) {
+        for (const [k, v] of changes) {
           if (!SECRET_ROOTS.some((r) => k.startsWith(r)) || !/^[\w .'&()-]+(\.[\w .'&()-]+)*$/.test(k)) continue;
           applySecret(cur, k, v);
         }
@@ -267,7 +277,8 @@ module.exports = NodeHelper.create({
     }
     if (url.pathname === "/api/google/start" && req.method === "POST") {
       const { clientId, clientSecret } = await this.body(req);
-      const cur = readJson(SECRETS, {});
+      let cur;
+      try { cur = secretsForChange(); } catch (e) { return this.send(res, e.status, { error: e.message }); }
       if (clientId || clientSecret) {
         applySecret(cur, "google", { clientId: String(clientId || "").trim(), clientSecret: String(clientSecret || "").trim() });
         writeJson(SECRETS, cur, 0o600);
@@ -279,7 +290,9 @@ module.exports = NodeHelper.create({
     }
     if (url.pathname === "/api/google/finish" && req.method === "POST") {
       const { address } = await this.body(req);
-      const cur = readJson(SECRETS, {}), g = cur.google || {};
+      let cur;
+      try { cur = secretsForChange(); } catch (e) { return this.send(res, e.status, { error: e.message }); }
+      const g = cur.google || {};
       try {
         const { refreshToken } = await google.finishSignIn(address, this.googlePending, g.clientId, g.clientSecret);
         applySecret(cur, "google", { refreshToken });
