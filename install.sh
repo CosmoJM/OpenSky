@@ -201,6 +201,9 @@ WorkingDirectory=$MM
 ExecStart=$REPO/tools/opensky-start
 Restart=on-failure
 RestartSec=5
+# MagicMirror quits cleanly on SIGINT; systemd's default SIGTERM ends Electron with exit 1, so every
+# 'opensky stop' left the service "failed" (a red ✗ in opensky status)
+KillSignal=SIGINT
 EOF
 # The screen needs the desktop's display, so the desktop starts it (systemd keeps it running and restarts it)
 cat > "$AUTOSTART" <<EOF
