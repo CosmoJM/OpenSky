@@ -57,33 +57,37 @@ function applyPlace(s, place) {
   }
 }
 
+// The installer shows this indented under its own headings. Indent here, not with a pipe through sed: sed only passes on
+// whole lines, so the questions (no line end yet) never appeared and the installer looked frozen.
+const say = (m = "") => console.log(String(m).replace(/^(?=.)/gm, "  "));
+
 (async () => {
-  if (fs.existsSync(OUT)) { console.log(`Settings already exist: ${OUT} (left as they are)`); return; }
+  if (fs.existsSync(OUT)) { say(`Settings already exist: ${OUT} (left as they are)`); return; }
   const s = JSON.parse(fs.readFileSync(path.join(REPO, "config", "opensky.example.json"), "utf8"));
   s._readme = "OpenSky settings — edit freely (see docs/configure.md), then: opensky restart. No passwords or API keys here — those go in secrets.json.";
   const ask = !flag("--yes") && process.stdin.isTTY;
 
   if (ask) {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    console.log("\nA few quick questions (press Enter to skip any of them — you can change everything later).\n");
-    const fam = (await rl.question("Family name for the top of the screen (e.g. The Smiths): ")).trim();
+    say("\nA few quick questions (press Enter to skip any of them — you can change everything later).\n");
+    const fam = (await rl.question("  Family name for the top of the screen (e.g. The Smiths): ")).trim();
     if (fam) s.family.name = fam;
     for (;;) {
-      const town = (await rl.question("Your town or city, for the weather (e.g. Boston): ")).trim();
-      if (!town) { console.log("  Skipped — the weather stays off until a location is set (docs/configure.md)."); break; }
+      const town = (await rl.question("  Your town or city, for the weather (e.g. Boston): ")).trim();
+      if (!town) { say("  Skipped — the weather stays off until a location is set (docs/configure.md)."); break; }
       let places;
-      try { places = await findPlace(town); } catch (e) { console.log(`  Couldn't look that up (${e.message}). Check the internet, or skip for now.`); continue; }
-      if (!places.length) { console.log("  No place by that name — try the nearest bigger town, or add the state/country."); continue; }
-      places.forEach((p, i) => console.log(`   ${i + 1}) ${p.label}`));
-      const pick = (await rl.question(`  Which one? [1-${places.length}, Enter = 1, 0 = search again]: `)).trim();
+      try { places = await findPlace(town); } catch (e) { say(`  Couldn't look that up (${e.message}). Check the internet, or skip for now.`); continue; }
+      if (!places.length) { say("  No place by that name — try the nearest bigger town, or add the state/country."); continue; }
+      places.forEach((p, i) => say(`   ${i + 1}) ${p.label}`));
+      const pick = (await rl.question(`    Which one? [1-${places.length}, Enter = 1, 0 = search again]: `)).trim();
       if (pick === "0") continue;
       const place = places[(Number(pick) || 1) - 1] || places[0];
       applyPlace(s, place);
-      console.log(`  ✓ ${place.label} — ${s.locale.units === "imperial" ? "°F" : "°C"}, ${s.locale.timeFormat}-hour clock`);
+      say(`  ✓ ${place.label} — ${s.locale.units === "imperial" ? "°F" : "°C"}, ${s.locale.timeFormat}-hour clock`);
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (place.timezone && tz && !sameClock(place.timezone, tz)) {
-        console.log(`  ⚠ This Pi's clock is set to ${tz}, but ${place.name} is in ${place.timezone}.`);
-        console.log(`    Fix it with:  sudo raspi-config nonint do_change_timezone ${place.timezone}`);
+        say(`  ⚠ This Pi's clock is set to ${tz}, but ${place.name} is in ${place.timezone}.`);
+        say(`    Fix it with:  sudo raspi-config nonint do_change_timezone ${place.timezone}`);
       }
       break;
     }
@@ -92,5 +96,5 @@ function applyPlace(s, place) {
 
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(s, null, 2) + "\n");
-  console.log(`Settings saved: ${OUT}`);
-})().catch((e) => { console.error(`first-run: ${e.message}`); process.exit(1); });
+  say(`Settings saved: ${OUT}`);
+})().catch((e) => { console.error(`  first-run: ${e.message}`); process.exit(1); });

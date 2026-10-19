@@ -148,7 +148,7 @@ CAL_OK=1
 
 # ---------------------------------------------------------------- your settings
 say "Your settings ($CONFIG)"
-"$NODE_BIN/node" "$REPO/tools/first-run.js" $( [ $YES = 1 ] && echo --yes ) | sed 's/^/  /'
+"$NODE_BIN/node" "$REPO/tools/first-run.js" $( [ $YES = 1 ] && echo --yes )   # no pipe: the questions must show (see first-run.js)
 if [ ! -f "$CONFIG/secrets.json" ]; then
   cp "$CONFIG/secrets.example.json" "$CONFIG/secrets.json"; ok "Created secrets.json (for passwords and keys — only this Pi reads it)"
 fi
