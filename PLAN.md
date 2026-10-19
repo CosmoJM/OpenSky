@@ -99,9 +99,3 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
   PhotoPrism / Nextcloud photos, NWS / Met.no weather.
 - Presence: screen on/off from Home Assistant (nobody home → off), settings migrations between versions.
 - Add-ons: **Food** (nearby restaurants), others from the community; a ready-to-flash SD-card image.
-
-## Development setup (this Pi)
-- The family calendar (`~/MagicMirror`) is **never touched** by OpenSky work. OpenSky lives in `~/opensky` with its own
-  MagicMirror checkout, runs only on the off-screen test display (port 8083), and has its own backups
-  (`~/opensky-backup/`, NAS folder `opensky/`).
-- Final testing: a second SD card in this Pi (swap the cards), so the family calendar's card is never modified.
