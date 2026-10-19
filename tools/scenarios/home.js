@@ -10,7 +10,7 @@ module.exports = async (page, h) => {
     const t = new Date(); const at = (dd, hh, mm = 0) => new Date(t.getFullYear(), t.getMonth(), t.getDate() + dd, hh, mm).getTime();
     const evs = [
       { title: "Dentist", startDate: at(0, 15), endDate: at(0, 16), calendarName: "Family" },
-      { title: "Soccer practice", startDate: at(1, 17), endDate: at(1, 18, 30), calendarName: "Testers" },
+      { title: "Swim lesson", startDate: at(1, 17), endDate: at(1, 18, 30), calendarName: "Testers" },
       { title: "Family dinner", startDate: at(2, 0), endDate: at(3, 0), fullDayEvent: true, calendarName: "Family" }
     ];
     const home = MM.getModules().withClass("MMM-OpenSky-Home")[0];
@@ -21,7 +21,7 @@ module.exports = async (page, h) => {
   const by = (t) => pills.find((p) => p.title === t);
   ok("events on their days with times", by("Dentist") && /3 PM – 4 PM|3 – 4 PM/.test(by("Dentist").time) && by("Family dinner") && by("Family dinner").time === "All day", pills);
   ok("keyword colour rule (dentist → indigo)", by("Dentist") && by("Dentist").bar === "rgb(74, 91, 216)", by("Dentist") && by("Dentist").bar);
-  ok("calendar colour (Testers → blue)", by("Soccer practice") && by("Soccer practice").bar === "rgb(46, 139, 214)", by("Soccer practice") && by("Soccer practice").bar);
+  ok("calendar colour (Testers → blue)", by("Swim lesson") && by("Swim lesson").bar === "rgb(46, 139, 214)", by("Swim lesson") && by("Swim lesson").bar);   // a title the fixture calendar doesn't have (its Soccer practice is pink)
 
   // weather on the tiles (from the header's shared forecast)
   for (let i = 0; i < 25 && !(await page.evaluate(() => document.querySelectorAll(".hd-day-wx span").length)); i++) await h.sleep(1000);
