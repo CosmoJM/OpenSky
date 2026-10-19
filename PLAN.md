@@ -88,8 +88,8 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    link, backups (download/restore + nightly automatic), safe updates with rollback, accent colour, screen-off methods
    with Test + wake on touch, Settings on the screen = the phone's core settings, web-page touches count as activity,
    **add your own web page** from Settings or the phone (name, address, 16 icons, optional PIN).
-3. **First public milestone (v1.0)** — everything above. ✅ built and tested off-screen. Left before tagging v1.0.0:
-   the real-monitor screen test, the **clean install on a spare SD card**, README screenshots, release notes.
+3. **First public milestone (v1.0)** — everything above. ✅ built, tested off-screen, and installed from GitHub on a
+   real Pi + touch monitor (v1.0.0-rc.3: installer questions, phone setup over Wi-Fi, every page, updates).
 4. ~~Phone setup page~~ ✅ (done in 2).  5. ~~Providers from the matrix~~ ✅ most of them (done in 2).
 6. **Public release v1.0.0**: tag, GitHub release notes, announcement (MagicMirror forum "Showcase").
 

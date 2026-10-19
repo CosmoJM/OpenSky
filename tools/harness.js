@@ -52,7 +52,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   if (scenario.writableSettings || scenario.patchSettings || scenario.patchSecrets) {
     const st = JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf8"));
     if (scenario.patchSettings) scenario.patchSettings(st);
-    if (st.photos && st.photos.folder && !path.isAbsolute(st.photos.folder)) st.photos.folder = path.join(path.dirname(SETTINGS_FILE), st.photos.folder);
+    if (st.photos && st.photos.folder && !path.isAbsolute(st.photos.folder) && !st.photos.folder.startsWith("~")) st.photos.folder = path.join(path.dirname(SETTINGS_FILE), st.photos.folder);
     fs.writeFileSync(path.join(OUT, "opensky.test.json"), JSON.stringify(st, null, 2));
     const sec = JSON.parse(fs.readFileSync(SECRETS_FILE, "utf8"));
     if (scenario.patchSecrets) scenario.patchSecrets(sec);

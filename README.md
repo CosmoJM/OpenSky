@@ -4,7 +4,7 @@
 A friendly family wall calendar and home dashboard for a Raspberry Pi touchscreen — the week ahead, shared lists,
 timers, photos, weather and smart-home controls on one screen. Built on [MagicMirror²](https://magicmirror.builders/).
 
-> Release candidate for **v1.0** — see [CHANGELOG.md](CHANGELOG.md). Where it's heading: [PLAN.md](PLAN.md).
+> **v1.0** — what's in it: [CHANGELOG.md](CHANGELOG.md). Where it's heading: [PLAN.md](PLAN.md).
 
 ![The Home page: the week ahead, lists and a photo](docs/assets/screenshots/home.jpg)
 

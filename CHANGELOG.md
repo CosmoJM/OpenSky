@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 — unreleased (release candidate)
+## 1.0.0 — 2026-10-19
 The first public version: a friendly family wall calendar for a Raspberry Pi touchscreen, built on MagicMirror².
 
 **On the screen**
