@@ -58,6 +58,10 @@ The screen didn't accept brightness commands, so OpenSky dims the picture instea
 - Type the address exactly as the screen shows it, starting with `http://` (not https).
 - "That code has expired": tap **New code** on the screen. After 5 wrong codes there's a 1-minute pause.
 - The page closes by itself after 30 quiet minutes — open it again from Settings.
+- **The page doesn't load at all, or saving says "Can't reach the screen" / "Load failed"** (and you can't reach the Pi
+  from a computer either): the Pi's Wi-Fi power saving can make it miss phones and computers. The installer offers to
+  turn it off; to do it by hand, run `sudo iw dev wlan0 set power_save off` and then `sudo nmcli radio wifi off && sudo nmcli radio wifi on`
+  (or restart the Pi). To keep it off after a restart, run `./install.sh` again and answer yes to "Keep the Wi-Fi awake".
 
 ## "Port … is already used by another program"
 OpenSky's calendar helper listens on port 5747 on the Pi itself. If another program uses it, pick a free one in

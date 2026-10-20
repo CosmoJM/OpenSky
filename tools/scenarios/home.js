@@ -9,9 +9,10 @@ module.exports = async (page, h) => {
   await page.evaluate(() => {
     const t = new Date(); const at = (dd, hh, mm = 0) => new Date(t.getFullYear(), t.getMonth(), t.getDate() + dd, hh, mm).getTime();
     const evs = [
-      { title: "Dentist", startDate: at(0, 15), endDate: at(0, 16), calendarName: "Family" },
+      // (titles the fixture calendar doesn't have: its own Soccer practice, Dentist and Family dinner repeat weekly)
+      { title: "Kids dentist", startDate: at(0, 15), endDate: at(0, 16), calendarName: "Family" },
       { title: "Swim lesson", startDate: at(1, 17), endDate: at(1, 18, 30), calendarName: "Testers" },
-      { title: "Family dinner", startDate: at(2, 0), endDate: at(3, 0), fullDayEvent: true, calendarName: "Family" }
+      { title: "Family picnic", startDate: at(2, 0), endDate: at(3, 0), fullDayEvent: true, calendarName: "Family" }
     ];
     const home = MM.getModules().withClass("MMM-OpenSky-Home")[0];
     home.notificationReceived("CALENDAR_EVENTS", evs.map((e) => ({ ...e, startDate: String(e.startDate), endDate: String(e.endDate) })), { identifier: "test_calendar" });
@@ -19,8 +20,8 @@ module.exports = async (page, h) => {
   await h.sleep(500);
   const pills = await page.evaluate(() => [...document.querySelectorAll(".hd-week .hd-event")].map((p) => ({ title: p.querySelector(".hd-event-title").textContent, time: p.querySelector(".hd-event-time").textContent, bar: getComputedStyle(p).borderLeftColor })));
   const by = (t) => pills.find((p) => p.title === t);
-  ok("events on their days with times", by("Dentist") && /3 PM – 4 PM|3 – 4 PM/.test(by("Dentist").time) && by("Family dinner") && by("Family dinner").time === "All day", pills);
-  ok("keyword colour rule (dentist → indigo)", by("Dentist") && by("Dentist").bar === "rgb(74, 91, 216)", by("Dentist") && by("Dentist").bar);
+  ok("events on their days with times", by("Kids dentist") && /3 PM – 4 PM|3 – 4 PM/.test(by("Kids dentist").time) && by("Family picnic") && by("Family picnic").time === "All day", pills);
+  ok("keyword colour rule (dentist → indigo)", by("Kids dentist") && by("Kids dentist").bar === "rgb(74, 91, 216)", by("Kids dentist") && by("Kids dentist").bar);
   ok("calendar colour (Testers → blue)", by("Swim lesson") && by("Swim lesson").bar === "rgb(46, 139, 214)", by("Swim lesson") && by("Swim lesson").bar);   // a title the fixture calendar doesn't have (its Soccer practice is pink)
 
   // weather on the tiles (from the header's shared forecast)

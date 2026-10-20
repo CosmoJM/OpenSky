@@ -28,7 +28,8 @@ The first public version: a friendly family wall calendar for a Raspberry Pi tou
 
 **Setting up and keeping it running**
 - One-command installer for Raspberry Pi OS; starts by itself at power-on.
-- **Set up from your phone**: scan a QR code, type the code from the screen, add calendars, lists and photos.
+- **Set up from your phone**: scan a QR code, type the code from the screen, add calendars, lists and photos. The
+  installer keeps the Pi's Wi-Fi awake so your phone can always reach it.
 - Backups: download / restore from the phone, and automatic nightly backups to a USB stick or network folder.
 - Updates install the newest **release** (testers can follow `main`); a version that doesn't start is rolled back by
   itself; `opensky rollback`, `opensky backup`.

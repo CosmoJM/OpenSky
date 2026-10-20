@@ -2,7 +2,7 @@
  * - The first time OpenSky starts: a welcome card offering phone setup (once; "Not now" is remembered).
  * - Settings → "Set up from your phone" (OPENSKY_SETUP_OPEN): a card with a QR code, the address and a 6-digit
  *   pairing code. It follows along: phone connected → saved → done, then closes. The web server behind it
- *   (node helper) only runs while this card is open.
+ *   (node helper) only runs while this card is open, or while a paired phone is still busy with it.
  */
 Module.register("MMM-OpenSky-Setup", {
   getStyles() { return ["MMM-OpenSky-Setup.css"]; },

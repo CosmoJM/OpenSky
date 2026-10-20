@@ -147,7 +147,8 @@ details.help p { margin: 10px 0 0; }
 .sheet-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); }
 
 /* toast */
-.toast { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top)); z-index: 30; max-width: 90vw; padding: 12px 20px; border-radius: 999px; background: #374151; color: #fff; font-size: 15px; font-weight: 600; box-shadow: 0 10px 26px rgba(0, 0, 0, .18); transform: translate(-50%, -160%); transition: transform .25s; }
+/* (width: max-content — at left 50% a long message was squeezed into half the screen) */
+.toast { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top)); z-index: 30; width: max-content; max-width: min(90vw, 420px); padding: 12px 20px; border-radius: 22px; line-height: 1.35; text-align: center; background: #374151; color: #fff; font-size: 15px; font-weight: 600; box-shadow: 0 10px 26px rgba(0, 0, 0, .18); transform: translate(-50%, -160%); transition: transform .25s; }
 .toast.show { transform: translate(-50%, 0); }
 .toast.good { background: var(--good); }
 .toast.bad { background: #d2604e; }

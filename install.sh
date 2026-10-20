@@ -55,7 +55,7 @@ if [ $UNINSTALL = 1 ]; then
   say "Removing OpenSky's services"
   systemctl --user disable --now opensky.service opensky-calendar.service 2>/dev/null || true
   rm -f "$UNITS/opensky.service" "$UNITS/opensky-calendar.service" "$AUTOSTART" "$HOME/.local/bin/opensky"
-  for f in /etc/udev/rules.d/90-opensky-backlight.rules /etc/modules-load.d/opensky-i2c.conf; do [ -f "$f" ] && sudo rm -f "$f"; done
+  for f in /etc/udev/rules.d/90-opensky-backlight.rules /etc/modules-load.d/opensky-i2c.conf /etc/NetworkManager/conf.d/90-opensky-wifi.conf; do [ -f "$f" ] && sudo rm -f "$f"; done
   systemctl --user daemon-reload 2>/dev/null || true
   ok "Stopped and removed. Your settings and data are still in $CONFIG"
   if ask "Also delete the runtime in $RUNTIME (MagicMirror, Node.js, Python)?" n; then rm -rf "$RUNTIME"; ok "Deleted $RUNTIME"; fi
@@ -245,6 +245,17 @@ elif ! command -v ddcutil >/dev/null || ! lsmod | grep -q '^i2c_dev' || ! id -nG
     lsmod | grep -q '^i2c_dev' || { echo i2c-dev | sudo tee /etc/modules-load.d/opensky-i2c.conf >/dev/null; sudo modprobe i2c-dev; }
     id -nG | grep -qw i2c || sudo usermod -aG i2c "$USER"
     ok "Brightness over HDMI set up (if the monitor supports it; Settings shows which method it uses)"
+  fi
+fi
+
+# ---------------------------------------------------------------- Wi-Fi power saving
+# With power saving on, the Pi's Wi-Fi can miss phones and computers trying to reach it: phone setup then doesn't load
+WIFI_CONF=/etc/NetworkManager/conf.d/90-opensky-wifi.conf
+if [ -d /sys/class/net/wlan0/wireless ] && [ -d /etc/NetworkManager/conf.d ] && [ ! -f "$WIFI_CONF" ]; then
+  if ask "Keep the Wi-Fi awake, so your phone can always reach the screen? (needs sudo)" y; then
+    printf '[connection]\n# OpenSky: Wi-Fi power saving can make the Pi miss phones trying to reach it (phone setup)\nwifi.powersave = 2\n' | sudo tee "$WIFI_CONF" >/dev/null
+    sudo iw dev wlan0 set power_save off 2>/dev/null || true
+    ok "Wi-Fi stays awake"
   fi
 fi
 

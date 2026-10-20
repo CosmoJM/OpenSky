@@ -1,7 +1,7 @@
 /* MMM-OpenSky-Setup node helper — set OpenSky up from a phone.
  *
  * Runs a small web server on the Pi's network address (port 8090, opensky.json → setup.port) ONLY while setup is
- * open on the screen; it stops by itself after 30 quiet minutes. The phone pairs with the 6-digit code shown on the
+ * open on the screen (or a paired phone is still busy with it); it stops by itself after 30 quiet minutes. The phone pairs with the 6-digit code shown on the
  * screen (good for 10 minutes; 5 wrong tries → a 1-minute pause) and gets a session cookie that dies with the server.
  *   - opensky.json is read and written whole (a copy of the previous one is kept as opensky.json.bak).
  *   - secrets.json is WRITE-ONLY from the phone: it learns which secrets are set, never their values.
@@ -95,7 +95,13 @@ module.exports = NodeHelper.create({
     if (n === "OS_SETUP_INIT") this.sendSocketNotification("OS_SETUP_WELCOME", { show: !fs.existsSync(WELCOMED) });
     else if (n === "OS_SETUP_START") this.startServer();
     else if (n === "OS_SETUP_NEWCODE") { this.newCode(); this.ready(); }
-    else if (n === "OS_SETUP_STOP") { this.markWelcomed(); this.stopServer("closed on the screen"); }
+    else if (n === "OS_SETUP_STOP") {
+      this.markWelcomed();
+      // a phone that is still connected keeps working (closing the card on the screen mid-edit made its next Save
+      // fail); it stops with the phone's Finish or after 30 quiet minutes
+      if (this.server && this.sessions.size) return console.log("[OpenSky] phone setup: card closed on the screen; the connected phone can still finish");
+      this.stopServer("closed on the screen");
+    }
   },
 
   /* ---------------- pairing ---------------- */

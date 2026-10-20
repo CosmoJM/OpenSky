@@ -25,8 +25,12 @@
     for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : document.createTextNode(String(k)));
     return e;
   }
+  // When the screen can't be reached the browser only says "Load failed" / "Failed to fetch": say what to check instead
+  const OFFLINE = "Can't reach the screen. Check this phone is on the same Wi-Fi as the screen and that setup is still open there (Settings → Set up from your phone), then try again.";
   const api = async (method, url, body) => {
-    const r = await fetch(url, { method, credentials: "same-origin", headers: { "Content-Type": "application/json", "X-OpenSky": "1" }, body: body ? JSON.stringify(body) : undefined });
+    let r;
+    try { r = await fetch(url, { method, credentials: "same-origin", headers: { "Content-Type": "application/json", "X-OpenSky": "1" }, body: body ? JSON.stringify(body) : undefined }); }
+    catch (e) { throw new Error(OFFLINE); }
     const d = await r.json().catch(() => ({}));
     if (r.status === 401 && d.pair) { showPair(); throw new Error("Please pair again"); }
     if (!r.ok) throw new Error(d.error || `Error ${r.status}`);
@@ -63,7 +67,7 @@
     let t = document.querySelector(".toast");
     if (!t) { t = el("div", { class: "toast", role: "status" }); document.body.append(t); }
     t.textContent = msg; t.className = `toast show ${kind}`;
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = `toast ${kind}`; }, 2600);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = `toast ${kind}`; }, kind === "bad" ? 8000 : 2600);   // problems stay long enough to read
   }
 
   /* ---------------- form controls ---------------- */

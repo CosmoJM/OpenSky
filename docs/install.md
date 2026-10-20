@@ -30,9 +30,11 @@ cd ~/OpenSky
 The installer:
 - checks the Pi and downloads what OpenSky needs (MagicMirror², and a newer Node.js only if needed)
 - asks a few questions: your **family name** and **town**. The town is used for weather, °F/°C and the clock style.
-- asks two yes/no questions. Answer **yes** to both:
+- asks a few yes/no questions. Answer **yes** to all of them:
   - "Keep the screen from going blank by itself?" OpenSky has its own Sleep button.
   - "Log in automatically at power-on?" This lets OpenSky start by itself after a power cut.
+  - "Keep the Wi-Fi awake?" Otherwise the Pi's Wi-Fi power saving can stop your phone from reaching the screen.
+  - It may also offer to set your screen's brightness from Settings.
 - starts OpenSky
 
 When it says **All set!**, OpenSky fills the screen. Restart the Pi once (`sudo reboot`) to make sure it starts by itself.
