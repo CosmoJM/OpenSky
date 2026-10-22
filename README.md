@@ -6,6 +6,10 @@ timers, photos, weather and smart-home controls on one screen. Built on [MagicMi
 
 > **v1.0** — what's in it: [CHANGELOG.md](CHANGELOG.md). Where it's heading: [PLAN.md](PLAN.md).
 
+**Watch the intro video** (YouTube):
+
+[![OpenSky intro video on YouTube](https://img.youtube.com/vi/qnbN82BGLP4/maxresdefault.jpg)](https://www.youtube.com/watch?v=qnbN82BGLP4)
+
 ![The Home page: the week ahead, lists and a photo](docs/assets/screenshots/home.jpg)
 
 <table><tr>
