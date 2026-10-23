@@ -64,6 +64,14 @@ const mpris = (status, md, position = 61000000) => fs.writeFileSync(MPRIS, JSON.
   const p4 = (await music.state({ spotify: false })).position;
   ok("9b AirPlay without a position: counted from the song's start, stands still while paused, goes on after, a new song starts at 0",
     p1 >= 1100 && p1 < 2500 && p2 - p1 >= 0 && p2 - p1 < 500 && p3 >= p2 + 500 && p3 < p2 + 1800 && p4 < 300, [p1, p2, p3, p4]);   // (roomy: a busy test computer)
+  // stopped (AirPlay disconnects) and the same song again → 0:00; a short song played again (repeat one) → a new count
+  song("Playing"); await music.state({ spotify: false }); await new Promise((r) => setTimeout(r, 900));
+  song("Stopped"); await music.state({ spotify: false });
+  song("Playing"); const again = (await music.state({ spotify: false })).position;
+  mpris("Playing", { "xesam:title": { type: "s", data: "Jingle" }, "mpris:length": { type: "x", data: 1000000 } }, 0);   // a 1-second song
+  await music.state({ spotify: false }); await new Promise((r) => setTimeout(r, 2700));
+  const loop = (await music.state({ spotify: false })).position;
+  ok("9c after a stop the same song starts at 0:00; on repeat-one the time starts over instead of sitting at the end", again < 300 && loop < 950, [again, loop]);
   fs.writeFileSync(BUSLOG, "");
   await music.control("airplay", "playpause"); await music.control("airplay", "next");
   const bl = fs.readFileSync(BUSLOG, "utf8");

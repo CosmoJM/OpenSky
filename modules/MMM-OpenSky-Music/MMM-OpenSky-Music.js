@@ -47,8 +47,8 @@ Module.register("MMM-OpenSky-Music", {
     } else if (n === "OS_MUSIC_ART" && p && p.id) {
       this.arts[p.id] = p.url;
       const ids = Object.keys(this.arts);
-      if (ids.length > 12) delete this.arts[ids[0]];   // (keep the last few)
-      if (this.root && this.root.innerHTML.includes(`art:${p.id}`)) this.updateDom();
+      if (ids.length > 12) delete this.arts[ids[0]];   // (keep the last few; a dropped one is asked for again when needed)
+      if (this.missing && this.missing.has(p.id)) { this.missing.delete(p.id); this.updateDom(); }
     } else if (n === "OS_MUSIC_ERROR") this.toast(p.message);
   },
 
@@ -126,7 +126,14 @@ Module.register("MMM-OpenSky-Music", {
   el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; },
   html(tag, cls, html) { const e = this.el(tag, cls); e.innerHTML = html; return e; },   // (only our own icons)
 
-  artUrl(a) { return a && a.startsWith("art:") ? this.arts[a.slice(4)] || null : a; },
+  artUrl(a) {
+    if (!a || !a.startsWith("art:")) return a;
+    const id = a.slice(4);
+    if (this.arts[id]) return this.arts[id];
+    this.missing = this.missing || new Set();
+    if (!this.missing.has(id)) { this.missing.add(id); this.sendSocketNotification("OS_MUSIC_ART_GET", id); }   // (dropped: ask again)
+    return null;
+  },
 
   player(now, v) {
     const card = this.el("div", "mu-card mu-player");

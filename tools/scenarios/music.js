@@ -80,6 +80,17 @@ module.exports = async (page, h) => {
     return { ...c, img: (document.querySelector(".mu-art img")?.src || "").slice(0, 22) };
   });
   ok("the cover isn't sent again with every update (none of them carries the picture; it's still shown)", counts.statesWithPicture === 0 && counts.pictures === 0 && counts.img === "data:image/png;base64,", counts);
+  // the page keeps only the last few covers: one it dropped (a long session) is asked for again and comes back
+  const resent = await page.evaluate(async () => {
+    const m = MM.getModules().withClass("MMM-OpenSky-Music")[0], orig = m.socketNotificationReceived;
+    let pictures = 0;
+    m.socketNotificationReceived = function (n, p) { if (n === "OS_MUSIC_ART") pictures++; return orig.call(this, n, p); };
+    m.arts = {}; m.updateDom();
+    for (let i = 0; i < 40 && !(pictures && (document.querySelector(".mu-art img")?.src || "").startsWith("data:image/png")); i++) await new Promise((r) => setTimeout(r, 100));
+    m.socketNotificationReceived = orig;
+    return { pictures, img: (document.querySelector(".mu-art img")?.src || "none").slice(0, 22) };
+  });
+  ok("a cover the page dropped is asked for again, sent once more, and shows again", resent.pictures === 1 && resent.img === "data:image/png;base64,", resent);
   fs.writeFileSync(BUSLOG, "");
   await h.tap(".mu-play"); await h.sleep(800);
   ok("AirPlay Pause → MPRIS PlayPause on the session bus", /--user call org\.mpris\.MediaPlayer2\.ShairportSync .* PlayPause/.test(fs.readFileSync(BUSLOG, "utf8")));
