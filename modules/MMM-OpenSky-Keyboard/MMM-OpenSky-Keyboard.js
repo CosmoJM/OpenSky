@@ -28,6 +28,14 @@ Module.register("MMM-OpenSky-Keyboard", {
     document.addEventListener("focusin", (e) => { if (this.typeable(e.target)) this.showKeyboard(e.target); }, true);
     // nothing typeable focused any more → hide (checked after the focus settles)
     document.addEventListener("focusout", () => setTimeout(() => { if (!this.typeable(document.activeElement)) this.hideKeyboard(); }, 120), true);
+    // While it's open, pressing a button (a popup's Add / Save / Cancel…) must not take the focus off the text box:
+    // the keyboard would close and the popup slide back down while the finger is still on the screen, so the finger
+    // was lifted somewhere else and the tap was lost (on touchscreens; Return worked). The button's click still runs.
+    document.addEventListener("mousedown", (e) => {
+      if (!this.target || !this.root || this.root.hidden || this.root.contains(e.target)) return;
+      const b = e.target.closest && e.target.closest("button, [role=button], a[href], input[type=button], input[type=submit]");
+      if (b) e.preventDefault();
+    }, true);
     // a popup closing removes its focused text box without any focus event (Chromium) → watch for that while open
     this.watcher = new MutationObserver(() => { if (this.target && !this.target.isConnected) this.hideKeyboard(); });
   },
