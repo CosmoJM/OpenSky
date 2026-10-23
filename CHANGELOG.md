@@ -4,6 +4,8 @@
 - **Music add-on** (`opensky addon music`): the screen becomes an AirPlay and a Spotify Connect speaker, and a Music
   page shows what's playing (cover, song, progress) with previous / play-pause / next and the volume.
   Its speaker name and AirPlay / Spotify switches are in phone setup → Extras. See docs/music.md.
+  The Music page is also a **remote for your other speakers** (Sonos, HomePod, Echo, Google…) through Home Assistant:
+  a tab for each, with its song, buttons and volume (phone setup → Extras → Music → Find my speakers).
 - A failed change to a list (add, check off…) is also written to the log (`opensky logs`).
 
 ## 1.0.0 — 2026-10-19

@@ -2,6 +2,7 @@
 // (shairport-sync's MPRIS on D-Bus), and services/music/render.js (the speakers' config files, the speaker name).
 const fs = require("fs"), os = require("os"), path = require("path"), http = require("http"), { execFileSync } = require("child_process");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "opensky-music-"));
+process.env.OPENSKY_SECRETS = path.join(tmp, "secrets.json");   // (read by lib/secrets.js from the first require on)
 let passed = 0, failed = 0;
 const ok = (n, c, i) => { c ? passed++ : failed++; console.log(`${c ? "PASS" : "FAIL"}  ${n}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
 const fails = async (fn) => { try { await fn(); return null; } catch (e) { return e.message; } };
@@ -63,9 +64,48 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
   process.env.OPENSKY_SPOTIFY_API = "http://127.0.0.1:9";
   ok("13 receivers not running → null, no error", (await music.state()) === null);
 
+  // ---- other speakers: Home Assistant media players ----
+  const haCalls = []; let kitchen = "playing";
+  const ha = http.createServer((req, res) => {
+    let raw = ""; req.on("data", (c) => { raw += c; });
+    req.on("end", () => {
+      const send = (code, obj, type = "application/json") => { res.writeHead(code, { "Content-Type": type }); res.end(type === "application/json" ? JSON.stringify(obj) : obj); };
+      if (req.headers.authorization !== "Bearer ha-token") return send(401, {});
+      if (req.url === "/api/states/media_player.kitchen") return send(200, { entity_id: "media_player.kitchen", state: kitchen, attributes: { friendly_name: "Kitchen", media_title: "Dreams", media_artist: "Fleetwood Mac", media_album_name: "Rumours", media_duration: 257, media_position: 60, media_position_updated_at: new Date(Date.now() - 2000).toISOString(), volume_level: 0.35, entity_picture: "/api/media_player_proxy/media_player.kitchen?token=abc&cache=1" } });
+      if (req.url === "/api/states/media_player.attic") return send(200, { entity_id: "media_player.attic", state: "unavailable", attributes: { friendly_name: "Attic" } });
+      if (req.url.startsWith("/api/media_player_proxy/")) return send(200, Buffer.from([0xff, 0xd8, 0xff, 1]), "image/jpeg");
+      if (req.url === "/api/states") return send(200, [{ entity_id: "light.x", state: "on", attributes: {} }, { entity_id: "media_player.kitchen", state: "playing", attributes: { friendly_name: "Kitchen" } }, { entity_id: "media_player.attic", state: "off", attributes: { friendly_name: "Attic" } }]);
+      if (req.url.startsWith("/api/services/media_player/")) { haCalls.push(`${req.url.split("/").pop()} ${raw}`); return send(200, []); }
+      send(404, {});
+    });
+  });
+  await new Promise((r) => ha.listen(0, "127.0.0.1", r));
+  fs.writeFileSync(process.env.OPENSKY_SECRETS, JSON.stringify({ homeassistant: { url: `http://127.0.0.1:${ha.address().port}/`, token: "ha-token" } }));
+  let sp = await music.speakers(["media_player.kitchen", "media_player.attic", "light.nope"]);
+  const k = sp[0];
+  ok("18 HA speaker playing: name, song, artist, album, cover (data: URL, fetched with the token), position moves on, duration, volume",
+    k.name === "Kitchen" && k.available && k.volume === 35 && k.now && k.now.source === "homeassistant" && k.now.playing && k.now.title === "Dreams" && k.now.artist === "Fleetwood Mac" && k.now.album === "Rumours" &&
+    /^data:image\/jpeg;base64,/.test(k.now.art) && k.now.position >= 61500 && k.now.position < 64000 && k.now.duration === 257000, { ...k, now: k.now && { ...k.now, art: (k.now.art || "").slice(0, 25) } });
+  ok("19 unavailable speaker → not available; a non-speaker id is refused", sp[1].available === false && sp[1].name === "Attic" && sp[1].now === null && sp[2].available === false, sp.slice(1));
+  kitchen = "paused";
+  sp = await music.speakers(["media_player.kitchen"]);
+  ok("20 paused: shown, not playing, position not moving", sp[0].now.playing === false && sp[0].now.position === 60000, sp[0].now.position);
+  await music.control("homeassistant", "playpause", "media_player.kitchen");
+  await music.control("homeassistant", "next", "media_player.kitchen");
+  await music.control("homeassistant", "volume", "media_player.kitchen", 80);
+  ok("21 buttons and volume → media_player services for that speaker", haCalls[0] === 'media_play_pause {"entity_id":"media_player.kitchen"}' && haCalls[1] === 'media_next_track {"entity_id":"media_player.kitchen"}' && haCalls[2] === 'volume_set {"entity_id":"media_player.kitchen","volume_level":0.8}', haCalls);
+  ok("22 a button for no speaker is refused", /Which speaker/.test(await fails(() => music.control("homeassistant", "next", "light.kitchen"))));
+  const all = await music.listSpeakers();
+  ok("23 every media player Home Assistant has (for phone setup), by name", JSON.stringify(all.map((x) => x.id)) === '["media_player.attic","media_player.kitchen"]', all);
+  fs.writeFileSync(process.env.OPENSKY_SECRETS, JSON.stringify({ homeassistant: { url: `http://127.0.0.1:${ha.address().port}`, token: "wrong" } }));
+  ok("24 a wrong token is explained; the speaker shows as unavailable", /refused the token/.test(await fails(() => music.listSpeakers())) && (await music.speakers(["media_player.kitchen"]))[0].available === false);
+  ha.close();
+  fs.writeFileSync(process.env.OPENSKY_SECRETS, "{}");
+  ok("25 Home Assistant not set up → says so", /isn't set up/.test(await fails(() => music.listSpeakers())));
+
   // ---- the speakers' config files ----
   const render = require(path.join(__dirname, "..", "services", "music", "render.js"));
-  ok("14 speaker name: music.name, else the family name, else OpenSky; quotes/backslashes/control characters dropped, 40 letters max",
+  ok("26 speaker name: music.name, else the family name, else OpenSky; quotes/backslashes/control characters dropped, 40 letters max",
     render.speakerName({ music: { name: "Kitchen" }, family: { name: "The Smiths" } }) === "Kitchen" && render.speakerName({ family: { name: "The Smiths' screen" } }) === "The Smiths' screen" &&
     render.speakerName({}) === "OpenSky" && render.speakerName({ music: { name: 'Bad "name"\\\n' } }) === "Bad name" && render.speakerName({ music: { name: "x".repeat(60) } }).length === 40 && render.speakerName({ music: { name: '""' } }) === "OpenSky");
   const settingsFile = path.join(tmp, "opensky.json");
@@ -74,20 +114,20 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
   execFileSync(process.execPath, [path.join(__dirname, "..", "services", "music", "render.js"), "airplay", out], { env: { ...process.env, OPENSKY_SETTINGS: settingsFile } });
   execFileSync(process.execPath, [path.join(__dirname, "..", "services", "music", "render.js"), "spotify", out], { env: { ...process.env, OPENSKY_SETTINGS: settingsFile } });
   const conf = fs.readFileSync(path.join(out, "shairport-sync.conf"), "utf8"), yml = fs.readFileSync(path.join(out, "spotify", "config.yml"), "utf8");
-  ok("15 AirPlay config: name, PulseAudio/PipeWire output, port 5100, D-Bus + MPRIS on the session bus, cover art cached",
+  ok("27 AirPlay config: name, PulseAudio/PipeWire output, port 5100, D-Bus + MPRIS on the session bus, cover art cached",
     /name = "Les Élèves' Café ☕";/.test(conf) && /output_backend = "pa";/.test(conf) && /port = 5100;/.test(conf) && /dbus_service_bus = "session";/.test(conf) && /mpris_service_bus = "session";/.test(conf) && conf.includes(`cover_art_cache_directory = "${path.join(out, "coverart")}"`) && /allow_session_interruption = "yes"/.test(conf));
-  ok("16 Spotify config: name (a JSON-quoted YAML string), speaker, pulseaudio, zeroconf, API on localhost:3678",
+  ok("28 Spotify config: name (a JSON-quoted YAML string), speaker, pulseaudio, zeroconf, API on localhost:3678",
     yml.includes('device_name: "Les Élèves\' Café ☕"') && /device_type: speaker/.test(yml) && /audio_backend: pulseaudio/.test(yml) && /type: zeroconf/.test(yml) && /address: localhost\n  port: 3678/.test(yml));
   const shairport = "/usr/bin/shairport-sync";
   if (fs.existsSync(shairport)) {
     // --displayConfig prints what it read, then carries on as a speaker: stopped after 2 s
     const r = require("child_process").spawnSync(shairport, ["-c", path.join(out, "shairport-sync.conf"), "--displayConfig"], { timeout: 2000, killSignal: "SIGTERM", encoding: "utf8" });
     const shown = String(r.stdout || "") + String(r.stderr || "");
-    ok("17 shairport-sync reads the config (name, output, port, session bus)", /Display Config End/.test(shown) && /name = "Les Élèves' Café ☕"/.test(shown) && /output_backend = "pa"/.test(shown) && /port = 5100/.test(shown) && /mpris_service_bus = "session"/.test(shown) && !/error|unrecognised|invalid/i.test(shown.split("Display Config End")[0]), shown.slice(-300));
+    ok("29 shairport-sync reads the config (name, output, port, session bus)", /Display Config End/.test(shown) && /name = "Les Élèves' Café ☕"/.test(shown) && /output_backend = "pa"/.test(shown) && /port = 5100/.test(shown) && /mpris_service_bus = "session"/.test(shown) && !/error|unrecognised|invalid/i.test(shown.split("Display Config End")[0]), shown.slice(-300));
   }
 
   // ---- config.js: the Music page ----
-  fs.writeFileSync(settingsFile, JSON.stringify({ family: { name: "The Smiths" }, pages: ["home", "music", "timer"], music: { spotify: false } }));
+  fs.writeFileSync(settingsFile, JSON.stringify({ family: { name: "The Smiths" }, pages: ["home", "music", "timer"], music: { spotify: false, speakers: ["media_player.kitchen", "light.no", "media_player.Bad"] } }));
   fs.writeFileSync(path.join(tmp, "secrets.json"), "{}");
   process.env.OPENSKY_SETTINGS = settingsFile; process.env.OPENSKY_SECRETS = path.join(tmp, "secrets.json");
   global.root_path = path.join(__dirname, "..");
@@ -95,8 +135,8 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
   new Function("module", "exports", "require", "__dirname", fs.readFileSync(path.join(__dirname, "..", "config", "config.js"), "utf8"))(m, m.exports, require, path.join(__dirname, "..", "config"));
   const mod = m.exports.modules.find((x) => x.module === "MMM-OpenSky-Music");
   const side = m.exports.modules.find((x) => x.module === "MMM-OpenSky-Sidebar");
-  ok("18 config: a Music page with the speaker name and sources; sidebar tile 'Music' with the music icon",
-    mod && mod.config.name === "The Smiths" && mod.config.spotify === false && mod.config.airplay === true && side.config.pages.some((p) => p.key === "music" && p.label === "Music" && p.icon === "music"), mod && mod.config);
+  ok("30 config: a Music page with the speaker name, sources and valid other speakers; sidebar tile 'Music' with the music icon",
+    mod && mod.config.name === "The Smiths" && mod.config.spotify === false && mod.config.airplay === true && JSON.stringify(mod.config.speakers) === '["media_player.kitchen"]' && side.config.pages.some((p) => p.key === "music" && p.label === "Music" && p.icon === "music"), mod && mod.config);
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`SUMMARY pass=${passed} fail=${failed}`);

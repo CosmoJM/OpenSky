@@ -17,6 +17,13 @@ const fakeGeo = http.createServer((req, res) => {
   res.end(JSON.stringify({ results: [{ name: "Toronto", admin1: "Ontario", country: "Canada", country_code: "CA", latitude: 43.70011, longitude: -79.4163, timezone: "America/Toronto" }] }));
 });
 fakeGeo.listen(GEO, "127.0.0.1"); fakeGeo.unref();
+// a stand-in Home Assistant for the Music page's other speakers (port 8098)
+const HA = 8098;
+const fakeHA = http.createServer((req, res) => {
+  res.writeHead(req.headers.authorization === "Bearer ha-phone-token" ? 200 : 401, { "Content-Type": "application/json" });
+  res.end(JSON.stringify(req.url === "/api/states" ? [{ entity_id: "media_player.kitchen", state: "playing", attributes: { friendly_name: "Kitchen" } }, { entity_id: "media_player.attic", state: "off", attributes: { friendly_name: "Attic" } }, { entity_id: "light.hall", state: "on", attributes: {} }] : {}));
+});
+fakeHA.listen(HA, "127.0.0.1"); fakeHA.unref();
 
 module.exports = async (page, h, app) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
@@ -204,6 +211,18 @@ module.exports = async (page, h, app) => {
   await save();
   S = settings();
   ok("music: page on, speaker name, AirPlay off, Spotify left on", S.pages.includes("music") && S.music?.name === "Kitchen speaker" && S.music.airplay === false && S.music.spotify !== false, { pages: S.pages, music: S.music });
+  // other speakers: Home Assistant address + token, save, Find my speakers, pick one
+  await type("#extras input[placeholder='http://homeassistant.local:8123']", `http://127.0.0.1:${HA}`);
+  await type("#extras input[placeholder='Paste a long-lived access token']", "ha-phone-token");
+  await save();
+  await tap("#extras", ".btn.block", "Find my speakers");
+  await until(() => phone.evaluate(() => /Attic/.test(document.querySelector("#extras").textContent)));
+  const found = await phone.evaluate(() => [...document.querySelectorAll("#extras .rows .line b")].map((b) => b.textContent));
+  await tap("#extras", ".toggle", "Kitchen");
+  await save();
+  S = settings(); sec = secrets();
+  ok("other speakers: Find my speakers lists Home Assistant's speakers; Kitchen picked and saved (address + token only in secrets)",
+    found.join() === "Attic,Kitchen" && JSON.stringify(S.music.speakers) === '["media_player.kitchen"]' && sec.homeassistant?.token === "ha-phone-token" && !JSON.stringify(S).includes("ha-phone-token"), { found, speakers: S.music.speakers });
 
   // ---- Backup: nightly to a folder, time, how many, with passwords; then Back up now ----
   await until(() => phone.evaluate(() => !!document.querySelector("#backup .auto-backup select")));
@@ -221,7 +240,7 @@ module.exports = async (page, h, app) => {
 
   // ---- nothing lost along the way: everything from the earlier saves is still there ----
   S = settings(); sec = secrets();
-  ok("every earlier change is still saved after 13 saves", S.family.name === "The Phone Testers" && S.location.name === "Toronto, Canada" && S.locale.units === "imperial" &&
+  ok("every earlier change is still saved after 15 saves", S.family.name === "The Phone Testers" && S.location.name === "Toronto, Canada" && S.locale.units === "imperial" &&
     S.calendar.sources.some((c) => c.name === "Kids") && S.lists.lists.some((l) => l.name === "Errands") && S.photos.folder === "~/Family Photos" && S.embeds.cameras && S.look.accent === "teal" &&
     sec.calendar.caldav.Work && sec.lists.todoist.token && sec.embeds.bank.pin);
 
@@ -260,7 +279,7 @@ module.exports = async (page, h, app) => {
   await phone.evaluate(() => window.scrollTo(0, 0)); await h.sleep(300);
   await phone.screenshot({ path: path.join(OUT, "phone-settings-offline.png") });
 
-  fakeGeo.close();
+  fakeGeo.close(); fakeHA.close();
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
 };
@@ -268,5 +287,6 @@ module.exports.writableSettings = true;
 module.exports.env = {
   OPENSKY_GEOCODE_URL: `http://127.0.0.1:${GEO}/search`,
   OPENSKY_BACKUP_HOME: DEST, OPENSKY_MOUNTS: MOUNTS, OPENSKY_GVFS: path.join(OUT, "no-gvfs"),
-  OPENSKY_BACKUP_STATUS: path.join(OUT, "backup-status.test.json")
+  OPENSKY_BACKUP_STATUS: path.join(OUT, "backup-status.test.json"),
+  OPENSKY_MUSIC_INSTALLED: ""   // the Music add-on not installed (whatever this computer has)
 };

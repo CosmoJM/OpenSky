@@ -27,12 +27,23 @@ The Music page shows these steps whenever nothing is playing.
 ## Settings
 In phone setup → **Extras → Music** (or `opensky.json`):
 ```json
-"music": { "name": "Kitchen", "airplay": true, "spotify": true }
+"music": { "name": "Kitchen", "airplay": true, "spotify": true, "speakers": [] }
 ```
 - `name` — what phones show in their speaker list. Default: your family name.
 - `airplay` / `spotify` — turn either one off.
+- `speakers` — other speakers to control (next section).
 
 The volume on the Music page is the screen's volume (the same as in Settings). Phones also have their own volume.
+
+## Other speakers (Sonos, HomePod, Echo, Google…)
+The Music page can also be a remote for speakers you already have, through **Home Assistant** (anything Home
+Assistant shows as a media player: Sonos, Apple TV/HomePod, Echo, Google/Chromecast, Spotify, Plex…). Each one gets a
+tab along the top with its song, cover, buttons and volume; the page opens on whichever one is playing.
+
+In phone setup → **Extras → Music → Other speakers**: enter Home Assistant's address and a long-lived token (if your
+lists don't use Home Assistant already), Save, tap **Find my speakers** and switch on the ones you want. Or in
+`opensky.json`: `"music": { "speakers": ["media_player.kitchen", "media_player.living_room"] }` (the address and token
+go in `secrets.json` → `homeassistant`). This part doesn't need the add-on installed.
 
 ## Good to know
 - It's **AirPlay 1** (the version Raspberry Pi OS ships). iPhones, iPads and Macs play to it like any AirPlay speaker;

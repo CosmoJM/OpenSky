@@ -531,18 +531,44 @@
       weatherKey);
   }
 
-  // Music add-on: the speaker's name on phones, AirPlay / Spotify on or off (once the Music page is on or it's installed)
+  // Music page: this screen as a speaker (the add-on: name, AirPlay / Spotify) and other speakers to control
+  // (Home Assistant media players). Shown once the Music page is on, or the add-on is installed.
   function musicFields() {
     const inst = (info.addons && info.addons.music) || {};
     if (!S.pages.includes("music") && !inst.spotify && !inst.airplay) return [];
     if (!S.music || typeof S.music !== "object") S.music = {};
     const M = S.music;
+    if (!Array.isArray(M.speakers)) M.speakers = [];
+    const others = el("div", { class: "rows" });
+    let found = null;   // [{ id, name, state }] once looked up
+    const drawOthers = () => {
+      const list = found ? [...found, ...M.speakers.filter((id) => !found.some((f) => f.id === id)).map((id) => ({ id, name: id, state: "not found" }))]
+        : M.speakers.map((id) => ({ id, name: id, state: "" }));
+      others.replaceChildren(...list.map((sp) => el("div", { class: "line" },
+        el("span", {}, el("b", {}, sp.name), el("small", {}, sp.state && sp.state !== "unknown" ? `${sp.id} · ${sp.state}` : sp.id)),
+        toggle(M.speakers.includes(sp.id), (v) => { M.speakers = v ? [...M.speakers.filter((x) => x !== sp.id), sp.id] : M.speakers.filter((x) => x !== sp.id); change(); }, sp.name))));
+      if (found && !found.length) others.append(el("p", { class: "hint" }, "Home Assistant has no speakers (media players)."));
+    };
+    drawOthers();
+    const haSet = isSet("homeassistant.url") && isSet("homeassistant.token");
+    const find = el("button", { type: "button", class: "btn block", onclick: async (e) => {
+      if (Object.keys(pending).some((k) => k.startsWith("homeassistant."))) return toast("Save first, then look for speakers", "bad");
+      const b = e.currentTarget; b.disabled = true; b.textContent = "Looking…";
+      try { found = (await api("GET", "/api/music/speakers")).speakers; drawOthers(); }
+      catch (x) { toast(x.message, "bad"); }
+      b.disabled = false; b.textContent = "Find my speakers";
+    } }, "Find my speakers");
     return [
       el("h4", { class: "sub-title" }, "Music"),
-      !inst.spotify && !inst.airplay ? el("p", { class: "hint" }, "Not installed yet: on the Pi, open Terminal and type  opensky addon music") : null,
+      !inst.spotify && !inst.airplay ? el("p", { class: "hint" }, "To use this screen as a speaker, on the Pi open Terminal and type  opensky addon music. Other speakers (below) work without it.") : null,
       field("Speaker name", text(M.name || "", (v) => { M.name = v.trim(); if (!M.name) delete M.name; change(); }, { placeholder: S.family.name || "OpenSky", maxlength: "40" }), "What phones show in the AirPlay and Spotify speaker lists."),
       el("div", { class: "line" }, el("span", {}, el("b", {}, "AirPlay"), el("small", {}, "iPhone, iPad, Mac")), toggle(M.airplay !== false, (v) => { M.airplay = v; change(); }, "AirPlay")),
-      el("div", { class: "line" }, el("span", {}, el("b", {}, "Spotify Connect"), el("small", {}, "Needs Spotify Premium")), toggle(M.spotify !== false, (v) => { M.spotify = v; change(); }, "Spotify Connect"))
+      el("div", { class: "line" }, el("span", {}, el("b", {}, "Spotify Connect"), el("small", {}, "Needs Spotify Premium")), toggle(M.spotify !== false, (v) => { M.spotify = v; change(); }, "Spotify Connect")),
+      el("h4", { class: "sub-title" }, "Other speakers to control"),
+      el("p", { class: "hint" }, "Sonos, HomePod, Echo, Google speakers… through Home Assistant: the Music page gets a tab for each, with its song, buttons and volume."),
+      ...(haSet ? [] : [field("Home Assistant address", secretInput("homeassistant.url", "http://homeassistant.local:8123")),
+        field("Home Assistant token", secretInput("homeassistant.token", "Paste a long-lived access token"), "In Home Assistant: your profile → Security → Long-lived access tokens → Create token. Save, then Find my speakers.")]),
+      others, find
     ];
   }
 

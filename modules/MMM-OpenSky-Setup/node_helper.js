@@ -14,6 +14,7 @@
  *   POST /api/pair {code} · GET /api/state · POST /api/save {settings, secrets} · GET /api/geocode?q= · POST /api/done
  *   Google Calendar sign-in: GET /api/google · POST /api/google/start {clientId?, clientSecret?} → {url}
  *     · POST /api/google/finish {address} → {calendars} · GET /api/google/calendars
+ *   GET /api/music/speakers → {speakers: [{id, name, state}]} (Home Assistant media players, for the Music page)
  *   GET /api/backup[?secrets=1] (a download: settings + on-device data, passwords only when asked) · POST /api/restore {backup}
  */
 const NodeHelper = require("node_helper");
@@ -25,6 +26,7 @@ const crypto = require("crypto");
 const { execFile } = require("child_process");
 const google = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "google-calendar.js"));
 const backup = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "backup.js"));
+const music = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "music.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
 const MM_CONFIG = path.join(global.root_path || process.cwd(), "config");
@@ -337,6 +339,12 @@ module.exports = NodeHelper.create({
       console.log(`[OpenSky] phone setup: restored a backup (${restored.join(", ")})`);
       this.sendSocketNotification("OS_SETUP_SAVED", {});
       return this.send(res, 200, { ok: true, restored });
+    }
+
+    // the Music page's other speakers: every media player Home Assistant has (address + token from secrets.json)
+    if (url.pathname === "/api/music/speakers" && req.method === "GET") {
+      try { return this.send(res, 200, { speakers: await music.listSpeakers() }); }
+      catch (e) { return this.send(res, 502, { error: e.message }); }
     }
 
     // automatic backups: where they can go, how the last one went, and "back up now"

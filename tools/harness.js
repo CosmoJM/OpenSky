@@ -79,6 +79,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_SETUP_PORT: "8091",
       OPENSKY_WELCOME_FILE: WELCOME,
       OPENSKY_NYT_URL: "http://127.0.0.1:9/nyt",   // never the real NYT from tests: unreachable → OpenSky's own word
+      OPENSKY_MUSIC_INSTALLED: "",                 // the Music add-on: not installed, whatever this computer has (a scenario may say otherwise)
+      OPENSKY_SPOTIFY_API: "http://127.0.0.1:9", OPENSKY_BUSCTL: "/bin/false",   // never this computer's real speakers
       // Settings: never touch the real screen, audio, updates or power — except in an approved real-screen session
       // (OPENSKY_HARNESS_REAL=1, run by hand on the real display, never from test-all.sh)
       ...(process.env.OPENSKY_HARNESS_REAL === "1" ? {} : { OPENSKY_DRY_RUN: "1" }),

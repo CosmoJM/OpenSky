@@ -22,6 +22,20 @@ const fake = http.createServer((req, res) => {
 });
 fake.listen(PORT, "127.0.0.1"); fake.unref();
 
+// a fake Home Assistant with two speakers (port 8097)
+const HA = 8097; let kitchen = "idle"; const haCalls = [];
+const ha = http.createServer((req, res) => {
+  let raw = ""; req.on("data", (c) => { raw += c; });
+  req.on("end", () => {
+    const send = (code, obj) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(obj)); };
+    if (req.url === "/api/states/media_player.kitchen") return send(200, { state: kitchen, attributes: { friendly_name: "Kitchen", volume_level: 0.3, ...(kitchen === "idle" ? {} : { media_title: "Dreams", media_artist: "Fleetwood Mac", media_album_name: "Rumours", media_duration: 257, media_position: 10, media_position_updated_at: new Date().toISOString() }) } });
+    if (req.url === "/api/states/media_player.attic") return send(200, { state: "unavailable", attributes: { friendly_name: "Attic" } });
+    if (req.url.startsWith("/api/services/media_player/")) { const svc = req.url.split("/").pop(); haCalls.push(`${svc} ${raw}`); if (svc === "media_play_pause") kitchen = kitchen === "playing" ? "paused" : "playing"; return send(200, []); }
+    send(404, {});
+  });
+});
+ha.listen(HA, "127.0.0.1"); ha.unref();
+
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const until = async (fn, n = 30) => { for (let i = 0; i < n && !(await fn()); i++) await h.sleep(250); return fn(); };
@@ -81,9 +95,31 @@ module.exports = async (page, h) => {
   await h.sleep(200);
   ok("not installed yet: says how (opensky addon music)", /opensky addon music/.test(await text(".mu-root")));
   await h.shot("music-not-installed");
+  await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Music")[0].sendSocketNotification("OS_MUSIC_VISIBLE", true));   // a fresh update
+
+  // ---- other speakers (Home Assistant) ----
+  const tabs = () => page.evaluate(() => [...document.querySelectorAll(".mu-tab")].map((t) => `${t.textContent}${t.classList.contains("on") ? "*" : ""}${t.classList.contains("off") ? "(off)" : ""}`));
+  await until(async () => (await tabs()).length === 3);
+  ok("tabs: This screen, Kitchen, Attic (switched off)", JSON.stringify(await tabs()) === '["This screen*","Kitchen","Attic(off)"]', await tabs());
+  kitchen = "playing";
+  await until(async () => /Dreams/.test(await text(".mu-title")));
+  const k = await page.evaluate(() => ({ title: document.querySelector(".mu-title")?.textContent, artist: document.querySelector(".mu-artist")?.textContent, chip: document.querySelector(".mu-chip")?.textContent, vol: document.querySelector(".mu-range")?.value, tab: document.querySelector(".mu-tab.on")?.textContent, eq: !!document.querySelector(".mu-tab.on .mu-eq") }));
+  ok("music starts on Kitchen → its tab opens by itself: song, artist, the speaker's name, its volume (30)", k.title === "Dreams" && k.artist === "Fleetwood Mac" && k.chip === "Kitchen" && k.vol === "30" && /Kitchen/.test(k.tab) && k.eq, k);
+  await h.shot("music-kitchen");
+  await h.tap(".mu-play"); await h.sleep(1500);
+  ok("paused on Kitchen: it stays on Kitchen (with a Play button), it doesn't jump to another speaker", (await page.evaluate(() => [document.querySelector(".mu-tab.on")?.textContent, document.querySelector(".mu-play")?.getAttribute("aria-label")])).join() === "Kitchen,Play");
+  await h.tap(".mu-next"); await h.sleep(600);
+  await page.evaluate(() => { const r = document.querySelector(".mu-range"); r.value = "65"; r.dispatchEvent(new Event("input", { bubbles: true })); });
+  await h.sleep(900);
+  ok("Kitchen's buttons and volume go to Kitchen (media_player services)", haCalls.some((c) => c === 'media_play_pause {"entity_id":"media_player.kitchen"}') && haCalls.some((c) => /^media_next_track .*kitchen/.test(c)) && haCalls.some((c) => c === 'volume_set {"entity_id":"media_player.kitchen","volume_level":0.65}'), haCalls);
+  await page.evaluate(() => [...document.querySelectorAll(".mu-tab")].find((t) => t.textContent === "Attic").click()); await h.sleep(400);
+  ok("Attic (off): says it isn't reachable", /Attic isn't reachable/.test(await text(".mu-root")));
+  await page.evaluate(() => [...document.querySelectorAll(".mu-tab")].find((t) => t.textContent === "This screen").click()); await h.sleep(400);
+  ok("back to This screen: how to play to it", /Play music on this screen/.test(await text(".mu-root")));
 
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
 };
-module.exports.patchSettings = (s) => { s.pages = ["home", "calendar", "lists", "music", "timer"]; };
+module.exports.patchSettings = (s) => { s.pages = ["home", "calendar", "lists", "music", "timer"]; s.music = { speakers: ["media_player.kitchen", "media_player.attic"] }; };
+module.exports.patchSecrets = (x) => { x.homeassistant = { url: `http://127.0.0.1:${HA}`, token: "ha-test-token" }; };
 module.exports.env = { OPENSKY_SPOTIFY_API: `http://127.0.0.1:${PORT}`, OPENSKY_BUSCTL: BUSCTL, OPENSKY_MUSIC_INSTALLED: "spotify,airplay" };

@@ -173,7 +173,9 @@ const PAGES = {
     config: {
       name: String((s.music && s.music.name) || (s.family && s.family.name) || "OpenSky").replace(/[\u0000-\u001f"\\]/g, "").trim().slice(0, 40) || "OpenSky",
       spotify: !(s.music && s.music.spotify === false),
-      airplay: !(s.music && s.music.airplay === false)
+      airplay: !(s.music && s.music.airplay === false),
+      // other speakers to control: Home Assistant media players (address + token stay in secrets.json)
+      speakers: (s.music && Array.isArray(s.music.speakers) ? s.music.speakers : []).filter((e) => /^media_player\.[a-z0-9_]+$/.test(e)).slice(0, 8)
     }
   }]
 };

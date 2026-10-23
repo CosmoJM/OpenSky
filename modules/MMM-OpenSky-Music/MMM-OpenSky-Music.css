@@ -3,8 +3,20 @@
   position: fixed;
   top: 92px; bottom: 22px;
   left: var(--os-content-left, 112px); right: 24px;
-  display: flex; color: #1f2937; text-align: left; font-family: inherit; user-select: none;
+  display: flex; flex-direction: column; gap: 14px; color: #1f2937; text-align: left; font-family: inherit; user-select: none;
 }
+
+/* ---- speaker tabs (this screen + other speakers) ---- */
+.mu-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+.mu-tab { border: 0; display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 999px;
+  font: inherit; font-size: 20px; font-weight: 700; color: #4b5563; background: #fff; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 14px rgba(31,41,55,.06); }
+.mu-tab.on { background: var(--os-accent); color: #fff; }
+.mu-tab.off { color: #9ca3af; }
+.mu-eq { display: inline-flex; align-items: flex-end; gap: 3px; height: 18px; }
+.mu-eq i { width: 4px; border-radius: 2px; background: currentColor; animation: muEq 1s ease-in-out infinite; }
+.mu-eq i:nth-child(2) { animation-delay: -.4s; } .mu-eq i:nth-child(3) { animation-delay: -.7s; }
+@keyframes muEq { 0%, 100% { height: 5px; } 50% { height: 18px; } }
 .mu-card {
   position: relative; flex: 1; min-width: 0; overflow: hidden;
   border-radius: 26px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 28px rgba(31,41,55,.07);
@@ -72,3 +84,4 @@
 .mu-idle .mu-volume { width: 560px; margin-top: 30px; }
 .mu-install { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 22px; font-size: 20px; color: #4b5563; }
 .mu-install code { font-size: 26px; font-weight: 700; padding: 14px 24px; border-radius: 14px; background: #1f2937; color: #fff; }
+.mu-idle-note { margin: 26px 0 0; max-width: 760px; font-size: 18px; color: #9ca3af; font-weight: 500; }

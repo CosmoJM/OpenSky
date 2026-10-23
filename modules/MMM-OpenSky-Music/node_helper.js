@@ -1,7 +1,8 @@
 /* MMM-OpenSky-Music node helper — polls what's playing (lib/music.js) and passes the buttons on.
- * Screen ↔ helper:  OS_MUSIC_INIT {spotify, airplay} → OS_MUSIC_STATE {now, installed}
- *                   OS_MUSIC_CONTROL {source, action} → OS_MUSIC_STATE (or OS_MUSIC_ERROR {message})
+ * Screen ↔ helper:  OS_MUSIC_INIT {spotify, airplay, speakers: [entity…]} → OS_MUSIC_STATE {now, installed, speakers}
+ *                   OS_MUSIC_CONTROL {source, action, entity?, value?} → OS_MUSIC_STATE (or OS_MUSIC_ERROR {message})
  *                   OS_MUSIC_VISIBLE true|false   (polls every second while the page shows or music plays, else every 5 s)
+ * now = what plays on this screen (AirPlay / Spotify); speakers = the other speakers (Home Assistant media players).
  */
 const NodeHelper = require("node_helper");
 const fs = require("fs");
@@ -21,8 +22,8 @@ function installed() {
 module.exports = NodeHelper.create({
   start() {
     this.enabled = { spotify: true, airplay: true };
+    this.entities = [];
     this.visible = false;
-    this.now = null;
     this.last = "";
     this.timer = null;
   },
@@ -30,6 +31,7 @@ module.exports = NodeHelper.create({
   socketNotificationReceived(n, p) {
     if (n === "OS_MUSIC_INIT") {
       this.enabled = { spotify: !(p && p.spotify === false), airplay: !(p && p.airplay === false) };
+      this.entities = Array.isArray(p && p.speakers) ? p.speakers : [];
       this.installed = installed();
       this.last = "";
       this.poll();
@@ -37,7 +39,7 @@ module.exports = NodeHelper.create({
       this.visible = !!p;
       if (this.visible) { this.last = ""; this.poll(); }
     } else if (n === "OS_MUSIC_CONTROL" && p) {
-      music.control(p.source, p.action)
+      music.control(p.source, p.action, p.entity, p.value)
         .catch((e) => { console.error(`[OpenSky] music: ${e.message}`); this.sendSocketNotification("OS_MUSIC_ERROR", { message: e.message }); })
         .finally(() => setTimeout(() => { this.last = ""; this.poll(); }, 400));
     }
@@ -45,11 +47,15 @@ module.exports = NodeHelper.create({
 
   async poll() {
     clearTimeout(this.timer);
-    try { this.now = await music.state(this.enabled); } catch (e) { this.now = null; }
-    const msg = { now: this.now, installed: this.installed || installed() };
+    const [now, speakers] = await Promise.all([
+      music.state(this.enabled).catch(() => null),
+      music.speakers(this.entities).catch(() => [])
+    ]);
+    const msg = { now, installed: this.installed || installed(), speakers };
     const key = JSON.stringify(msg);
     if (key !== this.last) { this.last = key; this.sendSocketNotification("OS_MUSIC_STATE", msg); }
-    this.timer = setTimeout(() => this.poll(), this.visible || (this.now && this.now.playing) ? 1000 : 5000);
+    const busy = (now && now.playing) || speakers.some((s) => s.now && s.now.playing);
+    this.timer = setTimeout(() => this.poll(), this.visible ? 1000 : busy ? 3000 : 10000);
   },
 
   stop() { clearTimeout(this.timer); }
