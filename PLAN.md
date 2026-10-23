@@ -91,7 +91,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 3. **First public milestone (v1.0)** — everything above. ✅ built, tested off-screen, and installed from GitHub on a
    real Pi + touch monitor (v1.0.0-rc.3: installer questions, phone setup over Wi-Fi, every page, updates).
 4. ~~Phone setup page~~ ✅ (done in 2).  5. ~~Providers from the matrix~~ ✅ most of them (done in 2).
-6. **Public release v1.0.0**: tag, GitHub release notes, announcement (MagicMirror forum "Showcase").
+6. ✅ **Public release v1.0.0** (2026-10-23): tag + GitHub release. Next: announcement (MagicMirror forum "Showcase").
 
 ## v2 (nice to have — after v1.0)
 - Look: dark mode, date format, more themes; languages (i18n); keyboard layouts (UK, international).

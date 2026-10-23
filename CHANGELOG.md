@@ -1,14 +1,6 @@
 # Changelog
 
-## Unreleased
-- **Music add-on** (`opensky addon music`): the screen becomes an AirPlay and a Spotify Connect speaker, and a Music
-  page shows what's playing (cover, song, progress) with previous / play-pause / next and the volume.
-  Its speaker name and AirPlay / Spotify switches are in phone setup → Extras. See docs/music.md.
-  The Music page is also a **remote for your other speakers** (Sonos, HomePod, Echo, Google…) through Home Assistant:
-  a tab for each, with its song, buttons and volume (phone setup → Extras → Music → Find my speakers).
-- A failed change to a list (add, check off…) is also written to the log (`opensky logs`).
-
-## 1.0.0 — 2026-10-19
+## 1.0.0 — 2026-10-23
 The first public version: a friendly family wall calendar for a Raspberry Pi touchscreen, built on MagicMirror².
 
 **On the screen**
@@ -19,6 +11,9 @@ The first public version: a friendly family wall calendar for a Raspberry Pi tou
   (the New York Times' daily word by default, OpenSky's own words as backup or by choice).
 - **Your own web pages as pages** (Home Assistant dashboards, cameras, school portals…): add them from Settings or
   the phone with a name, an address and an icon; optionally locked with a PIN.
+- **Add-on — Music** (`opensky addon music`): the screen becomes an AirPlay and a Spotify Connect speaker, and a Music
+  page shows what's playing (cover, song, progress) with previous / play-pause / next and the volume. The same page is
+  a **remote for your other speakers** (Sonos, HomePod, Echo, Google…) through Home Assistant. See docs/music.md.
 - Header: family name, clock, weather, countdown to the next holiday or birthday, your team's game day.
 - **Settings on the screen**: brightness (backlight, monitor over HDMI or picture dimming), evening dim, sleep at
   night, how Sleep turns your screen off (with a Test button and wake on touch), volume, pages, accent colour,
