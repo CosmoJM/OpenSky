@@ -28,11 +28,18 @@ Module.register("MMM-OpenSky-Settings", {
     if (n === "OPENSKY_SETTINGS_OPEN") this.open();
     else if ((n === "OPENSKY_IDLE_RESET" || n === "PAGE_CHANGED") && this.isOpen()) this.close();
     else if (n === "OPENSKY_SCREEN_SLEEP") this.sendSocketNotification("OS_SET_ASLEEP", !!p);
+    // another page's volume slider (Music): the volume lives here, so both always agree
+    else if (n === "OPENSKY_VOLUME_GET" && this.state) this.sendNotification("OPENSKY_VOLUME", this.state.audio ? { volume: this.state.audio.volume, name: this.state.audio.name } : null);
+    else if (n === "OPENSKY_VOLUME_SET" && typeof p === "number" && this.state && this.state.audio) {
+      this.inflight++;
+      this.sendSocketNotification("OS_SET_CHANGE", { volume: p });
+    }
   },
 
   socketNotificationReceived(n, p) {
     if (n === "OS_SET_STATE") {
       this.state = p;
+      this.sendNotification("OPENSKY_VOLUME", p.audio ? { volume: p.audio.volume, name: p.audio.name } : null);
       // Every change gets one reply. While some are still on their way, the controls already show what was picked;
       // once all are back the state includes every tap: redraw if the layout changed (a switch), else sync values.
       if (this.inflight > 0) this.inflight--;

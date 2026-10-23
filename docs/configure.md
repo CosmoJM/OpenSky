@@ -69,6 +69,7 @@ These are the buttons on the left, in this order. The first one is where the scr
 | `lists` | every list side by side, each one scrolls (Home shows the first three) |
 | `wordgame` | a daily five-letter word puzzle for the whole family (one shared board a day, family stats) |
 | `timer` | kitchen timers with a chime |
+| `music` | **add-on**: what's playing on the screen's speakers, with play / pause / skip and the volume — see [music.md](music.md) |
 
 You can also add your own **web pages** as pages (next section).
 

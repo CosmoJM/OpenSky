@@ -58,13 +58,16 @@ rollback() {
   git checkout -q --detach "$to" && install_and_restart && echo "Back on $(git describe --tags --always) ✓  ('opensky update' brings the newest again)"
 }
 
+# the Music add-on's speakers, when installed (opensky addon music)
+music_units() { local u; for u in opensky-airplay opensky-spotify; do [ -f "$HOME/.config/systemd/user/$u.service" ] && echo "$u.service"; done; }
+
 case "${1:-help}" in
   start)   systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE 2>/dev/null
            systemctl --user start opensky-calendar.service opensky.service ;;
   stop)    systemctl --user stop opensky.service ;;
   restart) systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE 2>/dev/null
-           systemctl --user restart opensky-calendar.service opensky.service ;;
-  status)  systemctl --user --no-pager status opensky.service opensky-calendar.service | grep -E "●|Active:|Main PID" ;;
+           systemctl --user restart opensky-calendar.service $(music_units) opensky.service ;;
+  status)  systemctl --user --no-pager status opensky.service opensky-calendar.service $(music_units) | grep -E "●|Active:|Main PID" ;;
   logs)    # (on Raspberry Pi OS a user service's log lives in the system journal, which the default user can read)
            out=$(journalctl _SYSTEMD_USER_UNIT=opensky.service + _SYSTEMD_USER_UNIT=opensky-calendar.service -n "${2:-80}" --no-pager 2>/dev/null)
            if [ -z "$out" ] || [ "$out" = "-- No entries --" ]; then out=$(journalctl --user -u opensky.service -u opensky-calendar.service -n "${2:-80}" --no-pager 2>&1); fi
@@ -90,6 +93,11 @@ case "${1:-help}" in
                   OPENSKY_LOCAL_CALENDAR="$CONFIG/local-calendar.json" OPENSKY_LOCAL_LISTS="$CONFIG/lists.json" \
                   OPENSKY_CALENDAR_CACHE="$CONFIG/calendar-cache"
            OPENSKY_MM="$RUNTIME/MagicMirror" exec "$REPO/tools/opensky-start" ;;
+  addon)   case "${2:-}" in
+             music) exec "$REPO/tools/addons/music.sh" "${3:-install}" ;;
+             *) echo "Add-ons:"; echo "  opensky addon music          this screen becomes an AirPlay + Spotify speaker (a Music page)"
+                echo "  opensky addon music remove   take it off again"; exit 1 ;;
+           esac ;;
   edit)    "${EDITOR:-nano}" "$CONFIG/opensky.json" && "$0" check && echo "Run 'opensky restart' to see the changes." ;;
   secrets) "${EDITOR:-nano}" "$CONFIG/secrets.json" && "$0" check && echo "Run 'opensky restart' to use them." ;;
   *) cat <<EOF
@@ -104,6 +112,7 @@ opensky — your family screen
   opensky update       get the newest OpenSky and restart (goes back by itself if it doesn't start)
   opensky rollback     go back to the version before the last update
   opensky backup       make a backup now (to the place chosen in Settings)
+  opensky addon music  add-on: this screen becomes an AirPlay + Spotify speaker (a Music page)
 Settings + data: $CONFIG
 EOF
 esac

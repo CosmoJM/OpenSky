@@ -43,6 +43,7 @@ opensky/
 | MMM-OpenSky-Settings ✅ | the reference build's settings module | panel on `OPENSKY_SETTINGS_OPEN`; `config/device.json`; brightness: sysfs backlight → ddcutil → software dim; wpctl volume; sleep schedule drives the Sidebar (`OPENSKY_SLEEP`/`OPENSKY_WAKE`); `OPENSKY_DRY_RUN=1` in tests |
 | MMM-OpenSky-WordGame ✅ | MMM-Wordle | page `wordgame`; words/ from SCOWL (licence in words/SCOWL-COPYRIGHT.txt); daily word = NYT (default, `OPENSKY_NYT_URL` in tests) or answers[days since 2026-01-01] (backup / `source: "opensky"`); the answer never reaches the page before the game ends; `config/wordgame.json` |
 | MMM-OpenSky-Embed ✅ | MMM-EmbedURL + MMM-Finance ideas | one instance per `embeds.<key>` page, told apart by the class `opensky-embed-<key>` (MMM-pages matches classes); `<webview>` (electronOptions.webviewTag); PIN in secrets.json checked by the node helper (timing-safe, 5 tries → 30 s); config.js only learns whether a PIN exists + its length |
+| MMM-OpenSky-Music ✅ (add-on) | — | page `music`; `lib/music.js` reads what's playing from go-librespot's API (Spotify Connect, `OPENSKY_SPOTIFY_API`) and shairport-sync's MPRIS on the session bus via `busctl` (AirPlay, `OPENSKY_BUSCTL` in tests), polls 1 s while shown or playing; buttons go back the same way; the volume slider is Settings' (`OPENSKY_VOLUME_SET` / `OPENSKY_VOLUME`) |
 | MMM-OpenSky-Keyboard ✅ | MMM-Keyboard (heavily modified fork) | own, dependency-free: follows focus (text boxes only), hides when the box goes away (MutationObserver — Chromium sends no focus event when a focused node is removed), `body.kb-open` moves popups up |
 
 Community modules used (all MIT): MMM-CalendarExt3 (MMRIZE), MMM-Keyboard (lavolp3), MMM-Todoist (cbrooker),
@@ -72,6 +73,12 @@ Phone page: `modules/MMM-OpenSky-Setup/phone/` (no libraries). QR: `lib/client/v
   CalDAV read/write. Accounts in `secrets.json` → `calendar.caldav.<name>`. `config.js` points `type: "caldav"` sources at
   `http://127.0.0.1:<port>/<name>/calendar.ics`; the event editor POSTs `<name>/create|update|delete-event`. Keeps the last
   good feed in `config/calendar-cache/`. Repeating events are read-only (409).
+
+- **Music add-on speakers** (`tools/addons/music.sh`, `opensky addon music`): user services `opensky-airplay`
+  (shairport-sync from apt, AirPlay 1, port 5100, PulseAudio output, D-Bus/MPRIS on the session bus; the package's
+  system service is disabled) and `opensky-spotify` (go-librespot, pinned release + sha256, zeroconf via avahi, API on
+  localhost:3678). Each writes its config from opensky.json first (`services/music/render.js`: speaker name rule shared
+  with config.js). `install.sh` rewrites the units on updates; `opensky restart` and phone setup's Finish restart them.
 
 ## MagicMirror 2.38 notes
 - Electron's language (date/time boxes) comes from the `LANGUAGE` environment variable on Linux, not from

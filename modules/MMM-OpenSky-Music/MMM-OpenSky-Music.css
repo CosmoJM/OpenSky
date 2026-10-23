@@ -1,0 +1,74 @@
+/* MMM-OpenSky-Music — the Music page */
+.mu-root {
+  position: fixed;
+  top: 92px; bottom: 22px;
+  left: var(--os-content-left, 112px); right: 24px;
+  display: flex; color: #1f2937; text-align: left; font-family: inherit; user-select: none;
+}
+.mu-card {
+  position: relative; flex: 1; min-width: 0; overflow: hidden;
+  border-radius: 26px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 28px rgba(31,41,55,.07);
+}
+
+/* ---- playing ---- */
+.mu-player { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 56px; padding: 48px 64px; }
+.mu-backdrop {
+  position: absolute; inset: -60px; background-size: cover; background-position: center;
+  filter: blur(60px) saturate(1.3); opacity: .28; transform: scale(1.1); pointer-events: none;
+}
+.mu-art, .mu-info { position: relative; }
+.mu-art { width: min(560px, calc(calc(100 * var(--vh, 1vh)) - 260px)); aspect-ratio: 1; border-radius: 22px; overflow: hidden; background: #f3f4f6;
+  box-shadow: 0 18px 50px rgba(31,41,55,.25); }
+.mu-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mu-art-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #c4c9d1; }
+.mu-art-empty svg { width: 34%; height: 34%; }
+.mu-info { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.mu-chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 10px; border-radius: 999px;
+  font-size: 17px; font-weight: 700; background: rgba(255,255,255,.75); color: #4b5563; margin-bottom: 8px; }
+.mu-chip-ic svg { width: 22px; height: 22px; display: block; }
+.mu-chip-spotify { color: #128a43; }
+.mu-title { font-size: 52px; font-weight: 800; line-height: 1.1; letter-spacing: -.01em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mu-artist { font-size: 30px; font-weight: 600; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-album { font-size: 22px; font-weight: 500; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.mu-progress { margin-top: 26px; }
+.mu-bar { height: 10px; border-radius: 99px; background: rgba(31,41,55,.12); overflow: hidden; }
+.mu-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--os-accent); transition: width .5s linear; }
+.mu-times { display: flex; justify-content: space-between; margin-top: 8px; font-size: 18px; font-weight: 600; color: #6b7280; font-variant-numeric: tabular-nums; }
+
+.mu-controls { display: flex; align-items: center; gap: 34px; margin-top: 22px; }
+.mu-btn { border: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(255,255,255,.8); color: #1f2937; border-radius: 50%; width: 96px; height: 96px;
+  box-shadow: 0 2px 10px rgba(31,41,55,.1); transition: transform .12s; }
+.mu-btn svg { width: 40px; height: 40px; }
+.mu-btn:active { transform: scale(.93); }
+.mu-play { width: 128px; height: 128px; background: var(--os-accent); color: #fff;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--os-accent) 45%, transparent); }
+.mu-play svg { width: 56px; height: 56px; }
+
+.mu-volume { display: flex; align-items: center; gap: 16px; margin-top: 30px; max-width: 560px; color: #6b7280; }
+.mu-volume[hidden] { display: none; }
+.mu-vol-ic svg { width: 30px; height: 30px; display: block; }
+.mu-range { flex: 1; -webkit-appearance: none; appearance: none; height: 10px; border-radius: 99px; outline: none;
+  background: linear-gradient(to right, var(--os-accent) var(--v, 50%), rgba(31,41,55,.14) var(--v, 50%)); }
+.mu-range::-webkit-slider-thumb { -webkit-appearance: none; width: 36px; height: 36px; border-radius: 50%; background: #fff;
+  border: 3px solid var(--os-accent); box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+
+/* ---- nothing playing ---- */
+.mu-idle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 40px; text-align: center; }
+.mu-idle-ic { width: 104px; height: 104px; border-radius: 28px; display: flex; align-items: center; justify-content: center;
+  background: var(--os-accent-soft, #ffd8c9); color: var(--os-accent); margin-bottom: 8px; }
+.mu-idle-ic svg { width: 54px; height: 54px; }
+.mu-idle-title { margin: 0; font-size: 40px; font-weight: 800; }
+.mu-idle-sub { margin: 0; font-size: 22px; color: #6b7280; font-weight: 500; }
+.mu-how { display: flex; gap: 24px; margin-top: 26px; flex-wrap: wrap; justify-content: center; }
+.mu-how-tile { width: 420px; text-align: left; padding: 24px 28px; border-radius: 22px; background: #f8f6f4; }
+.mu-how-tile b { display: block; font-size: 22px; margin: 10px 0 8px; }
+.mu-how-tile ol { margin: 0; padding-left: 24px; font-size: 19px; line-height: 1.6; color: #374151; }
+.mu-how-tile small { display: block; margin-top: 10px; font-size: 16px; color: #9ca3af; font-weight: 500; }
+.mu-how-ic { width: 52px; height: 52px; border-radius: 14px; background: #fff; color: #374151; display: flex; align-items: center; justify-content: center; }
+.mu-how-ic svg { width: 30px; height: 30px; }
+.mu-idle .mu-volume { width: 560px; margin-top: 30px; }
+.mu-install { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 22px; font-size: 20px; color: #4b5563; }
+.mu-install code { font-size: 26px; font-weight: 700; padding: 14px 24px; border-radius: 14px; background: #1f2937; color: #fff; }

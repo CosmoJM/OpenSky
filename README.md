@@ -29,6 +29,8 @@ timers, photos, weather and smart-home controls on one screen. Built on [MagicMi
 - **Lists:** to-dos and groceries — kept on the Pi, or in Todoist. Check off with Undo.
 - **Timer**, holiday & birthday countdown, your team's game day, sleep button, photos from a folder, USB stick or Immich.
 - Works with Google, Outlook, iCloud, Fastmail, Nextcloud or any calendar link — or no account at all.
+- **Add-on — Music:** the screen becomes an AirPlay and Spotify speaker, with a Music page
+  ([docs/music.md](docs/music.md)): `opensky addon music`.
 
 ## Install
 On a Raspberry Pi 4/5 with Raspberry Pi OS (64-bit, desktop) and a touchscreen:

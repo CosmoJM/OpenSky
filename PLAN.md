@@ -99,3 +99,6 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
   PhotoPrism / Nextcloud photos, NWS / Met.no weather.
 - Presence: screen on/off from Home Assistant (nobody home → off), settings migrations between versions.
 - Add-ons: **Food** (nearby restaurants), others from the community; a ready-to-flash SD-card image.
+- **Music add-on** (asked for by a user): ✅ step 1 — the screen as an AirPlay + Spotify Connect speaker with a Music
+  page (`opensky addon music`, docs/music.md). Step 2 — the same page as a remote for other speakers: Home Assistant
+  media players (Sonos, HomePod, Echo…) and Spotify's Web API (each family's own developer key, Premium).

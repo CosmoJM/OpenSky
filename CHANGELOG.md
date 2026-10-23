@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+- **Music add-on** (`opensky addon music`): the screen becomes an AirPlay and a Spotify Connect speaker, and a Music
+  page shows what's playing (cover, song, progress) with previous / play-pause / next and the volume.
+  Its speaker name and AirPlay / Spotify switches are in phone setup → Extras. See docs/music.md.
+- A failed change to a list (add, check off…) is also written to the log (`opensky logs`).
+
 ## 1.0.0 — 2026-10-19
 The first public version: a friendly family wall calendar for a Raspberry Pi touchscreen, built on MagicMirror².
 

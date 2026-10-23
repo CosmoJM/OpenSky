@@ -442,7 +442,7 @@
   }
 
   function pagesCard() {
-    const names = { home: "Home", calendar: "Calendar", lists: "Lists", wordgame: "Word Game", timer: "Timer" };
+    const names = { home: "Home", calendar: "Calendar", lists: "Lists", wordgame: "Word Game", timer: "Timer", music: "Music" };
     for (const [k, e] of Object.entries(S.embeds)) names[k] = (e && e.title) || k;
     const all = [...S.pages.filter((p) => names[p]), ...Object.keys(names).filter((k) => !S.pages.includes(k))];
     const box = el("div", { class: "rows" });
@@ -526,8 +526,24 @@
         field("Sports league", select([["nfl", "NFL"], ["college-football", "College football"], ["nba", "NBA"], ["wnba", "WNBA"], ["mens-college-basketball", "College basketball"], ["mlb", "MLB"], ["nhl", "NHL"], ["mls", "MLS"], ["nwsl", "NWSL"], ["epl", "Premier League"]], hd.sports.league || "nfl", (v) => { hd.sports.league = v; change(); })),
         field("Team code", text(hd.sports.team, (v) => { hd.sports.team = v.trim().toUpperCase(); change(); }, { placeholder: "e.g. NE", maxlength: "5", autocapitalize: "characters" }), "Game-day pill. Empty = off.")),
       field("Word game", seg([["nyt", "NYT's daily word"], ["opensky", "OpenSky's words"]], wg.source === "opensky" ? "opensky" : "nyt", (v) => { wg.source = v; change(); })),
+      ...musicFields(),
       field("Weather from", seg([["open-meteo", "Open-Meteo (free)"], ["openweathermap", "OpenWeatherMap"]], w.provider || "open-meteo", (v) => { w.provider = v; change(); drawWeather(v); })),
       weatherKey);
+  }
+
+  // Music add-on: the speaker's name on phones, AirPlay / Spotify on or off (once the Music page is on or it's installed)
+  function musicFields() {
+    const inst = (info.addons && info.addons.music) || {};
+    if (!S.pages.includes("music") && !inst.spotify && !inst.airplay) return [];
+    if (!S.music || typeof S.music !== "object") S.music = {};
+    const M = S.music;
+    return [
+      el("h4", { class: "sub-title" }, "Music"),
+      !inst.spotify && !inst.airplay ? el("p", { class: "hint" }, "Not installed yet: on the Pi, open Terminal and type  opensky addon music") : null,
+      field("Speaker name", text(M.name || "", (v) => { M.name = v.trim(); if (!M.name) delete M.name; change(); }, { placeholder: S.family.name || "OpenSky", maxlength: "40" }), "What phones show in the AirPlay and Spotify speaker lists."),
+      el("div", { class: "line" }, el("span", {}, el("b", {}, "AirPlay"), el("small", {}, "iPhone, iPad, Mac")), toggle(M.airplay !== false, (v) => { M.airplay = v; change(); }, "AirPlay")),
+      el("div", { class: "line" }, el("span", {}, el("b", {}, "Spotify Connect"), el("small", {}, "Needs Spotify Premium")), toggle(M.spotify !== false, (v) => { M.spotify = v; change(); }, "Spotify Connect"))
+    ];
   }
 
   function backupCard() {

@@ -45,6 +45,12 @@ const CODE_MINUTES = 10, IDLE_MINUTES = 30;
 // secrets the phone may set (dotted paths under these)
 const SECRET_ROOTS = ["weather.openweathermap.", "lists.todoist.", "homeassistant.", "photos.immich.", "calendar.sources.", "calendar.caldav.", "embeds."];
 
+// the Music add-on's speakers, installed by `opensky addon music` (tests: OPENSKY_MUSIC_INSTALLED=spotify,airplay)
+function musicInstalled() {
+  if (process.env.OPENSKY_MUSIC_INSTALLED != null) { const on = process.env.OPENSKY_MUSIC_INSTALLED.split(","); return { spotify: on.includes("spotify"), airplay: on.includes("airplay") }; }
+  const units = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), "systemd", "user");
+  return { spotify: fs.existsSync(path.join(units, "opensky-spotify.service")), airplay: fs.existsSync(path.join(units, "opensky-airplay.service")) };
+}
 const readJson = (f, fallback) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { return fallback; } };
 // secrets.json before a change: a damaged file (a typo from editing it by hand) is never replaced, or every other
 // password in it would be lost
@@ -241,7 +247,8 @@ module.exports = NodeHelper.create({
       try { presets = fs.readdirSync(path.join(__dirname, "..", "..", "lib", "pickup-presets")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)); } catch (e) { /* none */ }
       return this.send(res, 200, {
         settings: settings || readJson(EXAMPLE, {}), secretsSet: secretPaths(readJson(SECRETS, {})), presets,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY,
+        addons: { music: musicInstalled() }
       });
     }
 
@@ -346,7 +353,11 @@ module.exports = NodeHelper.create({
       setTimeout(() => {
         this.stopServer("setup finished");
         if (DRY) return console.log("[OpenSky] phone setup: restart (dry run — nothing done)");
-        if (process.env.INVOCATION_ID) execFile("systemctl", ["--user", "--no-block", "restart", "opensky-calendar.service", "opensky.service"], () => {});
+        if (process.env.INVOCATION_ID) {
+          // the Music add-on's speakers too (a new speaker name, AirPlay / Spotify switched on or off)
+          const m = musicInstalled(), music = [m.airplay && "opensky-airplay.service", m.spotify && "opensky-spotify.service"].filter(Boolean);
+          execFile("systemctl", ["--user", "--no-block", "restart", "opensky-calendar.service", ...music, "opensky.service"], () => {});
+        }
       }, 300);
       return;
     }

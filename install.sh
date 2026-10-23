@@ -54,6 +54,7 @@ ask()  { # ask "Question?" default(y/n) → 0 for yes
 if [ $UNINSTALL = 1 ]; then
   say "Removing OpenSky's services"
   systemctl --user disable --now opensky.service opensky-calendar.service 2>/dev/null || true
+  [ -f "$UNITS/opensky-airplay.service" ] || [ -f "$UNITS/opensky-spotify.service" ] && "$REPO/tools/addons/music.sh" remove
   rm -f "$UNITS/opensky.service" "$UNITS/opensky-calendar.service" "$AUTOSTART" "$HOME/.local/bin/opensky"
   for f in /etc/udev/rules.d/90-opensky-backlight.rules /etc/modules-load.d/opensky-i2c.conf /etc/NetworkManager/conf.d/90-opensky-wifi.conf; do [ -f "$f" ] && sudo rm -f "$f"; done
   systemctl --user daemon-reload 2>/dev/null || true
@@ -216,6 +217,10 @@ X-GNOME-Autostart-enabled=true
 EOF
 systemctl --user daemon-reload
 [ $CAL_OK = 1 ] && systemctl --user enable -q --now opensky-calendar.service && ok "Calendar helper running"
+# add-ons that are installed keep working after an update (their services name this folder and this Node.js)
+if [ -f "$UNITS/opensky-airplay.service" ] || [ -f "$UNITS/opensky-spotify.service" ]; then
+  OPENSKY_HOME="$RUNTIME" "$REPO/tools/addons/music.sh" units && ok "Music add-on up to date"
+fi
 ok "Starts automatically when the desktop starts"
 
 # ---------------------------------------------------------------- screen blanking + auto login (Raspberry Pi OS)

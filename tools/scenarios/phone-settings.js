@@ -195,6 +195,16 @@ module.exports = async (page, h, app) => {
     S.header.sports.league === "nba" && S.header.sports.team === "BOS" && S.wordgame.source === "opensky" && S.weather.provider === "openweathermap" && sec.weather?.openweathermap?.apiKey === "owm-key-123456",
     { look: S.look, pickup: S.pickup, sports: S.header.sports, wordgame: S.wordgame, weather: S.weather });
 
+  // ---- Music add-on: the page on → its settings appear in Extras (speaker name, AirPlay / Spotify) ----
+  ok("Music settings are hidden until the Music page is on", !(await phone.evaluate(() => /Speaker name/.test(document.querySelector("#extras").textContent))));
+  await tap("#pages", ".toggle", "Music");
+  ok("…then show, with how to install the add-on", await phone.evaluate(() => /Speaker name/.test(document.querySelector("#extras").textContent) && /opensky addon music/.test(document.querySelector("#extras").textContent)));
+  await type("#extras input[maxlength='40']", "Kitchen speaker");
+  await tap("#extras", ".toggle", "AirPlay");
+  await save();
+  S = settings();
+  ok("music: page on, speaker name, AirPlay off, Spotify left on", S.pages.includes("music") && S.music?.name === "Kitchen speaker" && S.music.airplay === false && S.music.spotify !== false, { pages: S.pages, music: S.music });
+
   // ---- Backup: nightly to a folder, time, how many, with passwords; then Back up now ----
   await until(() => phone.evaluate(() => !!document.querySelector("#backup .auto-backup select")));
   await pick("#backup", "Back up every night to", DEST);
@@ -211,7 +221,7 @@ module.exports = async (page, h, app) => {
 
   // ---- nothing lost along the way: everything from the earlier saves is still there ----
   S = settings(); sec = secrets();
-  ok("every earlier change is still saved after 12 saves", S.family.name === "The Phone Testers" && S.location.name === "Toronto, Canada" && S.locale.units === "imperial" &&
+  ok("every earlier change is still saved after 13 saves", S.family.name === "The Phone Testers" && S.location.name === "Toronto, Canada" && S.locale.units === "imperial" &&
     S.calendar.sources.some((c) => c.name === "Kids") && S.lists.lists.some((l) => l.name === "Errands") && S.photos.folder === "~/Family Photos" && S.embeds.cameras && S.look.accent === "teal" &&
     sec.calendar.caldav.Work && sec.lists.todoist.token && sec.embeds.bank.pin);
 

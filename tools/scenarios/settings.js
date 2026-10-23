@@ -121,7 +121,7 @@ module.exports = async (page, h) => {
   await page.evaluate(() => document.querySelector('.ost-toggle[data-id="wf-lock"]').click());
   await fillWf("pin", "2580");
   await page.evaluate(() => document.querySelector(".ost-wf-save").click());
-  await until(async () => (SEC().embeds || {}).recipes);
+  await until(async () => (SEC().embeds || {}).recipes && !S().embeds.recipes.url);   // (both files are written; wait for the second)
   ok("lock it with a PIN: the address moves to secrets.json with the PIN; opensky.json keeps only name + icon", SEC().embeds.recipes.pin === "2580" && /embed\.html$/.test(SEC().embeds.recipes.url) && !S().embeds.recipes.url && S().embeds.recipes.icon === "food", { set: S().embeds.recipes });
   await until(async () => page.evaluate(() => !!document.querySelector('.ost-edit-web[data-key="recipes"]')));
   await page.evaluate(() => document.querySelector('.ost-edit-web[data-key="recipes"]').click());

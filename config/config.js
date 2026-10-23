@@ -38,7 +38,8 @@ const PAGE_INFO = {
   lists: { label: "Lists" },
   smarthome: { label: "Smart Home" },
   wordgame: { label: "Word Game" },
-  timer: { label: "Timer" }
+  timer: { label: "Timer" },
+  music: { label: "Music" }
 };
 
 // Curbside pickup: trash day + an optional city preset (lib/pickup-presets/<name>.json) + the family's own overrides
@@ -163,6 +164,16 @@ const PAGES = {
       quickAddButtons: quickMinutes(s.timer && s.timer.quickAddMinutes)
         .map((m) => ({ label: m % 60 === 0 && m >= 60 ? `+${m / 60} hr` : `+${m} min`, seconds: m * 60 })),
       alarm: { volume: (s.timer && s.timer.chimeVolume) ?? 0.6, repeatEverySeconds: 2.5, maxRingSeconds: 180 }
+    }
+  }],
+  // the Music add-on (opensky addon music): the speaker name phones show — same rule as services/music/render.js
+  music: () => [{
+    module: "MMM-OpenSky-Music",
+    position: "fullscreen_above",
+    config: {
+      name: String((s.music && s.music.name) || (s.family && s.family.name) || "OpenSky").replace(/[\u0000-\u001f"\\]/g, "").trim().slice(0, 40) || "OpenSky",
+      spotify: !(s.music && s.music.spotify === false),
+      airplay: !(s.music && s.music.airplay === false)
     }
   }]
 };
