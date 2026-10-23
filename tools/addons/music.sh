@@ -13,7 +13,7 @@ REPO="$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)"
 RUNTIME="${OPENSKY_HOME:-$HOME/.local/share/opensky}"
 DIR="$RUNTIME/music"
 UNITS="$HOME/.config/systemd/user"
-CONFIG="$REPO/config"
+CONFIG="${OPENSKY_CONFIG_DIR:-$REPO/config}"   # (tests: a copy)
 GLR_VERSION="v0.10.5"
 declare -A GLR_SHA=(   # sha256 of each release file (from the release page)
   [arm64]=35274c1d3576090096d3459ecf76ee9c025258d19dc76f0bf724f95c525467e1
@@ -27,7 +27,7 @@ die()  { printf '\n\033[31m✗ %s\033[0m\n' "$*"; exit 1; }
 ask()  { [ -t 0 ] || { [ "$2" = y ]; return; }; local a; read -r -p "  $1 [$( [ "$2" = y ] && echo Y/n || echo y/N )] " a; a="${a:-$2}"; [[ "$a" =~ ^[Yy] ]]; }
 node_bin() { if [ -x "$RUNTIME/node/bin/node" ]; then echo "$RUNTIME/node/bin/node"; else command -v node || die "Node.js not found — run ./install.sh first"; fi; }
 
-units() {
+addon_units() {
   local node; node="$(node_bin)"
   mkdir -p "$UNITS" "$DIR"
   cat > "$UNITS/opensky-airplay.service" <<EOF
@@ -72,7 +72,9 @@ add_page() {
     fs.copyFileSync(f, f + ".bak"); fs.writeFileSync(f, JSON.stringify(s, null, 2) + "\n");' "$CONFIG/opensky.json"
 }
 
-install() {
+# (functions are named addon_* so they can never shadow a command: a function called "install" once ran itself
+# instead of /usr/bin/install, over and over, until /tmp was full)
+addon_install() {
   [ "$(id -u)" != 0 ] || die "Please run this as your normal user (not with sudo)."
   [ -f "$CONFIG/opensky.json" ] || die "OpenSky isn't set up here yet — run ./install.sh first."
   case "$(uname -m)" in
@@ -103,7 +105,7 @@ install() {
   ok "go-librespot in $DIR"
 
   say "Starting the speakers"
-  units
+  addon_units
   systemctl --user enable -q --now opensky-airplay.service opensky-spotify.service
   sleep 2
   for u in opensky-airplay opensky-spotify; do systemctl --user is-active -q "$u.service" && ok "$u running" || printf '  \033[33m⚠ %s didn'"'"'t start — see: journalctl --user -u %s\033[0m\n' "$u" "$u"; done
@@ -122,7 +124,7 @@ install() {
 EOF
 }
 
-remove() {
+addon_remove() {
   say "Removing the Music add-on's speakers"
   systemctl --user disable --now opensky-airplay.service opensky-spotify.service 2>/dev/null || true
   rm -f "$UNITS/opensky-airplay.service" "$UNITS/opensky-spotify.service"
@@ -133,8 +135,8 @@ remove() {
 }
 
 case "${1:-install}" in
-  install) install ;;
-  units)   units ;;
-  remove)  remove ;;
+  install) addon_install ;;
+  units)   addon_units ;;
+  remove)  addon_remove ;;
   *) sed -n 2,10p "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

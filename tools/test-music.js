@@ -80,9 +80,10 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
     yml.includes('device_name: "Les Élèves\' Café ☕"') && /device_type: speaker/.test(yml) && /audio_backend: pulseaudio/.test(yml) && /type: zeroconf/.test(yml) && /address: localhost\n  port: 3678/.test(yml));
   const shairport = "/usr/bin/shairport-sync";
   if (fs.existsSync(shairport)) {
-    let chk = "";
-    try { execFileSync(shairport, ["-c", path.join(out, "shairport-sync.conf"), "--displayConfig"], { timeout: 5000, stdio: "pipe" }); chk = "ok"; } catch (e) { chk = String(e.stderr || e.message).slice(0, 200); }
-    ok("17 shairport-sync reads the config", chk === "ok", chk);
+    // --displayConfig prints what it read, then carries on as a speaker: stopped after 2 s
+    const r = require("child_process").spawnSync(shairport, ["-c", path.join(out, "shairport-sync.conf"), "--displayConfig"], { timeout: 2000, killSignal: "SIGTERM", encoding: "utf8" });
+    const shown = String(r.stdout || "") + String(r.stderr || "");
+    ok("17 shairport-sync reads the config (name, output, port, session bus)", /Display Config End/.test(shown) && /name = "Les Élèves' Café ☕"/.test(shown) && /output_backend = "pa"/.test(shown) && /port = 5100/.test(shown) && /mpris_service_bus = "session"/.test(shown) && !/error|unrecognised|invalid/i.test(shown.split("Display Config End")[0]), shown.slice(-300));
   }
 
   // ---- config.js: the Music page ----
