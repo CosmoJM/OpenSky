@@ -23,15 +23,19 @@ Module.register("MMM-OpenSky-Music", {
     this.installed = null;
     this.volume = null;       // { volume, name } from Settings
     this.receivedAt = 0;
+    this.arts = {};           // cover pictures by id (OS_MUSIC_ART), named "art:<id>" in the states
     this.sendSocketNotification("OS_MUSIC_INIT", { spotify: this.config.spotify, airplay: this.config.airplay, speakers: this.config.speakers });
     setInterval(() => this.tickProgress(), 500);
   },
 
-  suspend() { this.sendSocketNotification("OS_MUSIC_VISIBLE", false); },
+  // leaving the page forgets a tapped speaker: next time it opens on whatever plays
+  suspend() { this.sendSocketNotification("OS_MUSIC_VISIBLE", false); this.forgetTab(); },
+  forgetTab() { if (this.selected) { this.selected = null; this.shownId = null; if (this.root) this.updateDom(); } },
   resume() { this.sendSocketNotification("OS_MUSIC_VISIBLE", true); this.sendNotification("OPENSKY_VOLUME_GET"); },
 
   notificationReceived(n, p) {
     if (n === "OPENSKY_VOLUME") { this.volume = p; this.syncVolume(); }
+    else if (n === "OPENSKY_IDLE_RESET") this.forgetTab();
     else if (n === "DOM_OBJECTS_CREATED") this.sendNotification("OPENSKY_VOLUME_GET");
   },
 
@@ -40,6 +44,11 @@ Module.register("MMM-OpenSky-Music", {
       const before = this.shape();
       this.now = p.now; this.installed = p.installed; this.speakers = p.speakers || []; this.receivedAt = Date.now();
       if (this.shape() !== before || !this.root) this.updateDom(); else { this.syncPlaying(); this.syncVolume(); }
+    } else if (n === "OS_MUSIC_ART" && p && p.id) {
+      this.arts[p.id] = p.url;
+      const ids = Object.keys(this.arts);
+      if (ids.length > 12) delete this.arts[ids[0]];   // (keep the last few)
+      if (this.root && this.root.innerHTML.includes(`art:${p.id}`)) this.updateDom();
     } else if (n === "OS_MUSIC_ERROR") this.toast(p.message);
   },
 
@@ -117,11 +126,14 @@ Module.register("MMM-OpenSky-Music", {
   el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; },
   html(tag, cls, html) { const e = this.el(tag, cls); e.innerHTML = html; return e; },   // (only our own icons)
 
+  artUrl(a) { return a && a.startsWith("art:") ? this.arts[a.slice(4)] || null : a; },
+
   player(now, v) {
     const card = this.el("div", "mu-card mu-player");
-    if (now.art) { const bg = this.el("div", "mu-backdrop"); bg.style.backgroundImage = `url("${now.art.replace(/"/g, "%22")}")`; card.append(bg); }
-    const art = this.el("div", "mu-art");
-    if (now.art) { const img = this.el("img"); img.src = now.art; img.alt = ""; art.append(img); } else art.append(this.html("div", "mu-art-empty", window.OpenSkyIcons ? window.OpenSkyIcons.svg("music") : ""));
+    const art = this.artUrl(now.art);
+    if (art) { const bg = this.el("div", "mu-backdrop"); bg.style.backgroundImage = `url("${art.replace(/"/g, "%22")}")`; card.append(bg); }
+    const box = this.el("div", "mu-art");
+    if (art) { const img = this.el("img"); img.src = art; img.alt = ""; box.append(img); } else box.append(this.html("div", "mu-art-empty", window.OpenSkyIcons ? window.OpenSkyIcons.svg("music") : ""));
     const info = this.el("div", "mu-info");
     const chip = this.el("div", `mu-chip mu-chip-${now.source}`);
     chip.append(this.html("span", "mu-chip-ic", this.ICON[now.source] || this.ICON.high), this.el("span", null, now.source === "spotify" ? "Spotify" : now.source === "airplay" ? "AirPlay" : v.name));
@@ -136,7 +148,7 @@ Module.register("MMM-OpenSky-Music", {
     const btn = (cls, icon, action, label) => { const b = this.html("button", `mu-btn ${cls}`, icon); b.setAttribute("aria-label", label); b.onclick = () => this.control(action); return b; };
     ctl.append(btn("mu-prev", this.ICON.prev, "previous", "Previous"), btn("mu-play", now.playing ? this.ICON.pause : this.ICON.play, "playpause", now.playing ? "Pause" : "Play"), btn("mu-next", this.ICON.next, "next", "Next"));
     info.append(ctl, this.volumeRow());
-    card.append(art, info);
+    card.append(box, info);
     this.syncPlaying(card);
     return card;
   },

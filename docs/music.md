@@ -30,7 +30,8 @@ In phone setup → **Extras → Music** (or `opensky.json`):
 "music": { "name": "Kitchen", "airplay": true, "spotify": true, "speakers": [] }
 ```
 - `name` — what phones show in their speaker list. Default: your family name.
-- `airplay` / `spotify` — turn either one off.
+- `airplay` / `spotify` — turn either one off: it disappears from phones after phone setup's Finish (or `opensky restart`).
+  A speaker restarts only when its name or switch changed, so music that's playing isn't cut off otherwise.
 - `speakers` — other speakers to control (next section).
 
 The volume on the Music page is the screen's volume (the same as in Settings). Phones also have their own volume.
@@ -49,6 +50,8 @@ go in `secrets.json` → `homeassistant`). This part doesn't need the add-on ins
 - It's **AirPlay 1** (the version Raspberry Pi OS ships). iPhones, iPads and Macs play to it like any AirPlay speaker;
   it just can't be grouped with HomePods for multi-room in the Home app.
 - One phone at a time per speaker; another phone can take over.
+- AirPlay doesn't tell the screen how far into a song it is, so the Music page counts it from when the song started
+  (paused time left out); if you skip ahead on the phone, the time on the screen doesn't follow.
 - The buttons on the Music page control the phone that's playing. A few apps ignore remote buttons over AirPlay —
   use the phone then.
 - Uses ports 5100 (AirPlay) and 3678 (Spotify's control, this Pi only).

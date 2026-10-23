@@ -16,6 +16,9 @@ module.exports = async (page, h) => {
   ok("a popup's text box brings it up", await kb());
   const geo = await page.evaluate(() => ({ modal: document.querySelector(".osl-modal").getBoundingClientRect().bottom, kb: document.querySelector(".okb").getBoundingClientRect().top }));
   ok("the popup sits above the keyboard", geo.modal < geo.kb, geo);
+  // (it slides up: wait until it stands still, or a tap measured mid-slide lands beside the key — on a busy computer)
+  let last = null;
+  for (let i = 0; i < 20; i++) { const t = await page.evaluate(() => document.querySelector(".okb").getBoundingClientRect().top); if (t === last) break; last = t; await h.sleep(100); }
   for (const k of ["m", "i", "l", "k"]) await key(k);
   ok("an empty box starts with a capital; typing goes in", (await value()) === "Milk", await value());
   await key("{back}"); await key("{shift}"); await key("s");

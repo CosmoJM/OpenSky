@@ -51,7 +51,7 @@ tmp_before=$(find /tmp -maxdepth 1 -name 'tmp.*' -user "$(id -u)" 2>/dev/null | 
 # ---- install ----
 out="$(run install)"; code=$?
 ok "1 install finishes ('All set!') with the speaker name" "$([ $code = 0 ] && grep -q 'All set' <<<"$out" && grep -q '"The Testers"' <<<"$out"; echo $?)" "exit $code: $(tail -3 <<<"$out" | tr '\n' ' ')"
-ok "2 one download, checksum checked, shairport-sync installed with apt unless it already is" "$([ "$(grep -c '^curl ' "$LOG")" = 1 ] && grep -q '^sha256sum' "$LOG" && [ "$(grep -c '^apt-get install -y -q shairport-sync' "$LOG")" = "$apt_expected" ]; echo $?)" "$(grep -c '^curl ' "$LOG") downloads, $(grep -c '^apt-get' "$LOG") apt (expected $apt_expected)"
+ok "2 one download, checksum checked, shairport-sync installed with apt (lists refreshed first) unless it already is" "$([ "$(grep -c '^curl ' "$LOG")" = 1 ] && grep -q '^sha256sum' "$LOG" && [ "$(grep -c '^apt-get install -y -q shairport-sync' "$LOG")" = "$apt_expected" ] && { [ "$apt_expected" = 0 ] || [ "$(grep '^apt-get' "$LOG" | head -1 | cut -d' ' -f2)" = update ]; }; echo $?)" "$(grep -c '^curl ' "$LOG") downloads, $(grep -c '^apt-get' "$LOG") apt (expected $apt_expected)"
 check "3 go-librespot installed (runs) with its version noted" bash -c "[ \"\$('$T/runtime/music/go-librespot')\" = 'fake go-librespot' ] && grep -q '^v' '$T/runtime/music/.go-librespot-version'"
 U="$T/home/.config/systemd/user"
 check "4 AirPlay service: settings, config written first, shairport-sync with it" bash -c "grep -q 'Environment=OPENSKY_SETTINGS=$T/config/opensky.json' '$U/opensky-airplay.service' && grep -q 'render.js airplay $T/runtime/music' '$U/opensky-airplay.service' && grep -q 'ExecStart=/usr/bin/shairport-sync -c $T/runtime/music/shairport-sync.conf' '$U/opensky-airplay.service'"
@@ -68,6 +68,17 @@ ok "9 running it again: no new download, no second Music page" "$([ "$(grep -c '
 # ---- units only (what install.sh does on updates) ----
 rm -f "$U/opensky-airplay.service"; run units >/dev/null
 check "10 'units' rewrites the services" test -f "$U/opensky-airplay.service"
+
+check "10b services skip starting when switched off (ExecCondition)" bash -c "grep -q 'ExecCondition=.*render.js enabled airplay' '$U/opensky-airplay.service' && grep -q 'ExecCondition=.*render.js enabled spotify' '$U/opensky-spotify.service'"
+
+# ---- apply (opensky restart, phone setup's Finish): only what changed ----
+render() { OPENSKY_SETTINGS="$T/config/opensky.json" node "$REPO/services/music/render.js" "$@"; }
+render airplay "$T/runtime/music" >/dev/null; render spotify "$T/runtime/music" >/dev/null   # (what the running speakers use)
+: > "$LOG"; run apply >/dev/null
+ok "13 apply with nothing changed: no restart, so music keeps playing" "$(grep -qE 'restart|stop' "$LOG"; [ $? = 1 ]; echo $?)" "$(tr '\n' ';' < "$LOG")"
+node -e 'const fs=require("fs"),f=process.argv[1],s=JSON.parse(fs.readFileSync(f,"utf8")); s.music={airplay:false,name:"Kitchen"}; fs.writeFileSync(f,JSON.stringify(s))' "$T/config/opensky.json"
+: > "$LOG"; run apply >/dev/null
+ok "14 apply after AirPlay off + a new name: AirPlay stopped, Spotify restarted (new name), nothing else" "$(grep -q 'stop opensky-airplay.service' "$LOG" && grep -q 'restart opensky-spotify.service' "$LOG" && ! grep -q 'restart opensky-airplay' "$LOG"; echo $?)" "$(tr '\n' ';' < "$LOG")"
 
 # ---- remove ----
 run remove > "$T/remove.out"

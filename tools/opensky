@@ -66,7 +66,9 @@ case "${1:-help}" in
            systemctl --user start opensky-calendar.service opensky.service ;;
   stop)    systemctl --user stop opensky.service ;;
   restart) systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE 2>/dev/null
-           systemctl --user restart opensky-calendar.service $(music_units) opensky.service ;;
+           systemctl --user restart opensky-calendar.service opensky.service
+           # the Music add-on's speakers: only what changed (a restart would cut off music that's playing)
+           if [ -n "$(music_units)" ]; then "$REPO/tools/addons/music.sh" apply; fi ;;
   status)  systemctl --user --no-pager status opensky.service opensky-calendar.service $(music_units) | grep -E "●|Active:|Main PID" ;;
   logs)    # (on Raspberry Pi OS a user service's log lives in the system journal, which the default user can read)
            out=$(journalctl _SYSTEMD_USER_UNIT=opensky.service + _SYSTEMD_USER_UNIT=opensky-calendar.service -n "${2:-80}" --no-pager 2>/dev/null)

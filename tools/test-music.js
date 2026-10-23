@@ -20,7 +20,7 @@ fs.writeFileSync(ART, Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]));
 const BUSLOG = path.join(tmp, "busctl.log"), MPRIS = path.join(tmp, "mpris.json");
 const fake = path.join(tmp, "busctl");
 fs.writeFileSync(fake, `#!/bin/sh\necho "$@" >> "${BUSLOG}"\ncase "$*" in *GetAll*) [ -f "${MPRIS}" ] && cat "${MPRIS}" || exit 1 ;; *Player\\ PlayPause*|*Player\\ Next*|*Player\\ Previous*) exit \${FAKE_BUS_FAIL:-0} ;; esac\n`, { mode: 0o755 });
-const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{sv}", data: [{ PlaybackStatus: { type: "s", data: status }, Position: { type: "x", data: 61000000 }, Metadata: { type: "a{sv}", data: md } }] }));
+const mpris = (status, md, position = 61000000) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{sv}", data: [{ PlaybackStatus: { type: "s", data: status }, Position: { type: "x", data: position }, Metadata: { type: "a{sv}", data: md } }] }));
 
 (async () => {
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
@@ -52,6 +52,18 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
   ok("8 AirPlay paused; no art → null", s.playing === false && s.art === null, s);
   mpris("Stopped", {});
   ok("9 AirPlay stopped → nothing", (await music.state({ spotify: false })) === null);
+  // shairport-sync reports no position (0): it's counted from when the song was first seen, paused time left out
+  const song = (status, title = "Gymnopédie") => mpris(status, { "xesam:title": { type: "s", data: title }, "mpris:length": { type: "x", data: 200000000 } }, 0);   // (like the real one)
+  song("Playing"); await music.state({ spotify: false }); await new Promise((r) => setTimeout(r, 1200));
+  const p1 = (await music.state({ spotify: false })).position;
+  song("Paused"); await music.state({ spotify: false }); await new Promise((r) => setTimeout(r, 800));
+  const p2 = (await music.state({ spotify: false })).position;
+  song("Playing"); await music.state({ spotify: false }); await new Promise((r) => setTimeout(r, 600));
+  const p3 = (await music.state({ spotify: false })).position;
+  song("Playing", "Another song");
+  const p4 = (await music.state({ spotify: false })).position;
+  ok("9b AirPlay without a position: counted from the song's start, stands still while paused, goes on after, a new song starts at 0",
+    p1 >= 1100 && p1 < 2500 && p2 - p1 >= 0 && p2 - p1 < 500 && p3 >= p2 + 500 && p3 < p2 + 1800 && p4 < 300, [p1, p2, p3, p4]);   // (roomy: a busy test computer)
   fs.writeFileSync(BUSLOG, "");
   await music.control("airplay", "playpause"); await music.control("airplay", "next");
   const bl = fs.readFileSync(BUSLOG, "utf8");
@@ -72,6 +84,7 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
       const send = (code, obj, type = "application/json") => { res.writeHead(code, { "Content-Type": type }); res.end(type === "application/json" ? JSON.stringify(obj) : obj); };
       if (req.headers.authorization !== "Bearer ha-token") return send(401, {});
       if (req.url === "/api/states/media_player.kitchen") return send(200, { entity_id: "media_player.kitchen", state: kitchen, attributes: { friendly_name: "Kitchen", media_title: "Dreams", media_artist: "Fleetwood Mac", media_album_name: "Rumours", media_duration: 257, media_position: 60, media_position_updated_at: new Date(Date.now() - 2000).toISOString(), volume_level: 0.35, entity_picture: "/api/media_player_proxy/media_player.kitchen?token=abc&cache=1" } });
+      if (req.url === "/api/states/media_player.cast") return send(200, { entity_id: "media_player.cast", state: "playing", attributes: { friendly_name: "Living room", media_title: "Song", entity_picture: `http://127.0.0.1:${outside.address().port}/image/abc` } });
       if (req.url === "/api/states/media_player.attic") return send(200, { entity_id: "media_player.attic", state: "unavailable", attributes: { friendly_name: "Attic" } });
       if (req.url.startsWith("/api/media_player_proxy/")) return send(200, Buffer.from([0xff, 0xd8, 0xff, 1]), "image/jpeg");
       if (req.url === "/api/states") return send(200, [{ entity_id: "light.x", state: "on", attributes: {} }, { entity_id: "media_player.kitchen", state: "playing", attributes: { friendly_name: "Kitchen" } }, { entity_id: "media_player.attic", state: "off", attributes: { friendly_name: "Attic" } }]);
@@ -79,6 +92,10 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
       send(404, {});
     });
   });
+  // a picture somewhere else on the internet (Spotify, Google Cast give full addresses): must not get the HA token
+  const outsideCalls = [];
+  const outside = http.createServer((req, res) => { outsideCalls.push({ url: req.url, auth: req.headers.authorization || null }); res.writeHead(200, { "Content-Type": "image/png" }); res.end(Buffer.from([0x89, 0x50, 0x4e, 0x47])); });
+  await new Promise((r) => outside.listen(0, "127.0.0.1", r));
   await new Promise((r) => ha.listen(0, "127.0.0.1", r));
   fs.writeFileSync(process.env.OPENSKY_SECRETS, JSON.stringify({ homeassistant: { url: `http://127.0.0.1:${ha.address().port}/`, token: "ha-token" } }));
   let sp = await music.speakers(["media_player.kitchen", "media_player.attic", "light.nope"]);
@@ -86,6 +103,10 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
   ok("18 HA speaker playing: name, song, artist, album, cover (data: URL, fetched with the token), position moves on, duration, volume",
     k.name === "Kitchen" && k.available && k.volume === 35 && k.now && k.now.source === "homeassistant" && k.now.playing && k.now.title === "Dreams" && k.now.artist === "Fleetwood Mac" && k.now.album === "Rumours" &&
     /^data:image\/jpeg;base64,/.test(k.now.art) && k.now.position >= 61500 && k.now.position < 64000 && k.now.duration === 257000, { ...k, now: k.now && { ...k.now, art: (k.now.art || "").slice(0, 25) } });
+  const cast = (await music.speakers(["media_player.cast"]))[0];
+  ok("18b a cover with a full address (Spotify, Google Cast) is fetched from there — without the Home Assistant token",
+    /^data:image\/png;base64,/.test(cast.now.art || "") && outsideCalls.length === 1 && outsideCalls[0].url === "/image/abc" && outsideCalls[0].auth === null, outsideCalls);
+  outside.close();
   ok("19 unavailable speaker → not available; a non-speaker id is refused", sp[1].available === false && sp[1].name === "Attic" && sp[1].now === null && sp[2].available === false, sp.slice(1));
   kitchen = "paused";
   sp = await music.speakers(["media_player.kitchen"]);
@@ -135,6 +156,9 @@ const mpris = (status, md) => fs.writeFileSync(MPRIS, JSON.stringify({ type: "a{
   new Function("module", "exports", "require", "__dirname", fs.readFileSync(path.join(__dirname, "..", "config", "config.js"), "utf8"))(m, m.exports, require, path.join(__dirname, "..", "config"));
   const mod = m.exports.modules.find((x) => x.module === "MMM-OpenSky-Music");
   const side = m.exports.modules.find((x) => x.module === "MMM-OpenSky-Sidebar");
+  const off = path.join(tmp, "off.json"); fs.writeFileSync(off, JSON.stringify({ music: { airplay: false } }));
+  const enabled = (w) => { try { execFileSync(process.execPath, [path.join(__dirname, "..", "services", "music", "render.js"), "enabled", w], { env: { ...process.env, OPENSKY_SETTINGS: off } }); return true; } catch (e) { return false; } };
+  ok("29b a speaker switched off says so (its service doesn't start); the other stays on", enabled("airplay") === false && enabled("spotify") === true);
   ok("30 config: a Music page with the speaker name, sources and valid other speakers; sidebar tile 'Music' with the music icon",
     mod && mod.config.name === "The Smiths" && mod.config.spotify === false && mod.config.airplay === true && JSON.stringify(mod.config.speakers) === '["media_player.kitchen"]' && side.config.pages.some((p) => p.key === "music" && p.label === "Music" && p.icon === "music"), mod && mod.config);
 

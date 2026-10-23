@@ -362,9 +362,11 @@ module.exports = NodeHelper.create({
         this.stopServer("setup finished");
         if (DRY) return console.log("[OpenSky] phone setup: restart (dry run — nothing done)");
         if (process.env.INVOCATION_ID) {
-          // the Music add-on's speakers too (a new speaker name, AirPlay / Spotify switched on or off)
-          const m = musicInstalled(), music = [m.airplay && "opensky-airplay.service", m.spotify && "opensky-spotify.service"].filter(Boolean);
-          execFile("systemctl", ["--user", "--no-block", "restart", "opensky-calendar.service", ...music, "opensky.service"], () => {});
+          const restart = () => execFile("systemctl", ["--user", "--no-block", "restart", "opensky-calendar.service", "opensky.service"], () => {});
+          // the Music add-on's speakers first, and only what changed (a new name; AirPlay / Spotify switched on or off)
+          const m = musicInstalled();
+          if (m.airplay || m.spotify) execFile(path.join(__dirname, "..", "..", "tools", "addons", "music.sh"), ["apply"], { timeout: 30000 }, restart);
+          else restart();
         }
       }, 300);
       return;

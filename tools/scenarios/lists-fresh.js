@@ -26,6 +26,8 @@ module.exports = async (page, h) => {
         }, [scope, name]);
         if (btn.err) { results.push(`${w}×${hh} ${scope} ${name}: Add item ${btn.err}`); continue; }
         await tapAt([btn.x, btn.y]); await h.sleep(400);
+        let last = null;   // (the keyboard slides up: wait until it stands still before tapping keys)
+        for (let i = 0; i < 20; i++) { const t = await page.evaluate(() => document.querySelector(".okb")?.getBoundingClientRect().top); if (t === last) break; last = t; await h.sleep(100); }
         for (const ch of text) {
           const k = ch === " " ? "{space}" : /\d/.test(ch) ? null : ch.toLowerCase();
           if (/\d/.test(ch)) { await tapAt(await centre('.okb-key[data-key="{numbers}"]')); await tapAt(await centre(`.okb-key[data-key="${ch}"]`)); await tapAt(await centre('.okb-key[data-key="{letters}"]')); continue; }

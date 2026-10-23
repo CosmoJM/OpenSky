@@ -70,6 +70,16 @@ module.exports = async (page, h) => {
   await until(async () => /Clair de Lune/.test(await text(".mu-title")));
   const p2 = await page.evaluate(() => ({ title: document.querySelector(".mu-title")?.textContent, chip: document.querySelector(".mu-chip")?.textContent, art: (document.querySelector(".mu-art img")?.src || "").slice(0, 22), backdrop: !!document.querySelector(".mu-backdrop") }));
   ok("AirPlay playing (beats the paused Spotify): title, 'AirPlay', the cover art from the phone", p2.title === "Clair de Lune" && p2.chip === "AirPlay" && p2.art === "data:image/png;base64," && p2.backdrop, p2);
+  // the cover goes to the page once; the updates after it only name it
+  const counts = await page.evaluate(async () => {
+    const m = MM.getModules().withClass("MMM-OpenSky-Music")[0], orig = m.socketNotificationReceived;
+    const c = { states: 0, statesWithPicture: 0, pictures: 0 };
+    m.socketNotificationReceived = function (n, p) { if (n === "OS_MUSIC_STATE") { c.states++; if (JSON.stringify(p).includes("data:")) c.statesWithPicture++; } if (n === "OS_MUSIC_ART") c.pictures++; return orig.call(this, n, p); };
+    await new Promise((r) => setTimeout(r, 4000));
+    m.socketNotificationReceived = orig;
+    return { ...c, img: (document.querySelector(".mu-art img")?.src || "").slice(0, 22) };
+  });
+  ok("the cover isn't sent again with every update (none of them carries the picture; it's still shown)", counts.statesWithPicture === 0 && counts.pictures === 0 && counts.img === "data:image/png;base64,", counts);
   fs.writeFileSync(BUSLOG, "");
   await h.tap(".mu-play"); await h.sleep(800);
   ok("AirPlay Pause → MPRIS PlayPause on the session bus", /--user call org\.mpris\.MediaPlayer2\.ShairportSync .* PlayPause/.test(fs.readFileSync(BUSLOG, "utf8")));
@@ -114,6 +124,9 @@ module.exports = async (page, h) => {
   ok("Kitchen's buttons and volume go to Kitchen (media_player services)", haCalls.some((c) => c === 'media_play_pause {"entity_id":"media_player.kitchen"}') && haCalls.some((c) => /^media_next_track .*kitchen/.test(c)) && haCalls.some((c) => c === 'volume_set {"entity_id":"media_player.kitchen","volume_level":0.65}'), haCalls);
   await page.evaluate(() => [...document.querySelectorAll(".mu-tab")].find((t) => t.textContent === "Attic").click()); await h.sleep(400);
   ok("Attic (off): says it isn't reachable", /Attic isn't reachable/.test(await text(".mu-root")));
+  await h.tap(".os-page-home"); await h.sleep(800); await h.tap(".os-page-music"); await h.sleep(1200);
+  const back = await page.evaluate(() => document.querySelector(".mu-tab.on")?.textContent);
+  ok("leaving the page forgets the tapped tab: back on Music it shows the speaker with music (Kitchen), not Attic", back === "Kitchen", back);
   await page.evaluate(() => [...document.querySelectorAll(".mu-tab")].find((t) => t.textContent === "This screen").click()); await h.sleep(400);
   ok("back to This screen: how to play to it", /Play music on this screen/.test(await text(".mu-root")));
 

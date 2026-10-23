@@ -7,6 +7,8 @@
 #   opensky addon music           install (asks for sudo once, for shairport-sync)
 #   opensky addon music remove    remove the speakers again (shairport-sync stays installed: sudo apt remove shairport-sync)
 #   music.sh units                rewrite the services (install.sh does this on updates when the add-on is installed)
+#   music.sh apply                after a settings change: a speaker switched off stops, one switched on starts, and one
+#                                 restarts only when its config (its name) changed — playing music isn't cut off otherwise
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)"
@@ -37,6 +39,7 @@ After=pipewire-pulse.service
 
 [Service]
 Environment=OPENSKY_SETTINGS=$CONFIG/opensky.json
+ExecCondition=$node $REPO/services/music/render.js enabled airplay
 ExecStartPre=$node $REPO/services/music/render.js airplay $DIR
 ExecStart=/usr/bin/shairport-sync -c $DIR/shairport-sync.conf
 Restart=on-failure
@@ -52,6 +55,7 @@ After=pipewire-pulse.service
 
 [Service]
 Environment=OPENSKY_SETTINGS=$CONFIG/opensky.json
+ExecCondition=$node $REPO/services/music/render.js enabled spotify
 ExecStartPre=$node $REPO/services/music/render.js spotify $DIR
 ExecStart=$DIR/go-librespot --config_dir $DIR/spotify
 Restart=on-failure
@@ -85,7 +89,10 @@ addon_install() {
   say "AirPlay speaker (shairport-sync)"
   if ! command -v shairport-sync >/dev/null; then
     echo "  Installing shairport-sync from Raspberry Pi OS (needs sudo)…"
-    sudo apt-get install -y -q shairport-sync >/dev/null
+    mkdir -p "$DIR"
+    # fresh package lists first (on a Pi whose lists are weeks old the install can fail); the output only on trouble
+    sudo apt-get update -q >"$DIR/apt.log" 2>&1 || true
+    sudo apt-get install -y -q shairport-sync >>"$DIR/apt.log" 2>&1 || { tail -15 "$DIR/apt.log"; die "Couldn't install shairport-sync (see above, or $DIR/apt.log)."; }
   fi
   # the package's own system-wide speaker would be a second "AirPlay" with the Pi's name: OpenSky runs its own
   if systemctl is-enabled -q shairport-sync.service 2>/dev/null || systemctl is-active -q shairport-sync.service 2>/dev/null; then
@@ -124,6 +131,25 @@ addon_install() {
 EOF
 }
 
+# after a settings change (opensky restart, phone setup's Finish): only what changed
+addon_apply() {
+  local node; node="$(node_bin)"
+  local w unit conf
+  for w in airplay spotify; do
+    unit="opensky-$w.service"
+    [ -f "$UNITS/$unit" ] || continue
+    if ! OPENSKY_SETTINGS="$CONFIG/opensky.json" "$node" "$REPO/services/music/render.js" enabled "$w"; then
+      systemctl --user is-active -q "$unit" && systemctl --user stop "$unit" && echo "  $w speaker switched off"
+      continue
+    fi
+    conf="$DIR/shairport-sync.conf"; [ "$w" = spotify ] && conf="$DIR/spotify/config.yml"
+    if ! systemctl --user is-active -q "$unit"; then systemctl --user start "$unit" && echo "  $w speaker started"
+    elif [ "$(OPENSKY_SETTINGS="$CONFIG/opensky.json" "$node" "$REPO/services/music/render.js" print "$w" "$DIR")" != "$(cat "$conf" 2>/dev/null)" ]; then
+      systemctl --user restart "$unit" && echo "  $w speaker restarted (new settings)"
+    fi
+  done
+}
+
 addon_remove() {
   say "Removing the Music add-on's speakers"
   systemctl --user disable --now opensky-airplay.service opensky-spotify.service 2>/dev/null || true
@@ -137,6 +163,7 @@ addon_remove() {
 case "${1:-install}" in
   install) addon_install ;;
   units)   addon_units ;;
+  apply)   addon_apply ;;
   remove)  addon_remove ;;
   *) sed -n 2,10p "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

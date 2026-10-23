@@ -78,7 +78,10 @@ Phone page: `modules/MMM-OpenSky-Setup/phone/` (no libraries). QR: `lib/client/v
   (shairport-sync from apt, AirPlay 1, port 5100, PulseAudio output, D-Bus/MPRIS on the session bus; the package's
   system service is disabled) and `opensky-spotify` (go-librespot, pinned release + sha256, zeroconf via avahi, API on
   localhost:3678). Each writes its config from opensky.json first (`services/music/render.js`: speaker name rule shared
-  with config.js). `install.sh` rewrites the units on updates; `opensky restart` and phone setup's Finish restart them.
+  with config.js); `ExecCondition` (`render.js enabled <w>`) keeps a switched-off one from starting. `install.sh` rewrites
+  the units on updates; `opensky restart` and phone setup's Finish run `music.sh apply` (stop what's switched off, start
+  what's on, restart only when the rendered config differs). AirPlay's position isn't reported by shairport-sync:
+  lib/music.js counts it per song. Cover pictures go to the page once (`OS_MUSIC_ART`, states carry `art:<id>`).
 
 ## MagicMirror 2.38 notes
 - Electron's language (date/time boxes) comes from the `LANGUAGE` environment variable on Linux, not from

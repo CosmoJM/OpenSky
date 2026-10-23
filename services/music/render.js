@@ -3,6 +3,9 @@
  * starts, so a new speaker name (phone setup → Extras → Music) is used after the next restart.
  *   node render.js airplay <dir>   → <dir>/shairport-sync.conf   (AirPlay: shairport-sync)
  *   node render.js spotify <dir>   → <dir>/spotify/config.yml    (Spotify Connect: go-librespot)
+ *   node render.js enabled airplay|spotify   → exit 0 when it's switched on (music.airplay / music.spotify), else 1
+ *                                              (the services' ExecCondition: a switched-off speaker doesn't start)
+ *   node render.js print airplay|spotify <dir>  → the config it would write (tools/addons/music.sh apply compares)
  * Settings: OPENSKY_SETTINGS (default ../../config/opensky.json).
  */
 const fs = require("fs");
@@ -73,13 +76,19 @@ function write(file, text) {
   fs.renameSync(`${file}.tmp`, file);
 }
 
+const enabled = (s, what) => !(s.music && s.music[what] === false);
+const text = (s, what, dir) => (what === "airplay" ? airplay(s, dir) : spotify(s));
+const file = (what, dir) => (what === "airplay" ? path.join(dir, "shairport-sync.conf") : path.join(dir, "spotify", "config.yml"));
+
 if (require.main === module) {
-  const [what, dir] = process.argv.slice(2);
+  const [cmd, a, b] = process.argv.slice(2);
+  if (cmd === "enabled" && ["airplay", "spotify"].includes(a)) process.exit(enabled(settings(), a) ? 0 : 1);
+  if (cmd === "print" && ["airplay", "spotify"].includes(a) && b) { process.stdout.write(text(settings(), a, b)); process.exit(0); }
+  const [what, dir] = [cmd, a];
   if (!dir || !["airplay", "spotify"].includes(what)) { console.error("usage: render.js airplay|spotify <dir>"); process.exit(2); }
   const s = settings();
-  if (what === "airplay") write(path.join(dir, "shairport-sync.conf"), airplay(s, dir));
-  else write(path.join(dir, "spotify", "config.yml"), spotify(s));
+  write(file(what, dir), text(s, what, dir));
   console.log(`[OpenSky] music: ${what} speaker "${speakerName(s)}"`);
 }
 
-module.exports = { speakerName, airplay, spotify, SPOTIFY_PORT, AIRPLAY_PORT };
+module.exports = { speakerName, enabled, airplay, spotify, SPOTIFY_PORT, AIRPLAY_PORT };
