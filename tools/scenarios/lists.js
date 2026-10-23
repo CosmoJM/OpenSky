@@ -52,6 +52,7 @@ module.exports = async (page, h) => {
   await typeIn("Rye bread x2"); await press("Save"); await h.sleep(800);
   p = await popup();
   ok("changed elsewhere → clear message in the popup, buttons usable again", p && /gone/i.test(p.error) && p.buttons.includes("Save"), p);
+  ok("…and the failure is in the log too (for opensky logs)", /\[OpenSky\] list "Groceries": couldn't edit an item: .*gone/i.test(h.serverLog()), h.serverLog().split("\n").filter((l) => /couldn.t/.test(l)));
   await page.evaluate(() => document.querySelector(".osl-x").click());
   await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Lists")[0].sendSocketNotification("OS_LISTS_REFRESH"));
   await until(async () => !(await groceries()).items.includes("Rye bread"));

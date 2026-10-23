@@ -20,7 +20,7 @@ module.exports = async (page, h) => {
   ok("12-hour clock", /^\d{1,2}:\d{2} (AM|PM)$/.test(hd.time || ""), hd.time);
   ok("current weather from Open-Meteo (no key)", /^-?\d+°$/.test(hd.temp || "") && hd.icon, hd.temp);
   ok("weather shared with other modules (8 days)", hd.wx && hd.wx.days >= 7 && hd.wx.cur, hd.wx);
-  ok("countdown shows the custom occasion (Oct 20) before Halloween", /Test Day/.test(hd.cd || ""), hd.cd);
+  ok("countdown shows the custom occasion (3 days from now) before later holidays", /Test Day/.test(hd.cd || ""), hd.cd);
   await h.shot("header");
   // sports helper: a real ESPN request for the configured league, and a friendly error for an unknown league
   const res = await page.evaluate(() => new Promise((resolve) => {
@@ -48,4 +48,9 @@ module.exports = async (page, h) => {
 
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
+};
+// the custom occasion is always 3 days ahead (a fixed date in the fixture stopped working once it had passed)
+module.exports.patchSettings = (s) => {
+  const d = new Date(); d.setDate(d.getDate() + 3);
+  s.header.occasions = [{ name: "Test Day", month: d.getMonth() + 1, day: d.getDate() }];
 };

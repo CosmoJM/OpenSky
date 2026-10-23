@@ -27,7 +27,11 @@ module.exports = NodeHelper.create({
     } else if (n === "OS_LIST_OP" && p && p.id) {
       this.operate(p).then(
         () => this.sendSocketNotification("OS_LIST_RESULT", { id: p.id, ok: true }),
-        (e) => this.sendSocketNotification("OS_LIST_RESULT", { id: p.id, ok: false, error: e.message })
+        (e) => {
+          // also in the log (opensky logs), for when someone asks for help after the popup is gone (no item text, no tokens)
+          console.error(`[OpenSky] list "${p.listId}": couldn't ${p.op === "check" ? "check off" : p.op} an item: ${e.message}`);
+          this.sendSocketNotification("OS_LIST_RESULT", { id: p.id, ok: false, error: e.message });
+        }
       ).finally(() => this.refresh(true));
     }
   },
