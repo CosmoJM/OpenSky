@@ -196,7 +196,11 @@ Module.register("MMM-OpenSky-Lists", {
       if (e.key === "Escape" && !this.busy) this.closePopup();
     });
     overlay.querySelector(".osl-x").onclick = () => { if (!this.busy) this.closePopup(); };
-    overlay.addEventListener("click", (e) => { if (e.target === overlay && !this.busy) this.closePopup(); });
+    // a tap outside closes it — only when the press started outside too (else a finger lifted off a button that moved
+    // away under it closed the popup and lost the item)
+    let pressedOutside = false;
+    overlay.addEventListener("pointerdown", (e) => { pressedOutside = e.target === overlay; });
+    overlay.addEventListener("click", (e) => { if (e.target === overlay && pressedOutside && !this.busy) this.closePopup(); });
     document.body.appendChild(overlay);
     this.popup = overlay;
     setTimeout(() => input.focus(), 50);   // (the on-screen keyboard follows the focus)

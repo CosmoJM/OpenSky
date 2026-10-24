@@ -1,4 +1,4 @@
-// Finger-like taps (press, hold 150 ms, lift at the same spot) on popup buttons while the on-screen keyboard is open.
+// Finger-like taps (press, hold 250 ms, lift at the same spot) on popup buttons while the on-screen keyboard is open.
 // A user's "Add" did nothing on a touchscreen (Return worked): pressing the button took the focus off the text box,
 // the keyboard closed, the popup slid down under the finger, and the finger was lifted over something else.
 // The other scenarios tap instantly, before anything moves — which is why they never saw it.
@@ -10,7 +10,7 @@ module.exports = async (page, h) => {
   const fingerTap = async (find) => {
     const at = await page.evaluate(find);
     if (!at) return { err: "no button" };
-    await page.mouse.move(at.x, at.y); await page.mouse.down(); await h.sleep(150);
+    await page.mouse.move(at.x, at.y); await page.mouse.down(); await h.sleep(250);
     const held = await page.evaluate(([x, y]) => ({ kb: document.body.classList.contains("kb-open"), under: (document.elementFromPoint(x, y) || {}).className || "" }), [at.x, at.y]);
     await page.mouse.up(); await h.sleep(600);
     return held;
@@ -41,7 +41,25 @@ module.exports = async (page, h) => {
   held = await fingerTap(() => { const b = [...document.querySelectorAll(".event-btn-primary")].pop(); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   ok("event editor: a finger on the save button keeps it in place and the event is added", held.kb && await until(() => page.evaluate(() => [...document.querySelectorAll(".hd-week .hd-event")].some((e) => e.textContent.includes("Finger test")))), held);
 
-  // 4. Cancel still closes the popup and the keyboard
+  // 4. a press that starts inside a popup and ends on its background doesn't close it; a tap on the background does
+  await h.tap(".hd-lists .lc-add-item"); await until(kbOpen);
+  const title = await page.evaluate(() => { const r = document.querySelector(".osl-title").getBoundingClientRect(); return { x: r.x + 10, y: r.y + r.height / 2 }; });
+  await page.mouse.move(title.x, title.y); await page.mouse.down(); await page.mouse.move(20, 1060, { steps: 4 }); await page.mouse.up(); await h.sleep(400);
+  const stillOpen = await page.evaluate(() => !!document.querySelector(".osl-overlay"));
+  await page.mouse.click(20, 1060); await h.sleep(500);
+  ok("a press from inside the popup lifted on the background keeps it open; a tap on the background closes it", stillOpen && !(await page.evaluate(() => !!document.querySelector(".osl-overlay"))));
+
+  // 5. Settings → add a web page: a finger on Save with the keyboard open
+  await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].sendNotification("OPENSKY_SETTINGS_OPEN")); await h.sleep(800);
+  await page.evaluate(() => document.querySelector(".ost-add-web").click()); await h.sleep(400);
+  await page.evaluate(() => { const t = document.querySelector('[data-wf="title"]'); t.focus(); t.value = "Finger"; t.dispatchEvent(new Event("input")); const u = document.querySelector('[data-wf="url"]'); u.value = "http://localhost:8083/modules/opensky-fixtures/embed.html"; u.dispatchEvent(new Event("input")); t.focus(); });
+  await until(kbOpen);
+  await page.evaluate(() => document.querySelector(".ost-wf-save").scrollIntoView({ block: "nearest" })); await h.sleep(400);
+  held = await fingerTap(() => { const b = document.querySelector(".ost-wf-save"); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+  ok("Settings web page form: a finger on Save keeps it in place and saves", held.kb && /ost-wf-save/.test(held.under) && await until(() => page.evaluate(() => !!document.querySelector('.ost-edit-web[data-key="finger"]'))), held);
+  await page.evaluate(() => document.querySelector(".ost-x")?.click()); await h.sleep(400);
+
+  // 6. Cancel still closes the popup and the keyboard
   await h.tap(".hd-lists .lc-add-item"); await until(kbOpen);
   await page.evaluate(() => [...document.querySelectorAll(".osl-btn")].find((x) => x.textContent === "Cancel").click());
   await h.sleep(500);
@@ -50,3 +68,5 @@ module.exports = async (page, h) => {
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);
 };
+
+module.exports.writableSettings = true;   // (Settings → web page saves: a copy, never the fixtures)

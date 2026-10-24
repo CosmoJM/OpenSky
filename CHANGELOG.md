@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased
-- **Touchscreens: a popup's Add / Save button works when tapped.** Pressing it took the focus off the text box, so the
-  on-screen keyboard closed and the popup slid down under the finger before it was lifted — the tap was lost (Return
-  worked). Reported by a user.
+## 1.0.1 — 2026-10-24
+- **Touchscreens: a popup's Add / Save button works when tapped.** On touchscreens that act like a mouse, pressing it
+  took the focus off the text box, so the on-screen keyboard closed and the popup slid down under the finger before it
+  was lifted — the tap was lost and the popup closed (Return worked). Reported by a user.
+- A popup only closes on a tap outside it when the press also started outside it.
 
 ## 1.0.0 — 2026-10-23
 The first public version: a friendly family wall calendar for a Raspberry Pi touchscreen, built on MagicMirror².

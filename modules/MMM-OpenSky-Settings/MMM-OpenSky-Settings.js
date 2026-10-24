@@ -116,7 +116,10 @@ Module.register("MMM-OpenSky-Settings", {
       this.panel = document.createElement("div");
       this.panel.className = "ost-overlay";
       this.panel.hidden = true;
-      this.panel.addEventListener("click", (e) => { if (e.target === this.panel) this.close(); });
+      // a tap outside closes it — only when the press started outside too
+      let pressedOutside = false;
+      this.panel.addEventListener("pointerdown", (e) => { pressedOutside = e.target === this.panel; });
+      this.panel.addEventListener("click", (e) => { if (e.target === this.panel && pressedOutside) this.close(); });
       document.body.appendChild(this.panel);
     }
     this.confirming = null;

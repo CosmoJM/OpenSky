@@ -78,8 +78,12 @@ Module.register("MMM-OpenSky-EventEditor", {
   createModal() {
     const overlay = document.createElement("div");
     overlay.className = "calendar-editor-overlay";
+    // a tap outside closes it — only when the press started outside too (a finger pressed on a button that moved
+    // away under it must not close the editor and lose what was typed)
+    let pressedOutside = false;
+    overlay.addEventListener("pointerdown", (e) => { pressedOutside = e.target === overlay; });
     overlay.onclick = (e) => {
-      if (e.target === overlay && !this.busy) this.closeModal();
+      if (e.target === overlay && pressedOutside && !this.busy) this.closeModal();
     };
 
     const modal = document.createElement("div");

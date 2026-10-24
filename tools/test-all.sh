@@ -16,4 +16,6 @@ done
 started=0; tools/headless.sh start | grep -q "already" || started=1
 for sc in tools/scenarios/*.js; do printf '%-28s ' "$(basename "$sc")"; out=$(timeout 300 node tools/harness.js "$sc" 2>&1 | grep -E "^(SUMMARY|SCENARIO)" | tail -1); echo "${out:-no result}"; [[ "$out" == *"ALL CHECKS PASSED"* ]] || fail=1; done
 [ $started = 1 ] && tools/headless.sh stop >/dev/null
+# no test may change the shared fixtures (a scenario that saves settings needs writableSettings)
+if [ -d .git ] && ! git diff --quiet -- tools/fixtures; then echo "A TEST CHANGED tools/fixtures: $(git diff --name-only -- tools/fixtures | tr '\n' ' ')"; fail=1; fi
 [ $fail = 0 ] && echo "ALL TESTS PASSED" || { echo "SOME TESTS FAILED"; exit 1; }
