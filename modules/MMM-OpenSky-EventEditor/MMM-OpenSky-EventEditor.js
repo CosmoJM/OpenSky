@@ -207,7 +207,7 @@ Module.register("MMM-OpenSky-EventEditor", {
     return container;
   },
 
-  // Same colours as the calendar (window.OpenSkyEventColors)
+  // Same colors as the calendar (window.OpenSkyEventColors)
   calendarColor(ev) {
     return window.OpenSkyEventColors ? window.OpenSkyEventColors.bar(ev) : "#9ca3af";
   },

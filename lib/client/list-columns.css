@@ -1,5 +1,5 @@
 /* OpenSky list columns (window.OpenSkyListColumn) — used by the Home page's lists card and the Lists page.
- * Colours per list: --list-accent / --list-tint / --list-dark (set from the list's palette colour). */
+ * Colors per list: --list-accent / --list-tint / --list-dark (set from the list's palette color). */
 .lc-list {
   min-width: 0;
   --list-accent: #5b8def;

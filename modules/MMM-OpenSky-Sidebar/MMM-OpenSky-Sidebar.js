@@ -19,7 +19,7 @@ Module.register("MMM-OpenSky-Sidebar", {
     screenServiceUrl: null,      // e.g. "http://127.0.0.1:5000" when the OpenSky screen service is installed
     idleReturnMinutes: 5,
     showSettings: false,         // true once a settings page/module is installed
-    accent: null,                // opensky.json → look.accent: a palette colour name ("teal") or "#rrggbb"; null = peach
+    accent: null,                // opensky.json → look.accent: a palette color name ("teal") or "#rrggbb"; null = peach
     scale: "auto",               // opensky.json → look.scale: "auto" fits the 1920×1080 design to the screen; or a number (e.g. 1.2)
     ui: { width: 92, gap: 8, tile: 76, icon: 28, font: 12 }
   },
@@ -50,7 +50,7 @@ Module.register("MMM-OpenSky-Sidebar", {
     document.documentElement.style.setProperty("--os-zoom", String(z));
   },
 
-  // The accent colour for every module (css/opensky.css defines the default peach tones)
+  // The accent color for every module (css/opensky.css defines the default peach tones)
   applyAccent(accent) {
     const pal = window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE;
     const a = /^#[0-9a-f]{6}$/i.test(accent || "") ? accent : (pal && pal[accent] ? pal[accent][1] : null);
@@ -197,7 +197,7 @@ Module.register("MMM-OpenSky-Sidebar", {
   /* ---------------- helpers ---------------- */
   escape(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); },
 
-  // One consistent icon set: 24×24, 2 px round strokes (Lucide-style), coloured by CSS
+  // One consistent icon set: 24×24, 2 px round strokes (Lucide-style), colored by CSS
   // the shared icon set (lib/client/opensky-client.js → OpenSkyIcons): pages, web pages, Sleep, Settings
   icon(name) { return window.OpenSkyIcons.svg(name); }
 });

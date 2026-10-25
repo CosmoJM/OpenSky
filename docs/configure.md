@@ -46,17 +46,17 @@ After changing either file, run **`opensky restart`**. If the screen doesn't com
 - `locale.locale`: how dates are written (`"en-US"`, `"en-GB"`…) — on the screen and in date boxes.
 - The **time zone** comes from the Pi itself. To change it: `sudo raspi-config nonint do_change_timezone America/Chicago` (use your zone).
 
-## Accent colour and size
+## Accent color and size
 ```json
 "look": { "accent": "teal", "scale": "auto" }
 ```
 `scale`: OpenSky is laid out for a 1920×1080 screen and is scaled to fit yours (`"auto"`): a 1280×720 screen shows
 the same layout at two-thirds size, a 4K screen at double size. Want it bigger or smaller? Use a number, e.g. `1.2`.
 
-`accent`: the colour of buttons, highlights and the active page: any palette colour name (see Calendars) or any
-colour as a code, `"#rrggbb"` (or the short `"#rgb"`), e.g. `"#3b82f6"` or your team's colour. Leave it out for the
-default peach. Pick it on the screen (Settings → Look & extras: a chip, or type a code under "Or a colour code") or on
-the phone (Extras: a chip, the colour picker, or a code). A very light colour gets a warning: the text on buttons is
+`accent`: the color of buttons, highlights and the active page: any palette color name (see Calendars) or any
+color as a code, `"#rrggbb"` (or the short `"#rgb"`), e.g. `"#3b82f6"` or your team's color. Leave it out for the
+default peach. Pick it on the screen (Settings → Look & extras: a chip, or type a code under "Or a color code") or on
+the phone (Extras: a chip, the color picker, or a code). A very light color gets a warning: the text on buttons is
 white.
 
 ## Pages
@@ -128,7 +128,7 @@ pick an icon, optionally lock it with a PIN, then **Restart now**. Edit or remov
   - `team` is the short code shown on scoreboards (`NE`, `BOS`, `LAL`…). Leave it `""` for no sports pill.
 
 ## Calendars
-OpenSky can show any number of calendars, each with its own colour. Some can also be **added to and edited from the screen**.
+OpenSky can show any number of calendars, each with its own color. Some can also be **added to and edited from the screen**.
 
 ```json
 "calendar": {
@@ -156,12 +156,12 @@ OpenSky can show any number of calendars, each with its own colour. Some can als
 - `holidays`: your country's public holidays as a calendar (and in the countdown pill): a two-letter country code —
   `"US"` (Google's US list, with Mother's Day, Halloween…), `"GB"`, `"CA"`, `"DE"`, `"AU"`… (from Nager.Date, about 200 countries).
   `"holidaysRegion": "GB-SCT"` (or `"CA-ON"`, `"DE-BY"`…) adds that region's own days. `"none"` turns it off.
-- **Colours:** `pink`, `green`, `blue`, `orange`, `yellow`, `emerald`, `purple`, `red`, `teal`, `indigo`, `tan`, `gray`.
-  Each event's colour is picked in this order:
+- **Colors:** `pink`, `green`, `blue`, `orange`, `yellow`, `emerald`, `purple`, `red`, `teal`, `indigo`, `tan`, `gray`.
+  Each event's color is picked in this order:
   1. a matching `rules` keyword in the title
   2. `colors.calendars` (`{ "Mom": "pink" }`)
   3. the calendar's own `color` in `sources`
-  4. otherwise a steady automatic colour
+  4. otherwise a steady automatic color
 
 ### Finding a calendar's link
 - **Google Calendar** (on a computer): ⚙ Settings → pick the calendar on the left → *Integrate calendar* → copy **Secret address in iCal format**. It's private, so put it in `secrets.json`.
@@ -258,7 +258,7 @@ if you use a real keyboard. Dates and times use pickers instead.
 | Sleep at night | The screen goes dark at "Off at" and comes back at "On at". A touch wakes it; it sleeps again after 3 quiet minutes. A running timer keeps it on. |
 | Volume / Test | The Pi's speaker volume; Test plays the timer chime. |
 | Pages | Turn pages on/off and change their order (also on the phone). |
-| Look & extras | Accent colour, word game (NYT's word or OpenSky's), photo slideshow on/off, trash day. |
+| Look & extras | Accent color, word game (NYT's word or OpenSky's), photo slideshow on/off, trash day. |
 | Backups | Every night to a USB stick, a network folder or the Pi itself — the list shows what the Pi can reach right now; keep 7–90; passwords included only if you switch it on; **Back up now**. |
 | System | Internet, the Pi's address, the OpenSky version (and **Update** when there is one), Reload, Restart OpenSky, Restart Pi, Shut down. The last three ask you to tap twice. |
 

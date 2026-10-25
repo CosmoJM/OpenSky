@@ -43,7 +43,7 @@ module.exports = async (page, h) => {
   await h.tap(".os-page-timer"); await h.sleep(500); await h.tap(".os-page-home"); await h.sleep(600);
   ok("tapping Home from another page goes Home", await page.evaluate(() => document.querySelector(".os-page-home").classList.contains("active") || !MM.getModules().withClass("MMM-OpenSky-Home")[0].hidden));
 
-  // accent colour: peach by default; look.accent recolours buttons and highlights everywhere
+  // accent color: peach by default; look.accent recolors buttons and highlights everywhere
   const acc = await page.evaluate(() => {
     const css = () => getComputedStyle(document.documentElement).getPropertyValue("--os-accent").trim();
     const add = () => getComputedStyle(document.querySelector(".hd-add")).backgroundColor;
@@ -53,7 +53,7 @@ module.exports = async (page, h) => {
     ["--os-accent", "--os-accent-mid", "--os-accent-light", "--os-accent-soft", "--os-accent-tint", "--os-accent-dark"].forEach((p) => document.documentElement.style.removeProperty(p));
     return { before, after };
   });
-  ok("accent colour: peach by default, a palette name recolours the buttons", /e8663f/i.test(acc.before.v) && acc.after.v === "#11998e" && acc.after.add !== acc.before.add, acc);
+  ok("accent color: peach by default, a palette name recolors the buttons", /e8663f/i.test(acc.before.v) && acc.after.v === "#11998e" && acc.after.add !== acc.before.add, acc);
 
   const f = Object.entries(R).filter(([, v]) => !v).map(([k]) => k);
   h.log(`SUMMARY: ${f.length ? "FAILED: " + f.join("; ") : "ALL CHECKS PASSED"} (${Object.keys(R).length} checks)`);

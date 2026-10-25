@@ -53,7 +53,7 @@ html, body {
 #remote-control-overlay,
 .remote-control-overlay { pointer-events: none !important; }
 
-/* Accent colour (opensky.json → look.accent). These are the default peach tones; another accent sets
+/* Accent color (opensky.json → look.accent). These are the default peach tones; another accent sets
    --os-accent and the Sidebar derives the rest (lighter / softer / darker) from it. */
 :root {
   /* screen-relative units that stay right when the Sidebar scales the 1920×1080 design to the screen (body zoom) */

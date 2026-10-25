@@ -1,4 +1,4 @@
-// Word game: today's puzzle, guesses checked on the Pi (the page never sees the answer while playing), colours,
+// Word game: today's puzzle, guesses checked on the Pi (the page never sees the answer while playing), colors,
 // the keyboard, errors, winning, stats.
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
@@ -36,7 +36,7 @@ module.exports = async (page, h) => {
   await h.sleep(2000);   // tiles flip
   s = await st();
   const tiles = await page.evaluate(() => [...document.querySelectorAll('.wg-row[data-r="0"] .wg-tile')].map((t) => t.classList.contains("correct") ? "g" : t.classList.contains("present") ? "y" : t.classList.contains("absent") ? "b" : "?").join(""));
-  ok("a guess is coloured right (repeated letters too) and the page still has no answer", s.guesses[0].pattern === score(other, answer) && tiles === score(other, answer) && s.answer === null, { other, tiles });
+  ok("a guess is colored right (repeated letters too) and the page still has no answer", s.guesses[0].pattern === score(other, answer) && tiles === score(other, answer) && s.answer === null, { other, tiles });
   const keyCol = await page.evaluate((c) => document.querySelector(`.wg-key[data-k="${c}"]`).className, other[0]);
   ok("the keyboard shows what's known about each letter", /correct|present|absent/.test(keyCol), keyCol);
   await type(other); await enter();

@@ -22,7 +22,7 @@ opensky/
 ```
 
 ## Settings model
-- **`config/opensky.json`** — everything a family configures (name, location, pages, providers, colours…).
+- **`config/opensky.json`** — everything a family configures (name, location, pages, providers, colors…).
   No secrets. Later edited through the phone setup page; hand-editable meanwhile.
 - **`config/secrets.json`** — API keys, tokens, passwords, PINs. **Read only by node helpers / services on the Pi.**
   Never copied into the MagicMirror config, because MagicMirror serves its config to every device on the network

@@ -279,14 +279,14 @@
   font-size: inherit !important;
 }
 /* CX3 greys out past events (grayscale + darken) and over-saturates the current one;
-   keep the real colours instead: past = slightly faded, current = ring in its own colour */
+   keep the real colors instead: past = slightly faded, current = ring in its own color */
 .CX3 .event.passed { filter: none !important; opacity: 0.72; }
 .CX3 .event.current { filter: none !important; box-shadow: 0 0 0 2px var(--evc-bar, #4caf50) !important; }
-/* CX3's dot before each single-day event (the colour bar already does that job) */
+/* CX3's dot before each single-day event (the color bar already does that job) */
 .CX3 .event.singleday .headline::before,
 .CX3 .event.singleday .headline .symbol.noSymbol::before { display: none !important; }
 
-/* Event colours: CX3's eventTransformer (config.js) adds evc-<palette name> from window.OpenSkyEventColors */
+/* Event colors: CX3's eventTransformer (config.js) adds evc-<palette name> from window.OpenSkyEventColors */
 .CX3 .event { --evc-bg: #e5e7eb; --evc-bar: #9ca3af; }
 .CX3 .event.evc-pink { --evc-bg: #ffc2e2; --evc-bar: #dd4f98; }
 .CX3 .event.evc-green { --evc-bg: #d7f199; --evc-bar: #78b014; }

@@ -40,7 +40,7 @@ You don't need to submit anything to Google for verification. The app is yours, 
    **Finish sign-in**.
    - iPhone: tap the address bar, then tap and hold → *Copy*.
    - Android: tap the address bar, then *Copy*.
-6. Pick which Google calendar to show, give it a name and a colour, then tap **Add**, **Save** and **Finish**.
+6. Pick which Google calendar to show, give it a name and a color, then tap **Add**, **Save** and **Finish**.
 
 Add more Google calendars the same way. You're already signed in, so it goes straight to the calendar list.
 Calendars you can only view (shared with you read-only) show their events but can't be changed from the screen.

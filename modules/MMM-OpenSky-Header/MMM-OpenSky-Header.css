@@ -53,7 +53,7 @@
 .hb-wx-temp{ font-weight:700; }
 
 /* Top-right countdown to the next holiday/birthday: a quiet pill, themed per occasion
-   (colours from the OpenSky palette; --cd-solid is used on the day itself) */
+   (colors from the OpenSky palette; --cd-solid is used on the day itself) */
 .hb-countdown{
   --cd-bg:#fff4ef; --cd-fg:#b4532f; --cd-solid:var(--os-accent-mid);
   margin-left:auto;

@@ -4,7 +4,7 @@
  *   (the event editor shows them)
  * - two-line event names where a day has room (window.OpenSkyFit.cx3All after every redraw)
  * - back to this month on the idle reset (OPENSKY_IDLE_RESET)
- * Event colours come from window.OpenSkyEventColors through CX3's eventTransformer (set in config.js).
+ * Event colors come from window.OpenSkyEventColors through CX3's eventTransformer (set in config.js).
  */
 Module.register("MMM-OpenSky-Calendar", {
   defaults: {

@@ -54,7 +54,7 @@ Next steps, all in [configure.md](configure.md):
 - **Show your existing calendars**: Google, iCloud, Outlook or any calendar link.
 - **Use Todoist** for your lists instead of the on-device ones.
 - **Photos** from a USB stick, a folder, or your Immich server.
-- **Trash day** icons, your team's game day, colours per person, and which pages to show.
+- **Trash day** icons, your team's game day, colors per person, and which pages to show.
 
 To change settings, open Terminal and type `opensky edit`. Save with Ctrl+O, Enter, then exit with Ctrl+X. Then type `opensky restart`.
 

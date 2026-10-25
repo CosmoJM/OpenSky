@@ -1,4 +1,4 @@
-// Calendar page: month view with this month's events (from the calendar sources), palette colours, toolbar
+// Calendar page: month view with this month's events (from the calendar sources), palette colors, toolbar
 // navigation, taps on events/days, idle reset back to this month.
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
@@ -10,8 +10,8 @@ module.exports = async (page, h) => {
   const evs = await page.evaluate(() => [...document.querySelectorAll(".CX3 .event")].map((e) => ({ t: e.dataset.title, cls: [...e.classList].find((c) => c.startsWith("evc-")), bar: getComputedStyle(e).borderLeftColor })));
   const has = (t) => evs.filter((e) => e.t === t);
   ok("recurring events fill the month", has("Soccer practice").length >= 6 && has("School assembly").length >= 3, { soccer: has("Soccer practice").length, assembly: has("School assembly").length });
-  ok("palette colours: Family pink, School teal, Dentist indigo", has("Family dinner")[0]?.cls === "evc-pink" && has("School assembly")[0]?.cls === "evc-teal" && has("Dentist")[0]?.cls === "evc-indigo", [has("Family dinner")[0]?.cls, has("School assembly")[0]?.cls, has("Dentist")[0]?.cls]);
-  ok("colour is drawn (indigo bar)", has("Dentist")[0]?.bar === "rgb(74, 91, 216)", has("Dentist")[0]?.bar);
+  ok("palette colors: Family pink, School teal, Dentist indigo", has("Family dinner")[0]?.cls === "evc-pink" && has("School assembly")[0]?.cls === "evc-teal" && has("Dentist")[0]?.cls === "evc-indigo", [has("Family dinner")[0]?.cls, has("School assembly")[0]?.cls, has("Dentist")[0]?.cls]);
+  ok("color is drawn (indigo bar)", has("Dentist")[0]?.bar === "rgb(74, 91, 216)", has("Dentist")[0]?.bar);
   ok("today is highlighted", await page.evaluate(() => !!document.querySelector(".CX3 .cell.today")));
   ok("Add Event in the toolbar (an editable calendar exists)", await page.evaluate(() => !!document.querySelector(".os-nav-add")));
   await h.shot("calendar-month");

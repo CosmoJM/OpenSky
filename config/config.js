@@ -28,7 +28,7 @@ function readSettings() {
   return { file: null, settings: {} };
 }
 
-// look.accent: a palette colour name, or a colour code (#rgb / #rrggbb → "#rrggbb"); anything else → null (peach).
+// look.accent: a palette color name, or a color code (#rgb / #rrggbb → "#rrggbb"); anything else → null (peach).
 // The same rule as lib/accent.js (the Settings panel) and OpenSkyAccent (the screen and the phone page).
 function accentOf(v) {
   const s = String(v == null ? "" : v).trim().toLowerCase();
@@ -119,7 +119,7 @@ const PAGES = {
         // CX3 puts an event's title, place and notes into the page as HTML. Anyone who can name an event (a Google
         // invitation, a shared calendar link) must not be able to run code on the screen, so they go in as plain
         // text (MMM-OpenSky-Calendar decodes them again). A copy: CX3 hands the same event objects in on every redraw.
-        // Plus a colour class from the shared palette (window.OpenSkyEventColors, loaded by MMM-OpenSky-Calendar).
+        // Plus a color class from the shared palette (window.OpenSkyEventColors, loaded by MMM-OpenSky-Calendar).
         eventTransformer: (ev) => {
           const esc = (v) => (typeof v === "string" ? v.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`) : v);
           const out = { ...ev, title: esc(ev.title), description: esc(ev.description), location: esc(ev.location) };

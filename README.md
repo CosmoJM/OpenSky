@@ -24,7 +24,7 @@ timers, photos, weather and smart-home controls on one screen. Built on [MagicMi
 <sub>Screenshots use a made-up family and demo pictures (`node tools/harness.js tools/demo/screenshots.js`).</sub>
 
 ## What you get
-- **Home:** the week ahead with everyone's events in their colours, weather, trash-day icons, your lists and a photo.
+- **Home:** the week ahead with everyone's events in their colors, weather, trash-day icons, your lists and a photo.
 - **Calendar:** month / two-week / week view; tap to see, add, edit or delete events.
 - **Lists:** to-dos and groceries — kept on the Pi, or in Todoist. Check off with Undo.
 - **Timer**, holiday & birthday countdown, your team's game day, sleep button, photos from a folder, USB stick or Immich.

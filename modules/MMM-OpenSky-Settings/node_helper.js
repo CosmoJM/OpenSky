@@ -366,9 +366,9 @@ module.exports = NodeHelper.create({
     }
     if (Array.isArray(patch.pages) && patch.pages.length) { s.pages = patch.pages.map(String).filter((p) => /^[a-z][a-z0-9-]{0,30}$/.test(p)); restartNeeded = true; }
     if ("accent" in patch) {
-      // a palette colour or a colour code (#rgb / #rrggbb, stored as #rrggbb); peach is the default, so it's left out
+      // a palette color or a color code (#rgb / #rrggbb, stored as #rrggbb); peach is the default, so it's left out
       const a = accent.normalize(patch.accent);
-      if (!a) return this.sendSocketNotification("OS_SET_NOTICE", { type: "error", message: "That isn't a colour — type a code like #3b82f6" });
+      if (!a) return this.sendSocketNotification("OS_SET_NOTICE", { type: "error", message: "That isn't a color — type a code like #3b82f6" });
       s.look = s.look || {};
       if (a === "peach") delete s.look.accent; else s.look.accent = a;
     }

@@ -89,8 +89,8 @@ module.exports = async (page, h) => {
   ok("Pages: move one up", S().pages.indexOf("lists") === before.indexOf("lists") - 1, S().pages);
   await page.evaluate(() => document.querySelector('[data-accent="teal"]').click());
   await until(async () => S().look && S().look.accent === "teal");
-  ok("accent colour from the screen: saved and applied at once", S().look.accent === "teal" && await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--os-accent").trim()) === "#11998e");
-  // any colour as a code, typed with the on-screen keyboard (no # needed, any case): previewed, then saved + applied
+  ok("accent color from the screen: saved and applied at once", S().look.accent === "teal" && await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--os-accent").trim()) === "#11998e");
+  // any color as a code, typed with the on-screen keyboard (no # needed, any case): previewed, then saved + applied
   const css = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--os-accent").trim());
   await page.evaluate(() => document.querySelector(".ost-hex").scrollIntoView({ block: "center" })); await h.sleep(300);
   await h.tap(".ost-hex"); await h.sleep(300);
@@ -99,15 +99,15 @@ module.exports = async (page, h) => {
   const typed = await page.evaluate(() => ({ v: document.querySelector(".ost-hex").value, sw: document.querySelector(".ost-swatch").style.getPropertyValue("--c"), empty: document.querySelector(".ost-swatch").classList.contains("empty") }));
   await h.tap(".ost-hex-use");
   await until(async () => S().look && S().look.accent === "#1d4ed8");
-  ok("accent colour code: typed on the on-screen keyboard, previewed, Use → saved as #rrggbb and applied at once", typed.v === "1d4ed8" && typed.sw === "#1d4ed8" && !typed.empty &&
+  ok("accent color code: typed on the on-screen keyboard, previewed, Use → saved as #rrggbb and applied at once", typed.v === "1d4ed8" && typed.sw === "#1d4ed8" && !typed.empty &&
     S().look.accent === "#1d4ed8" && await css() === "#1d4ed8", typed);
   await until(async () => page.evaluate(() => !!document.querySelector('.ost-chip.on[data-accent="#1d4ed8"]')));
   ok("…and it shows as the chosen chip, with the code still in the box", await page.evaluate(() => !!document.querySelector('.ost-chip.on[data-accent="#1d4ed8"]') && document.querySelector(".ost-hex").value === "#1d4ed8"));
   await page.evaluate(() => { const i = document.querySelector(".ost-hex"); i.value = "#ffffe0"; i.dispatchEvent(new Event("input")); });
-  ok("a very light colour gets a warning before it's used", await page.evaluate(() => /very light/.test(document.querySelector(".ost-hex-note").textContent)));
+  ok("a very light color gets a warning before it's used", await page.evaluate(() => /very light/.test(document.querySelector(".ost-hex-note").textContent)));
   await page.evaluate(() => { const i = document.querySelector(".ost-hex"); i.value = "#12zz45"; i.dispatchEvent(new Event("input")); document.querySelector(".ost-hex-use").click(); });
   await h.sleep(400);
-  ok("a code that isn't a colour is refused (a message; nothing saved)", S().look.accent === "#1d4ed8" && await page.evaluate(() => /colour code like/.test(document.querySelector(".os-toast")?.textContent || "")) && await css() === "#1d4ed8");
+  ok("a code that isn't a color is refused (a message; nothing saved)", S().look.accent === "#1d4ed8" && await page.evaluate(() => /color code like/.test(document.querySelector(".os-toast")?.textContent || "")) && await css() === "#1d4ed8");
   await page.evaluate(() => document.querySelector('[data-accent="teal"]').click());
   await until(async () => S().look && S().look.accent === "teal");
   const places = await page.evaluate(() => [...document.querySelectorAll('[data-backup="destination"] option')].map((o) => o.textContent));

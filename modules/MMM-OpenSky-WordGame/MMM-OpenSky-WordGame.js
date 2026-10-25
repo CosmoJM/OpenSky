@@ -1,5 +1,5 @@
 /* MMM-OpenSky-WordGame — the family's daily five-letter word game (one shared board per day).
- * The answer stays on the server (node_helper.js checks every guess); the page only gets coloured patterns.
+ * The answer stays on the server (node_helper.js checks every guess); the page only gets colored patterns.
  * Board + big touch keyboard (the wireless keyboard works too), tile flip animation, family stats card,
  * countdown to the next puzzle. New puzzle at midnight. */
 Module.register("MMM-OpenSky-WordGame", {
@@ -133,7 +133,7 @@ Module.register("MMM-OpenSky-WordGame", {
       html += "</div>";
     }
     b.innerHTML = html;
-    // flip: colour each tile at the middle of its own flip
+    // flip: color each tile at the middle of its own flip
     if (this.revealRow >= 0) {
       b.querySelectorAll(".wg-tile.flip").forEach((t, c) => setTimeout(() => t.classList.add(t.dataset.final), c * 280 + 175));
     }

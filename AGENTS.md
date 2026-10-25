@@ -41,7 +41,7 @@ The settings files are found through environment variables set by the services (
 
 ## Conventions for code changes
 - Module fields/methods must not reuse MagicMirror's `Module` names (`data`, `show`, `hide`, `config`, `name`…).
-- No emoji in the UI (Raspberry Pi OS has no colour-emoji font) — use inline SVG.
+- No emoji in the UI (Raspberry Pi OS has no color-emoji font) — use inline SVG.
 - Errors people see are plain and say what to do ("check the app-specific password in secrets.json").
 - Private values never reach a log or the page: node helpers read `secrets.json`; the test harness fails a run if
   any `secrets.json` value appears in MagicMirror's output.

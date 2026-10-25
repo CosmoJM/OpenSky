@@ -124,7 +124,7 @@ Module.register("MMM-OpenSky-Settings", {
     }
     this.confirming = null;
     this.inflight = 0;
-    this.hexDraft = null;   // the colour-code box starts from the saved colour
+    this.hexDraft = null;   // the color-code box starts from the saved color
     this.panel.hidden = false;
     this.render();
     this.sendSocketNotification("OS_SET_STATUS");
@@ -236,7 +236,7 @@ Module.register("MMM-OpenSky-Settings", {
     const pal = (window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE) || {};
     const accents = ["peach", ...Object.keys(pal).filter((c) => c !== "gray")];
     const A = window.OpenSkyAccent;
-    const custom = /^#/.test(P.prefs.accent) ? P.prefs.accent : null;   // a colour code (look.accent "#rrggbb")
+    const custom = /^#/.test(P.prefs.accent) ? P.prefs.accent : null;   // a color code (look.accent "#rrggbb")
     if (this.hexDraft == null) this.hexDraft = custom || "";
     const placeOpts = [["", "Off"], ...P.places.map((x) => [x.path, x.label + (x.freeMB != null ? ` · ${x.freeMB >= 1024 ? Math.round(x.freeMB / 1024) + " GB" : x.freeMB + " MB"} free` : "")])];
     if (P.backup.destination && !P.places.some((x) => x.path === P.backup.destination)) placeOpts.push([P.backup.destination, `${P.backup.destination} (not available now)`]);
@@ -260,9 +260,9 @@ Module.register("MMM-OpenSky-Settings", {
       </section>
       <section class="ost-section">
         <h3>Look &amp; extras</h3>
-        <div class="ost-row"><span class="ost-label">Accent colour</span><span class="ost-chips">${[...accents, ...(custom ? [custom] : [])].map((c) => `<button class="ost-chip${c === P.prefs.accent ? " on" : ""}" data-accent="${c}" aria-label="${c}"></button>`).join("")}</span></div>
-        <div class="ost-row"><span class="ost-label">Or a colour code</span><span class="ost-swatch"></span><input class="ost-input ost-hex" maxlength="7" data-okb-caps="off" autocomplete="off" spellcheck="false" placeholder="#3b82f6" value="${esc(this.hexDraft)}"><button class="ost-btn ost-hex-use">Use</button></div>
-        <div class="ost-note ost-hex-note">Any colour as a code, e.g. your team's colour (the # is optional).</div>
+        <div class="ost-row"><span class="ost-label">Accent color</span><span class="ost-chips">${[...accents, ...(custom ? [custom] : [])].map((c) => `<button class="ost-chip${c === P.prefs.accent ? " on" : ""}" data-accent="${c}" aria-label="${c}"></button>`).join("")}</span></div>
+        <div class="ost-row"><span class="ost-label">Or a color code</span><span class="ost-swatch"></span><input class="ost-input ost-hex" maxlength="7" data-okb-caps="off" autocomplete="off" spellcheck="false" placeholder="#3b82f6" value="${esc(this.hexDraft)}"><button class="ost-btn ost-hex-use">Use</button></div>
+        <div class="ost-note ost-hex-note">Any color as a code, e.g. your team's color (the # is optional).</div>
         <div class="ost-row"><span class="ost-label">Word game</span><span class="ost-seg" data-seg="wordgame"><button data-v="nyt" class="${P.prefs.wordgame === "nyt" ? "on" : ""}">NYT's daily word</button><button data-v="opensky" class="${P.prefs.wordgame === "opensky" ? "on" : ""}">OpenSky's words</button></span></div>
         <div class="ost-row">${this.toggle("photos", P.prefs.photos)}<span class="ost-label">Photo slideshow on Home</span></div>
         <div class="ost-row"><span class="ost-label">Trash day</span><select class="ost-select" data-pref="trashDay">${[["", "No pickup icons"], ["monday", "Monday"], ["tuesday", "Tuesday"], ["wednesday", "Wednesday"], ["thursday", "Thursday"], ["friday", "Friday"]].map(([v, l]) => `<option value="${v}" ${v === P.prefs.trashDay ? "selected" : ""}>${l}</option>`).join("")}</select></div>
@@ -296,7 +296,7 @@ Module.register("MMM-OpenSky-Settings", {
       b.style.setProperty("--c", A.hex(b.dataset.accent));
       b.onclick = () => { this.hexDraft = /^#/.test(b.dataset.accent) ? b.dataset.accent : ""; pickAccent(b.dataset.accent); };
     });
-    // a colour code: previewed while typing (and a word when it's too light for white button text), used with Use / return
+    // a color code: previewed while typing (and a word when it's too light for white button text), used with Use / return
     const hexIn = box.querySelector(".ost-hex"), swatch = box.querySelector(".ost-swatch"), hexNote = box.querySelector(".ost-hex-note");
     const hexNoteText = hexNote.textContent;
     const preview = () => {
@@ -304,11 +304,11 @@ Module.register("MMM-OpenSky-Settings", {
       swatch.classList.toggle("empty", !c);
       if (c) swatch.style.setProperty("--c", c);
       hexNote.classList.toggle("ost-bad", !!(c && A.light(c)));
-      hexNote.textContent = c && A.light(c) ? "That colour is very light: white text on buttons will be hard to read." : hexNoteText;
+      hexNote.textContent = c && A.light(c) ? "That color is very light: white text on buttons will be hard to read." : hexNoteText;
     };
     const useHex = () => {
       const c = A.code(hexIn.value);
-      if (!c) return window.OpenSkyToast("Type a colour code like #3b82f6", "error");
+      if (!c) return window.OpenSkyToast("Type a color code like #3b82f6", "error");
       this.hexDraft = c;
       this.sendNotification("HIDE_KEYBOARD");
       pickAccent(c);

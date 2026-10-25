@@ -29,7 +29,7 @@ New calendar, list, photo or weather providers are very welcome. The plan and th
 ## Style
 - Plain JavaScript (no build step), small focused modules, comments that explain *why*.
 - Friendly, plain-English messages that say what to do ("check the app-specific password in secrets.json").
-- Touch-sized controls (at least 44 px) and no emoji in the UI (Raspberry Pi OS has no colour-emoji font).
+- Touch-sized controls (at least 44 px) and no emoji in the UI (Raspberry Pi OS has no color-emoji font).
 
 ## Licence
 OpenSky is MIT licensed. Contributions are accepted under the same licence. Community modules it uses keep their own

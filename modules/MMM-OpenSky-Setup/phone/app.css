@@ -174,7 +174,7 @@ ol.steps li { margin: 4px 0; }
 .row-icon { flex: 0 0 auto; width: 26px; height: 26px; color: var(--accent); }
 
 
-/* accent colour: the phone's colour picker + a colour code */
+/* accent color: the phone's color picker + a color code */
 .hex-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
 .color-pick { flex: none; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 14px; background: none; cursor: pointer; }
 .color-pick::-webkit-color-swatch-wrapper { padding: 0; }

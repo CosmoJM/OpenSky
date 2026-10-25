@@ -1,8 +1,8 @@
 # Changelog
 
 ## Unreleased
-- **Accent colour: any colour, not just the palette.** Type a colour code (#rrggbb or #rgb) in Settings on the screen
-  (with a live preview), or pick any colour with the phone's colour picker in phone setup. A colour too light for the
+- **Accent color: any color, not just the palette.** Type a color code (#rrggbb or #rgb) in Settings on the screen
+  (with a live preview), or pick any color with the phone's color picker in phone setup. A color too light for the
   white button text gets a warning. Codes are checked when saved; `look.accent` in opensky.json accepts them too.
 
 ## 1.0.1 — 2026-10-24
@@ -15,7 +15,7 @@
 The first public version: a friendly family wall calendar for a Raspberry Pi touchscreen, built on MagicMirror².
 
 **On the screen**
-- **Home**: the week ahead with everyone's events in their colours, daily weather, trash/recycling/yard-waste icons,
+- **Home**: the week ahead with everyone's events in their colors, daily weather, trash/recycling/yard-waste icons,
   your lists (check off with Undo) and a photo slideshow.
 - **Calendar**: month view; tap a day or event to see, add, edit or delete events.
 - **Lists**: every list side by side. **Timer**: kitchen timers with a chime. **Word game**: a daily family puzzle
@@ -27,7 +27,7 @@ The first public version: a friendly family wall calendar for a Raspberry Pi tou
   a **remote for your other speakers** (Sonos, HomePod, Echo, Google…) through Home Assistant. See docs/music.md.
 - Header: family name, clock, weather, countdown to the next holiday or birthday, your team's game day.
 - **Settings on the screen**: brightness (backlight, monitor over HDMI or picture dimming), evening dim, sleep at
-  night, how Sleep turns your screen off (with a Test button and wake on touch), volume, pages, accent colour,
+  night, how Sleep turns your screen off (with a Test button and wake on touch), volume, pages, accent color,
   backups, update / restart / shut down.
 - On-screen keyboard; returns to Home after a few quiet minutes (touches inside web pages count, too).
 - Fits any screen: the layout scales to 720p, 768p, 1080p or 4K screens (`look.scale` to adjust).

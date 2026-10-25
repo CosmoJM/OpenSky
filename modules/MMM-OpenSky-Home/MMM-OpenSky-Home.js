@@ -3,7 +3,7 @@
  *
  * Calendar card: today + the next 6 days as tiles, plus a "Next Week" tile.
  *   - events: any calendar source that broadcasts CALENDAR_EVENTS (MagicMirror's standard)
- *   - colours: window.OpenSkyEventColors (calendar.colors in opensky.json)
+ *   - colors: window.OpenSkyEventColors (calendar.colors in opensky.json)
  *   - tap an event → CALENDAR_EVENT_CLICKED, a day → CALENDAR_DAY_CLICKED, "Add Event" → CALENDAR_ADD_EVENT
  *     (the event editor module answers these; "Add Event" only shows when one is installed)
  *   - daily high + icon from the header's shared forecast (OPENSKY_WEATHER)

@@ -256,7 +256,7 @@
     const kind = (c) => c.type === "local" ? "On this screen · add & edit on the screen" : c.type === "caldav" ? "iCloud / CalDAV · add & edit" : c.type === "google" ? `Google${c.readOnly ? " · view only" : " · add & edit"}` : "Calendar link · read-only";
     cal.sources.forEach((c, i) => list.append(row(hex(c.color || "blue"), c.name, kind(c), () => editCalendar(i))));
     if (!cal.sources.length) list.append(el("p", { class: "empty" }, "No calendars yet."));
-    return section("calendars", "calendar", "Calendars", "Each with its own colour",
+    return section("calendars", "calendar", "Calendars", "Each with its own color",
       list,
       el("button", { type: "button", class: "add", onclick: addCalendar }, icon("plus"), "Add a calendar"),
       el("div", { class: "line" }, el("span", {}, el("b", {}, "Public holidays"), el("small", {}, `${S.locale.country || (cal.holidays && cal.holidays !== "none" ? cal.holidays : "US")} · on the calendar and the countdown`)),
@@ -281,7 +281,7 @@
           ...(d.kind === "google" ? [googleBox()] : []),
           ...(d.kind !== "google" || d.gcals ? [
             field("Name", text(d.name, (v) => { d.name = v.trim(); d.named = true; }, { placeholder: d.kind === "local" ? "e.g. Family" : "e.g. Mom, School, Soccer" })),
-            el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(d.color, (c) => { d.color = c; }))] : []),
+            el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(d.color, (c) => { d.color = c; }))] : []),
           ...(d.kind === "link" ? [
             field("Calendar link", el("textarea", { class: "input", rows: "3", placeholder: "https://… or webcal://…", oninput: (e) => { d.link = e.target.value.trim(); } }), "Kept private on the Pi."),
             el("details", { class: "help" }, el("summary", {}, "Where do I find the link?"),
@@ -365,7 +365,7 @@
     const c = S.calendar.sources[i];
     let color = c.color || "blue";
     sheet(c.name, (b) => {
-      b.append(el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(color, (v) => { color = v; })));
+      b.append(el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(color, (v) => { color = v; })));
       if (c.type !== "local" && c.type !== "caldav" && c.type !== "google") b.append(field("Replace the link", el("textarea", { class: "input", rows: "2", placeholder: isSet(`calendar.sources.${c.name}`) ? "Saved ✓ — paste a new link to replace it" : "https://… or webcal://…", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.sources.${c.name}`] = e.target.value.trim(); } })));
       if (c.type === "caldav") b.append(field("New password", el("input", { type: "password", class: "input", placeholder: "Saved ✓ — type to replace", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.caldav.${c.name}`] = { password: e.target.value.trim() }; } })));
       if (c.type === "local") b.append(el("p", { class: "hint" }, "Removing it here takes it off the screen. Its events stay saved on the Pi."));
@@ -400,7 +400,7 @@
         : d.provider === "homeassistant" ? [field("Home Assistant to-do list", text(d.entity, (v) => { d.entity = v.trim().toLowerCase(); }, { placeholder: "todo.shopping_list", autocapitalize: "off" }), "Its entity ID (Settings → Entities in Home Assistant). Address and token go below the lists.")]
         : [el("p", { class: "hint" }, "Kept on the Pi — no account needed.")]));
       b.append(field("Name", text("", (v) => { d.name = v.trim(); }, { placeholder: "e.g. Groceries" })),
-        el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(d.color, (c) => { d.color = c; })),
+        el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(d.color, (c) => { d.color = c; })),
         field("Kept in", seg([["local", "This screen"], ["todoist", "Todoist"], ["homeassistant", "Home Assistant"]], d.provider, (v) => { d.provider = v; draw(); })), extra, err);
       draw();
     }, [["Cancel", "", () => {}], ["Add", "primary", () => {
@@ -419,7 +419,7 @@
     const l = S.lists.lists[i];
     let color = l.color || "blue";
     sheet(l.name, (b) => {
-      b.append(el("div", { class: "field" }, el("span", { class: "label" }, "Colour"), chips(color, (v) => { color = v; })));
+      b.append(el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(color, (v) => { color = v; })));
       if (l.provider !== "todoist") b.append(el("p", { class: "hint" }, "Removing the list takes it off the screen; its items stay saved on the Pi."));
     }, [["Remove", "danger", () => { S.lists.lists.splice(i, 1); change(); render(); }], ["Done", "primary", () => { l.color = color; change(); render(); }]]);
   }
@@ -506,23 +506,23 @@
       }], ["Done", "primary", () => {}]]);
   }
 
-  // accent colour: a palette chip, or any colour as a code (#rrggbb) — typed, or picked with the phone's colour picker
+  // accent color: a palette chip, or any color as a code (#rrggbb) — typed, or picked with the phone's color picker
   function accentField() {
     const A = window.OpenSkyAccent;
     const now = (S.look && S.look.accent) || "peach", custom = /^#/.test(now) ? now : "";
     const set = (c) => { S.look = S.look || {}; if (c === "peach") delete S.look.accent; else S.look.accent = c; change(); };
-    const warn = el("span", { class: "hint bad", hidden: true }, "That colour is very light: white text on buttons will be hard to read.");
+    const warn = el("span", { class: "hint bad", hidden: true }, "That color is very light: white text on buttons will be hard to read.");
     const showWarn = (c) => { warn.hidden = !(c && A.light(c)); };
     const box = chips(custom ? "" : now, (c) => { code.value = ""; code.classList.remove("bad"); picker.value = A.hex(c); showWarn(null); set(c); }, ["peach", ...COLORS.filter((c) => c !== "gray")]);
     const useCode = (c) => { box.querySelectorAll(".chip").forEach((x) => x.classList.remove("on")); showWarn(c); set(c); };
-    const picker = el("input", { type: "color", class: "color-pick", value: A.hex(now), "aria-label": "Pick any colour",
+    const picker = el("input", { type: "color", class: "color-pick", value: A.hex(now), "aria-label": "Pick any color",
       oninput: (e) => { code.value = e.target.value; code.classList.remove("bad"); useCode(e.target.value); } });
-    const code = el("input", { type: "text", class: "input hex-input", value: custom, placeholder: "#3b82f6", maxlength: "7", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": "Colour code",
+    const code = el("input", { type: "text", class: "input hex-input", value: custom, placeholder: "#3b82f6", maxlength: "7", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": "Color code",
       oninput: (e) => { const c = A.code(e.target.value); e.target.classList.remove("bad"); if (c) { picker.value = c; useCode(c); } },
       onblur: (e) => { e.target.classList.toggle("bad", !!e.target.value.trim() && !A.code(e.target.value)); } });
     showWarn(custom || null);
-    return el("div", { class: "field" }, el("span", { class: "label" }, "Accent colour (buttons, highlights)"), box,
-      el("div", { class: "hex-row" }, picker, code), el("span", { class: "hint" }, "Or any colour: tap the swatch to pick one, or type its code (e.g. your team's colour)."), warn);
+    return el("div", { class: "field" }, el("span", { class: "label" }, "Accent color (buttons, highlights)"), box,
+      el("div", { class: "hex-row" }, picker, code), el("span", { class: "hint" }, "Or any color: tap the swatch to pick one, or type its code (e.g. your team's color)."), warn);
   }
 
   function extrasCard() {

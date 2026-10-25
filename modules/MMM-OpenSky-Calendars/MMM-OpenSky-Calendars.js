@@ -1,7 +1,7 @@
 /* MMM-OpenSky-Calendars — the family's calendar sources (no screen of its own).
  * Fetches each source on the Pi (node helper) and broadcasts all events together as CALENDAR_EVENTS, the standard
  * MagicMirror notification, so the Home page, the month view and the header's birthday countdown all see them.
- * Each event carries calendarName (the source's name) and color (its palette colour), like MagicMirror's calendar.
+ * Each event carries calendarName (the source's name) and color (its palette color), like MagicMirror's calendar.
  * Status for a settings page: OPENSKY_CALENDAR_STATUS { name: "ok" | "error message" }.
  */
 Module.register("MMM-OpenSky-Calendars", {
@@ -16,7 +16,7 @@ Module.register("MMM-OpenSky-Calendars", {
     this.events = new Map();   // source name → events
     this.status = {};
     this.sendSocketNotification("OS_CAL_START", {
-      // everything a source type needs (holidays: country/region; google: calendarId) — no colours, no secrets here
+      // everything a source type needs (holidays: country/region; google: calendarId) — no colors, no secrets here
       sources: this.config.sources.map((s) => ({ name: s.name, type: s.type || "link", url: s.url || null, fetchMinutes: s.fetchMinutes,
         country: s.country, region: s.region, calendarId: s.calendarId })),
       days: this.config.days

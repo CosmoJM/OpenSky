@@ -198,7 +198,7 @@
   min-height: 0;
 }
 
-/* event pills (colours: .evc-* variables below, same palette as the month view) */
+/* event pills (colors: .evc-* variables below, same palette as the month view) */
 .hd-event {
   display: flex;
   flex-direction: column;

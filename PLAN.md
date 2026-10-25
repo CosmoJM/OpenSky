@@ -38,7 +38,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Screen off/on | soft sleep (black cover + DDC backlight 0) ✅ | Settings → "Sleep turns off by" ✅: auto / black screen + dim / signal off (wlr-randr, came-back self-check + did-it-wake check) / HDMI-CEC (only when a TV answers) / display backlight; Test button; wake-on-touch input watcher. DDC/CI power-off removed after a real test fully powered down a touch monitor (only its power button woke it) | Auto-detect + "test" button |
 | Wake | touch / mouse / keyboard ✅ | + motion sensor (PIR) 💭; + presence (Home Assistant) | |
 | Sleep schedule | Settings page + HA automations ✅ | **built-in schedule** default ✅; Home Assistant optional | Don't require HA |
-| Calendar (read) | iCloud via CalDAV backend ✅ | **ICS URL** default ✅ (Google/Outlook/iCloud "secret address"); on-device ✅; iCloud + generic CalDAV ✅; Google Calendar API ✅ (own OAuth client, guided on the phone); Microsoft 365 / Outlook (Graph) | Several calendars, colour per person |
+| Calendar (read) | iCloud via CalDAV backend ✅ | **ICS URL** default ✅ (Google/Outlook/iCloud "secret address"); on-device ✅; iCloud + generic CalDAV ✅; Google Calendar API ✅ (own OAuth client, guided on the phone); Microsoft 365 / Outlook (Graph) | Several calendars, color per person |
 | Calendar (add/edit) | iCloud CalDAV ✅ | CalDAV ✅; Google (OAuth, read + write) ✅; Microsoft 365 💭; read-only mode ✅ | OAuth = setup friction; guide it |
 | Lists | Todoist (2 projects) ✅ | **on-device lists** default (no account) ✅; Todoist ✅; Home Assistant to-do ✅ (covers Google Tasks etc. connected to HA); Google Tasks; Microsoft To Do; Apple Reminders (CalDAV VTODO); 💭 Grocy, AnyList, Mealie | Any number of lists, user-named |
 | Weather (header + day tiles) | OpenWeatherMap (header) + Open-Meteo (7-day) ✅ | **Open-Meteo** default (no key) ✅; OpenWeatherMap ✅; 💭 NWS, Met.no | °F/°C, location by address search |
@@ -52,7 +52,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
 | Daily word game | NYT daily word ✅ | **NYT word default** ✅ (the maintainer's call); built-in SCOWL words as backup / opt-out ✅ | Rename (not "Wordle", a NYT trademark) |
 | On-screen keyboard | iPad-style US ✅ | own module ✅; 🔜 layouts (US, UK, intl.); 💭 languages | |
 | Brightness / volume (Settings) | ddcutil + wpctl ✅ | DDC/CI; Pi display backlight; none (hide slider) | Auto-detect |
-| Look & feel | family name in the header, pastel theme ✅ | family name ✅, 12/24 h ✅, units ✅, first day of week ✅; accent colour ✅; 🔜 light/dark, date format; 💭 languages (i18n) | |
+| Look & feel | family name in the header, pastel theme ✅ | family name ✅, 12/24 h ✅, units ✅, first day of week ✅; accent color ✅; 🔜 light/dark, date format; 💭 languages (i18n) | |
 | Updates | manual | "Update" button in Settings ✅ (git pull + installer); automatic rollback when it doesn't start ✅ + `opensky rollback`; 🔜 settings migrations | Big for friendliness |
 | Backups | nightly git + NAS (reference build) | export/import from the phone setup page ✅ (settings + on-device data; passwords optional) | |
 | Food (add-on) | Google Places + Routes ✅ | Google (own key); 💭 OpenStreetMap/Overpass (free, no key) | Later |
@@ -63,10 +63,10 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    safe defaults; community-module changes as forks/patches with their licences kept.
    Progress: ✅ settings → config builder, base theme, shared lib (weather, secrets), off-screen harness;
    ✅ Timer, ✅ Sidebar (soft sleep on any screen), ✅ Header (Open-Meteo default, custom dates, any-team sports pill),
-   ✅ Home (events from any calendar source, named colour palette + rules, shared weather, provider-neutral lists
+   ✅ Home (events from any calendar source, named color palette + rules, shared weather, provider-neutral lists
    card, photos from a folder/USB stick or Immich, generic pickup schedule + New Bedford preset).
    ✅ Calendar sources (public links in settings, private links in secrets.json, MagicMirror's own fetcher),
-   ✅ Calendar page (MMM-CalendarExt3 pinned + patch, toolbar, taps, two-line fitting, palette colours).
+   ✅ Calendar page (MMM-CalendarExt3 pinned + patch, toolbar, taps, two-line fitting, palette colors).
    ✅ On-device calendar (default, no account) + event editor (day list, view, add, edit, delete; linked calendars
    read-only; changes go through the node helper).
    ✅ CalDAV calendar service (services/calendar-service: iCloud/Fastmail/Nextcloud…, add/edit/delete, offline
@@ -85,7 +85,7 @@ Legend: **default** = what a new install uses; ✅ = in the reference build alre
    first-run welcome card; Settings → Set up from your phone).
    Next: clean-install test on a spare SD card (needs the maintainer), then providers from the matrix.
    Since: Google Calendar (read + write), Home Assistant lists, holidays for ~200 countries, pickup from a calendar
-   link, backups (download/restore + nightly automatic), safe updates with rollback, accent colour, screen-off methods
+   link, backups (download/restore + nightly automatic), safe updates with rollback, accent color, screen-off methods
    with Test + wake on touch, Settings on the screen = the phone's core settings, web-page touches count as activity,
    **add your own web page** from Settings or the phone (name, address, 16 icons, optional PIN).
 3. **First public milestone (v1.0)** — everything above. ✅ built, tested off-screen, and installed from GitHub on a

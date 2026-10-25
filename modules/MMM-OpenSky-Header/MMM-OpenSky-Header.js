@@ -151,7 +151,7 @@ Module.register("MMM-OpenSky-Header", {
     return { key: o.key, name: o.name, days, birthday: !!o.birthday };
   },
 
-  // Small full-colour icons, one per occasion (24x24)
+  // Small full-color icons, one per occasion (24x24)
   _occasionIcon(key) {
     const flag = `<defs><clipPath id="hb-flag"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/></clipPath></defs>
       <g clip-path="url(#hb-flag)"><rect x="2.5" y="5" width="19" height="14" fill="#fff"/>

@@ -5,7 +5,7 @@
 
 :root {
   --side-bg: #f3f4f6;
-  --tile-fg: #4b5563;         /* icon colour */
+  --tile-fg: #4b5563;         /* icon color */
   --tile-label: #6b7280;
   --tile-active: var(--os-accent);     /* peach, dark enough for icons/labels */
 }

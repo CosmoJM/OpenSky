@@ -1,4 +1,4 @@
-// Home page: week tiles (events + colours + weather + pickup icons), lists from a provider, photos from a folder.
+// Home page: week tiles (events + colors + weather + pickup icons), lists from a provider, photos from a folder.
 module.exports = async (page, h) => {
   const R = {}; const ok = (k, v, i) => { R[k] = v; h.log(`${v ? "PASS" : "FAIL"}  ${k}${i !== undefined ? "  — " + JSON.stringify(i) : ""}`); };
   const vis = (sel) => page.evaluate((s) => { const e = document.querySelector(s); if (!e || e.hidden) return false; const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0; }, sel);
@@ -21,8 +21,8 @@ module.exports = async (page, h) => {
   const pills = await page.evaluate(() => [...document.querySelectorAll(".hd-week .hd-event")].map((p) => ({ title: p.querySelector(".hd-event-title").textContent, time: p.querySelector(".hd-event-time").textContent, bar: getComputedStyle(p).borderLeftColor })));
   const by = (t) => pills.find((p) => p.title === t);
   ok("events on their days with times", by("Kids dentist") && /3 PM – 4 PM|3 – 4 PM/.test(by("Kids dentist").time) && by("Family picnic") && by("Family picnic").time === "All day", pills);
-  ok("keyword colour rule (dentist → indigo)", by("Kids dentist") && by("Kids dentist").bar === "rgb(74, 91, 216)", by("Kids dentist") && by("Kids dentist").bar);
-  ok("calendar colour (Testers → blue)", by("Swim lesson") && by("Swim lesson").bar === "rgb(46, 139, 214)", by("Swim lesson") && by("Swim lesson").bar);   // a title the fixture calendar doesn't have (its Soccer practice is pink)
+  ok("keyword color rule (dentist → indigo)", by("Kids dentist") && by("Kids dentist").bar === "rgb(74, 91, 216)", by("Kids dentist") && by("Kids dentist").bar);
+  ok("calendar color (Testers → blue)", by("Swim lesson") && by("Swim lesson").bar === "rgb(46, 139, 214)", by("Swim lesson") && by("Swim lesson").bar);   // a title the fixture calendar doesn't have (its Soccer practice is pink)
 
   // weather on the tiles (from the header's shared forecast)
   for (let i = 0; i < 25 && !(await page.evaluate(() => document.querySelectorAll(".hd-day-wx span").length)); i++) await h.sleep(1000);

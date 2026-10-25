@@ -94,7 +94,7 @@ module.exports = async (page, h, app) => {
   await save();
   ok("save #2: °F back (saving again and again works)", settings().locale.units === "imperial");
 
-  // ---- Calendars: holidays off, on-screen calendar, iCloud, colour change, remove ----
+  // ---- Calendars: holidays off, on-screen calendar, iCloud, color change, remove ----
   await tap("#calendars", ".toggle", "Public holidays");
   await tap("#calendars", ".add", null);
   await tap(".sheet", ".seg button", "On screen");
@@ -120,7 +120,7 @@ module.exports = async (page, h, app) => {
     sec.calendar.caldav?.Work?.password === "abcd-efgh-ijkl-mnop" && sec.calendar.caldav.Work.url === "https://caldav.icloud.com/" && !JSON.stringify(S).includes("abcd-efgh") &&
     src("Family")?.color === "teal" && !src("School") && !(sec.calendar.sources && sec.calendar.sources.School), S.calendar.sources.map((c) => `${c.name}:${c.type || "link"}:${c.color}`));
 
-  // ---- Lists: a Todoist list + token, a colour change, a removal ----
+  // ---- Lists: a Todoist list + token, a color change, a removal ----
   await tap("#lists", ".add", null);
   await type(".sheet .field:first-of-type input.input", "Errands");
   await tap(".sheet", ".seg button", "Todoist");
@@ -202,21 +202,21 @@ module.exports = async (page, h, app) => {
     S.header.sports.league === "nba" && S.header.sports.team === "BOS" && S.wordgame.source === "opensky" && S.weather.provider === "openweathermap" && sec.weather?.openweathermap?.apiKey === "owm-key-123456",
     { look: S.look, pickup: S.pickup, sports: S.header.sports, wordgame: S.wordgame, weather: S.weather });
 
-  // ---- accent: any colour as a code (typed, any case) or from the phone's colour picker; then back to teal ----
+  // ---- accent: any color as a code (typed, any case) or from the phone's color picker; then back to teal ----
   await type("#extras .hex-input", "#2E7D32");
   const chipOff = await phone.evaluate(() => !document.querySelector("#extras .chip.on") && document.querySelector("#extras .color-pick").value === "#2e7d32");
   await save();
-  ok("accent: a typed colour code → saved as #rrggbb, the chips let go, the colour picker follows", settings().look?.accent === "#2e7d32" && chipOff, settings().look);
+  ok("accent: a typed color code → saved as #rrggbb, the chips let go, the color picker follows", settings().look?.accent === "#2e7d32" && chipOff, settings().look);
   await type("#extras .color-pick", "#fff8dc");
   const fromPicker = await phone.evaluate(() => ({ code: document.querySelector("#extras .hex-input").value, warn: !document.querySelector("#extras .hint.bad").hidden }));
   await save();
-  ok("accent: the phone's colour picker → saved, the code box follows, a very light colour gets a warning", settings().look?.accent === "#fff8dc" && fromPicker.code === "#fff8dc" && fromPicker.warn, fromPicker);
+  ok("accent: the phone's color picker → saved, the code box follows, a very light color gets a warning", settings().look?.accent === "#fff8dc" && fromPicker.code === "#fff8dc" && fromPicker.warn, fromPicker);
   await type("#extras .hex-input", "#12zz45");
   await phone.evaluate(() => document.querySelector("#extras .hex-input").blur());
   const bad = await phone.evaluate(() => document.querySelector("#extras .hex-input").classList.contains("bad"));
   await tap("#extras", ".chip", "teal");
   await save();
-  ok("accent: a code that isn't a colour is marked and not used; a chip still works afterwards", bad && settings().look?.accent === "teal", settings().look);
+  ok("accent: a code that isn't a color is marked and not used; a chip still works afterwards", bad && settings().look?.accent === "teal", settings().look);
 
   // ---- Music add-on: the page on → its settings appear in Extras (speaker name, AirPlay / Spotify) ----
   ok("Music settings are hidden until the Music page is on", !(await phone.evaluate(() => /Speaker name/.test(document.querySelector("#extras").textContent))));

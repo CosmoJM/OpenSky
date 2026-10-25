@@ -93,7 +93,7 @@ module.exports = NodeHelper.create({
     fs.renameSync(`${STATE_FILE}.tmp`, STATE_FILE);
   },
 
-  // Standard colouring with repeated letters handled: "g" right spot, "y" elsewhere in the word, "b" not in it
+  // Standard coloring with repeated letters handled: "g" right spot, "y" elsewhere in the word, "b" not in it
   score(guess, answer) {
     const res = Array(5).fill("b"), left = {};
     for (let i = 0; i < 5; i++) {
