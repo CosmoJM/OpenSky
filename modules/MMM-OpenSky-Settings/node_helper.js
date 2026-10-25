@@ -23,6 +23,7 @@ const path = require("path");
 const dns = require("dns").promises;
 const backup = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "backup.js"));
 const screen = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "screen.js"));
+const accent = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "accent.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
 // the icons a web page can have (same list as OpenSkyIcons.webPage in lib/client/opensky-client.js)
@@ -364,7 +365,13 @@ module.exports = NodeHelper.create({
       catch (e) { return this.sendSocketNotification("OS_SET_NOTICE", { type: "error", message: e.message }); }
     }
     if (Array.isArray(patch.pages) && patch.pages.length) { s.pages = patch.pages.map(String).filter((p) => /^[a-z][a-z0-9-]{0,30}$/.test(p)); restartNeeded = true; }
-    if ("accent" in patch) { s.look = s.look || {}; if (patch.accent === "peach") delete s.look.accent; else s.look.accent = String(patch.accent); }
+    if ("accent" in patch) {
+      // a palette colour or a colour code (#rgb / #rrggbb, stored as #rrggbb); peach is the default, so it's left out
+      const a = accent.normalize(patch.accent);
+      if (!a) return this.sendSocketNotification("OS_SET_NOTICE", { type: "error", message: "That isn't a colour — type a code like #3b82f6" });
+      s.look = s.look || {};
+      if (a === "peach") delete s.look.accent; else s.look.accent = a;
+    }
     if ("wordgame" in patch) { s.wordgame = s.wordgame || {}; s.wordgame.source = patch.wordgame === "opensky" ? "opensky" : "nyt"; restartNeeded = true; }
     if ("photos" in patch) { s.photos = s.photos || {}; s.photos.enabled = !!patch.photos; restartNeeded = true; }
     if ("trashDay" in patch) { s.pickup = s.pickup || {}; s.pickup.trashDay = String(patch.trashDay || ""); restartNeeded = true; }

@@ -124,6 +124,7 @@ Module.register("MMM-OpenSky-Settings", {
     }
     this.confirming = null;
     this.inflight = 0;
+    this.hexDraft = null;   // the colour-code box starts from the saved colour
     this.panel.hidden = false;
     this.render();
     this.sendSocketNotification("OS_SET_STATUS");
@@ -234,7 +235,9 @@ Module.register("MMM-OpenSky-Settings", {
     const all = [...P.pages, ...Object.keys(P.names).filter((k) => !P.pages.includes(k))];
     const pal = (window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE) || {};
     const accents = ["peach", ...Object.keys(pal).filter((c) => c !== "gray")];
-    const hex = (c) => (c === "peach" ? "#e8663f" : (pal[c] || ["", "#999"])[1]);
+    const A = window.OpenSkyAccent;
+    const custom = /^#/.test(P.prefs.accent) ? P.prefs.accent : null;   // a colour code (look.accent "#rrggbb")
+    if (this.hexDraft == null) this.hexDraft = custom || "";
     const placeOpts = [["", "Off"], ...P.places.map((x) => [x.path, x.label + (x.freeMB != null ? ` · ${x.freeMB >= 1024 ? Math.round(x.freeMB / 1024) + " GB" : x.freeMB + " MB"} free` : "")])];
     if (P.backup.destination && !P.places.some((x) => x.path === P.backup.destination)) placeOpts.push([P.backup.destination, `${P.backup.destination} (not available now)`]);
     const st = P.status || {};
@@ -257,7 +260,9 @@ Module.register("MMM-OpenSky-Settings", {
       </section>
       <section class="ost-section">
         <h3>Look &amp; extras</h3>
-        <div class="ost-row"><span class="ost-label">Accent colour</span><span class="ost-chips">${accents.map((c) => `<button class="ost-chip${c === P.prefs.accent ? " on" : ""}" data-accent="${c}" aria-label="${c}"></button>`).join("")}</span></div>
+        <div class="ost-row"><span class="ost-label">Accent colour</span><span class="ost-chips">${[...accents, ...(custom ? [custom] : [])].map((c) => `<button class="ost-chip${c === P.prefs.accent ? " on" : ""}" data-accent="${c}" aria-label="${c}"></button>`).join("")}</span></div>
+        <div class="ost-row"><span class="ost-label">Or a colour code</span><span class="ost-swatch"></span><input class="ost-input ost-hex" maxlength="7" data-okb-caps="off" autocomplete="off" spellcheck="false" placeholder="#3b82f6" value="${esc(this.hexDraft)}"><button class="ost-btn ost-hex-use">Use</button></div>
+        <div class="ost-note ost-hex-note">Any colour as a code, e.g. your team's colour (the # is optional).</div>
         <div class="ost-row"><span class="ost-label">Word game</span><span class="ost-seg" data-seg="wordgame"><button data-v="nyt" class="${P.prefs.wordgame === "nyt" ? "on" : ""}">NYT's daily word</button><button data-v="opensky" class="${P.prefs.wordgame === "opensky" ? "on" : ""}">OpenSky's words</button></span></div>
         <div class="ost-row">${this.toggle("photos", P.prefs.photos)}<span class="ost-label">Photo slideshow on Home</span></div>
         <div class="ost-row"><span class="ost-label">Trash day</span><select class="ost-select" data-pref="trashDay">${[["", "No pickup icons"], ["monday", "Monday"], ["tuesday", "Tuesday"], ["wednesday", "Wednesday"], ["thursday", "Thursday"], ["friday", "Friday"]].map(([v, l]) => `<option value="${v}" ${v === P.prefs.trashDay ? "selected" : ""}>${l}</option>`).join("")}</select></div>
@@ -286,10 +291,32 @@ Module.register("MMM-OpenSky-Settings", {
     box.querySelector(".ost-add-web").onclick = () => { this.webForm = { title: "", url: "", icon: "globe", pin: "" }; this.renderPrefs(); this.focusWebForm(); };
     box.querySelectorAll(".ost-edit-web").forEach((b) => { b.onclick = () => { const e = P.embeds.find((x) => x.key === b.dataset.key); this.webForm = { key: e.key, title: e.title, url: e.url || "", icon: e.icon, locked: e.locked, pin: null }; this.renderPrefs(); this.focusWebForm(); }; });
     if (this.webForm) this.bindWebForm(box);
+    const pickAccent = (c) => { const sb = MM.getModules().withClass("MMM-OpenSky-Sidebar")[0]; if (sb) sb.applyAccent(A.hex(c)); this.savePrefs({ accent: c }); };
     box.querySelectorAll("[data-accent]").forEach((b) => {
-      b.style.setProperty("--c", hex(b.dataset.accent));
-      b.onclick = () => { const sb = MM.getModules().withClass("MMM-OpenSky-Sidebar")[0]; if (sb) sb.applyAccent(b.dataset.accent === "peach" ? "#e8663f" : b.dataset.accent); this.savePrefs({ accent: b.dataset.accent }); };
+      b.style.setProperty("--c", A.hex(b.dataset.accent));
+      b.onclick = () => { this.hexDraft = /^#/.test(b.dataset.accent) ? b.dataset.accent : ""; pickAccent(b.dataset.accent); };
     });
+    // a colour code: previewed while typing (and a word when it's too light for white button text), used with Use / return
+    const hexIn = box.querySelector(".ost-hex"), swatch = box.querySelector(".ost-swatch"), hexNote = box.querySelector(".ost-hex-note");
+    const hexNoteText = hexNote.textContent;
+    const preview = () => {
+      const c = A.code(hexIn.value);
+      swatch.classList.toggle("empty", !c);
+      if (c) swatch.style.setProperty("--c", c);
+      hexNote.classList.toggle("ost-bad", !!(c && A.light(c)));
+      hexNote.textContent = c && A.light(c) ? "That colour is very light: white text on buttons will be hard to read." : hexNoteText;
+    };
+    const useHex = () => {
+      const c = A.code(hexIn.value);
+      if (!c) return window.OpenSkyToast("Type a colour code like #3b82f6", "error");
+      this.hexDraft = c;
+      this.sendNotification("HIDE_KEYBOARD");
+      pickAccent(c);
+    };
+    hexIn.oninput = () => { this.hexDraft = hexIn.value; preview(); };
+    hexIn.onkeydown = (e) => { if (e.key === "Enter") useHex(); };
+    box.querySelector(".ost-hex-use").onclick = useHex;
+    preview();
     box.querySelectorAll('[data-seg="wordgame"] button').forEach((b) => { b.onclick = () => this.savePrefs({ wordgame: b.dataset.v }); });
     box.querySelector('.ost-toggle[data-id="photos"]').onclick = () => this.savePrefs({ photos: !P.prefs.photos });
     box.querySelector('[data-pref="trashDay"]').onchange = (e) => this.savePrefs({ trashDay: e.target.value });

@@ -82,6 +82,24 @@ ok("16 odd settings (a null file, a number for the family name / a page name, on
   mod(odd[1], "MMM-OpenSky-Header").config.title === "1990" && timerOf(odd[1]) === "10" && timerOf(odd[2]) === "5" &&
   mod(odd[1], "MMM-OpenSky-Embed").config.title === "7", typeof odd === "string" ? odd : undefined);
 
+// accent colour: a palette name or any colour code; the config, the Pi (lib/accent.js) and the screen + phone
+// (OpenSkyAccent in opensky-client.js) follow the same rule
+const accentIn = (v) => mod(build({ look: { accent: v } }), "MMM-OpenSky-Sidebar").config.accent;
+const cases = [["teal", "teal"], [" Teal ", "teal"], ["#3B82F6", "#3b82f6"], ["#abc", "#aabbcc"], ["3b82f6", null], ["#12345", null],
+  ["red;background:url(x)", null], ["#3b82f6\"><b>", null], ["", null], [7, null]];
+const got = cases.map(([v]) => accentIn(v));
+ok("17 accent: names and colour codes (#rrggbb, #rgb, any case) reach the screen; anything else → peach (null)",
+  got.every((g, i) => g === cases[i][1]), got);
+const libAccent = require(path.join(__dirname, "..", "lib", "accent.js"));
+global.window = {}; global.document = { addEventListener() {} };   // (just enough of a page for opensky-client.js)
+require(path.join(__dirname, "..", "lib", "client", "opensky-client.js"));
+const SA = global.window.OpenSkyAccent;
+const same = cases.filter(([v]) => typeof v === "string").every(([v, want]) => libAccent.normalize(v) === want && SA.normalize(v) === want);
+ok("18 the Pi's rule (lib/accent.js) and the screen/phone's (OpenSkyAccent) agree; a typed code may leave out the #; light colours are flagged",
+  same && SA.code("3B82F6") === "#3b82f6" && SA.code("teal") === null && SA.hex("teal") === "#11998e" && SA.hex("peach") === "#e8663f" &&
+  SA.light("#fff4cc") && SA.light("#ffffff") && !SA.light("#e8663f") && !SA.light("#1d4ed8"));
+delete global.window; delete global.document;
+
 
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log(`SUMMARY pass=${passed} fail=${failed}`);

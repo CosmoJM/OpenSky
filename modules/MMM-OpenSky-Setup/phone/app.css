@@ -173,3 +173,12 @@ ol.steps li { margin: 4px 0; }
 .icon-pick.on { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
 .row-icon { flex: 0 0 auto; width: 26px; height: 26px; color: var(--accent); }
 
+
+/* accent colour: the phone's colour picker + a colour code */
+.hex-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.color-pick { flex: none; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 14px; background: none; cursor: pointer; }
+.color-pick::-webkit-color-swatch-wrapper { padding: 0; }
+.color-pick::-webkit-color-swatch { border: 0; border-radius: 14px; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .08); }
+.color-pick::-moz-color-swatch { border: 0; border-radius: 14px; }
+.hex-input { flex: 1; min-width: 0; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+.hex-input.bad { box-shadow: inset 0 0 0 2px var(--bad); }

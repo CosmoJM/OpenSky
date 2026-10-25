@@ -506,6 +506,25 @@
       }], ["Done", "primary", () => {}]]);
   }
 
+  // accent colour: a palette chip, or any colour as a code (#rrggbb) — typed, or picked with the phone's colour picker
+  function accentField() {
+    const A = window.OpenSkyAccent;
+    const now = (S.look && S.look.accent) || "peach", custom = /^#/.test(now) ? now : "";
+    const set = (c) => { S.look = S.look || {}; if (c === "peach") delete S.look.accent; else S.look.accent = c; change(); };
+    const warn = el("span", { class: "hint bad", hidden: true }, "That colour is very light: white text on buttons will be hard to read.");
+    const showWarn = (c) => { warn.hidden = !(c && A.light(c)); };
+    const box = chips(custom ? "" : now, (c) => { code.value = ""; code.classList.remove("bad"); picker.value = A.hex(c); showWarn(null); set(c); }, ["peach", ...COLORS.filter((c) => c !== "gray")]);
+    const useCode = (c) => { box.querySelectorAll(".chip").forEach((x) => x.classList.remove("on")); showWarn(c); set(c); };
+    const picker = el("input", { type: "color", class: "color-pick", value: A.hex(now), "aria-label": "Pick any colour",
+      oninput: (e) => { code.value = e.target.value; code.classList.remove("bad"); useCode(e.target.value); } });
+    const code = el("input", { type: "text", class: "input hex-input", value: custom, placeholder: "#3b82f6", maxlength: "7", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": "Colour code",
+      oninput: (e) => { const c = A.code(e.target.value); e.target.classList.remove("bad"); if (c) { picker.value = c; useCode(c); } },
+      onblur: (e) => { e.target.classList.toggle("bad", !!e.target.value.trim() && !A.code(e.target.value)); } });
+    showWarn(custom || null);
+    return el("div", { class: "field" }, el("span", { class: "label" }, "Accent colour (buttons, highlights)"), box,
+      el("div", { class: "hex-row" }, picker, code), el("span", { class: "hint" }, "Or any colour: tap the swatch to pick one, or type its code (e.g. your team's colour)."), warn);
+  }
+
   function extrasCard() {
     const pk = S.pickup, hd = S.header, wg = S.wordgame, w = S.weather;
     if (!hd.sports || typeof hd.sports !== "object") hd.sports = { league: "nfl", team: "" };
@@ -514,8 +533,7 @@
     const drawWeather = (p) => weatherKey.replaceChildren(...(p === "openweathermap" ? [field("OpenWeatherMap API key", secretInput("weather.openweathermap.apiKey", "Paste the key"))] : []));
     drawWeather(w.provider || "open-meteo");
     return section("extras", "extras", "Extras", null,
-      el("div", { class: "field" }, el("span", { class: "label" }, "Accent colour (buttons, highlights)"),
-        chips(S.look && S.look.accent ? S.look.accent : "peach", (c) => { S.look = S.look || {}; if (c === "peach") delete S.look.accent; else S.look.accent = c; change(); }, ["peach", ...COLORS.filter((c) => c !== "gray")])),
+      accentField(),
       field("Trash day", select(days, pk.trashDay || "", (v) => { pk.trashDay = v; change(); })),
       (info.presets || []).length ? field("City pickup schedule", select([["", "None — just my trash day"], ...info.presets.map((p) => [p, p.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace(/ (\w\w)$/, (m) => m.toUpperCase())])], pk.preset || "", (v) => { pk.preset = v; change(); }), "Adds recycling, yard waste and holiday delays.") : null,
       field("Or a pickup calendar link", el("input", { type: "password", class: "input", autocomplete: "off", inputmode: "url",

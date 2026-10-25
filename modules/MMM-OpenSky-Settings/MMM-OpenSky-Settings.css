@@ -103,3 +103,8 @@
 .ost-err[hidden] { display: none; }
 .ost-webform { background: #fffaf7; margin: 10px -28px 0; padding: 16px 28px; }
 
+
+/* accent colour: a colour code with a live swatch */
+.ost-swatch { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .08); }
+.ost-swatch.empty { background: repeating-conic-gradient(#e5e7eb 0 25%, #fff 0 50%) 50% / 12px 12px; }
+.ost-input.ost-hex { flex: 0 0 190px; font-variant-numeric: tabular-nums; letter-spacing: .5px; }

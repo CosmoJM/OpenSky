@@ -53,8 +53,11 @@ After changing either file, run **`opensky restart`**. If the screen doesn't com
 `scale`: OpenSky is laid out for a 1920×1080 screen and is scaled to fit yours (`"auto"`): a 1280×720 screen shows
 the same layout at two-thirds size, a 4K screen at double size. Want it bigger or smaller? Use a number, e.g. `1.2`.
 
-The colour of buttons, highlights and the active page: any palette colour name (see Calendars) or `"#rrggbb"`.
-Leave it out for the default peach.
+`accent`: the colour of buttons, highlights and the active page: any palette colour name (see Calendars) or any
+colour as a code, `"#rrggbb"` (or the short `"#rgb"`), e.g. `"#3b82f6"` or your team's colour. Leave it out for the
+default peach. Pick it on the screen (Settings → Look & extras: a chip, or type a code under "Or a colour code") or on
+the phone (Extras: a chip, the colour picker, or a code). A very light colour gets a warning: the text on buttons is
+white.
 
 ## Pages
 ```json

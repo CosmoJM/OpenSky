@@ -202,6 +202,22 @@ module.exports = async (page, h, app) => {
     S.header.sports.league === "nba" && S.header.sports.team === "BOS" && S.wordgame.source === "opensky" && S.weather.provider === "openweathermap" && sec.weather?.openweathermap?.apiKey === "owm-key-123456",
     { look: S.look, pickup: S.pickup, sports: S.header.sports, wordgame: S.wordgame, weather: S.weather });
 
+  // ---- accent: any colour as a code (typed, any case) or from the phone's colour picker; then back to teal ----
+  await type("#extras .hex-input", "#2E7D32");
+  const chipOff = await phone.evaluate(() => !document.querySelector("#extras .chip.on") && document.querySelector("#extras .color-pick").value === "#2e7d32");
+  await save();
+  ok("accent: a typed colour code → saved as #rrggbb, the chips let go, the colour picker follows", settings().look?.accent === "#2e7d32" && chipOff, settings().look);
+  await type("#extras .color-pick", "#fff8dc");
+  const fromPicker = await phone.evaluate(() => ({ code: document.querySelector("#extras .hex-input").value, warn: !document.querySelector("#extras .hint.bad").hidden }));
+  await save();
+  ok("accent: the phone's colour picker → saved, the code box follows, a very light colour gets a warning", settings().look?.accent === "#fff8dc" && fromPicker.code === "#fff8dc" && fromPicker.warn, fromPicker);
+  await type("#extras .hex-input", "#12zz45");
+  await phone.evaluate(() => document.querySelector("#extras .hex-input").blur());
+  const bad = await phone.evaluate(() => document.querySelector("#extras .hex-input").classList.contains("bad"));
+  await tap("#extras", ".chip", "teal");
+  await save();
+  ok("accent: a code that isn't a colour is marked and not used; a chip still works afterwards", bad && settings().look?.accent === "teal", settings().look);
+
   // ---- Music add-on: the page on → its settings appear in Extras (speaker name, AirPlay / Spotify) ----
   ok("Music settings are hidden until the Music page is on", !(await phone.evaluate(() => /Speaker name/.test(document.querySelector("#extras").textContent))));
   await tap("#pages", ".toggle", "Music");

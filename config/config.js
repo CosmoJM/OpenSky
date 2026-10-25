@@ -28,6 +28,15 @@ function readSettings() {
   return { file: null, settings: {} };
 }
 
+// look.accent: a palette colour name, or a colour code (#rgb / #rrggbb → "#rrggbb"); anything else → null (peach).
+// The same rule as lib/accent.js (the Settings panel) and OpenSkyAccent (the screen and the phone page).
+function accentOf(v) {
+  const s = String(v == null ? "" : v).trim().toLowerCase();
+  if (/^[a-z]+$/.test(s)) return s;
+  const m = s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/);
+  return m ? `#${m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1]}` : null;
+}
+
 const { file: settingsFile, dir: settingsDir, settings: s } = readSettings();
 const locale = s.locale || {};
 
@@ -253,7 +262,7 @@ const fixed = [
       idleReturnMinutes: (s.sidebar && Number.isFinite(s.sidebar.idleReturnMinutes)) ? s.sidebar.idleReturnMinutes : 5,
       screenServiceUrl: (s.screen && s.screen.serviceUrl) || null,
       showSettings: true,
-      accent: (s.look && s.look.accent) || null,
+      accent: accentOf(s.look && s.look.accent),
       scale: (s.look && s.look.scale) || "auto"
     }
   }
