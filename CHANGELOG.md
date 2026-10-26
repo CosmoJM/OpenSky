@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.0.2 — 2026-10-25
 - **Accent color: any color, not just the palette.** Type a color code (#rrggbb or #rgb) in Settings on the screen
   (with a live preview), or pick any color with the phone's color picker in phone setup. A color too light for the
-  white button text gets a warning. Codes are checked when saved; `look.accent` in opensky.json accepts them too.
+  white button text gets a warning. Codes are checked when saved and when read back; `look.accent` in opensky.json
+  accepts them too.
+- American spelling throughout: "color".
 
 ## 1.0.1 — 2026-10-24
 - **Touchscreens: a popup's Add / Save button works when tapped.** On touchscreens that act like a mouse, pressing it

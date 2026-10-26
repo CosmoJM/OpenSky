@@ -62,7 +62,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   }
   const app = await _electron.launch({
     executablePath: path.join(MM, "node_modules/electron/dist/electron"),
-    args: ["js/electron.js", "--ozone-platform=wayland"],
+    // --mute-audio: tests ring the timer chime and Settings' Test sound — never out of this Pi's real speakers
+    // (they ran in the family's home at night). The checks look at the page, not the sound.
+    args: ["js/electron.js", "--ozone-platform=wayland", "--mute-audio"],
     cwd: MM,
     env: {
       ...process.env,
