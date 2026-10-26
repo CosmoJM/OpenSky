@@ -285,7 +285,7 @@ module.exports = NodeHelper.create({
     this.sendSocketNotification("OS_SET_PREFS", {
       pages, names,
       prefs: {
-        accent: (s.look && s.look.accent) || "peach",
+        accent: accent.normalize(s.look && s.look.accent) || "peach",   // (checked: it goes into the panel's HTML)
         wordgame: (s.wordgame && s.wordgame.source) === "opensky" ? "opensky" : "nyt",
         photos: !(s.photos && s.photos.enabled === false),
         trashDay: (s.pickup && s.pickup.trashDay) || ""
