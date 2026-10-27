@@ -158,8 +158,8 @@ Module.register("MMM-OpenSky-Lists", {
         <div class="osl-actions"></div>
       </div>`;
     overlay.querySelector(".osl-title").textContent = title;
-    const palette = window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE;
-    if (palette && palette[list.color]) overlay.style.setProperty("--osl-accent", palette[list.color][1]);
+    const EC = window.OpenSkyEventColors, c = EC && EC.colorOf(list.color);   // a palette name or a color code
+    if (c) overlay.style.setProperty("--osl-accent", EC.pair(c)[1]);
     const input = overlay.querySelector(".osl-input");
     input.value = value;
     input.placeholder = placeholder;

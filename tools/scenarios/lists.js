@@ -85,13 +85,13 @@ module.exports = async (page, h) => {
   await until(async () => (await page.evaluate(() => document.querySelectorAll(".lp-root .lc-item").length)) === 30);
   const lp = () => page.evaluate(() => {
     const vis = (e) => !!e && e.checkVisibility({ opacityProperty: true, visibilityProperty: true });
-    return { page: vis(document.querySelector(".lp-root")), home: vis(document.querySelector(".hd-root")), active: document.querySelector(".os-page-lists")?.classList.contains("active"),
+    return { zoom: Number(getComputedStyle(document.documentElement).getPropertyValue("--os-zoom")) || 1, page: vis(document.querySelector(".lp-root")), home: vis(document.querySelector(".hd-root")), active: document.querySelector(".os-page-lists")?.classList.contains("active"),
       cols: [...document.querySelectorAll(".lp-root .lc-list")].map((c) => ({ title: c.querySelector(".lc-list-title").textContent, n: c.querySelectorAll(".lc-item").length,
         scrolls: c.querySelector(".lc-items").scrollHeight > c.querySelector(".lc-items").clientHeight + 10, width: Math.round(c.getBoundingClientRect().width) })) };
   });
   let L = await lp();
   ok("'See all' opens the Lists page (sidebar highlights it)", L.page && !L.home && L.active, L);
-  ok("every list side by side; a long list scrolls", L.cols.length === 2 && L.cols[1].title === "Chores" && L.cols[1].n === 30 && L.cols[1].scrolls && L.cols[0].width > 600, L.cols);
+  ok("every list side by side; a long list scrolls", L.cols.length === 2 && L.cols[1].title === "Chores" && L.cols[1].n === 30 && L.cols[1].scrolls && L.cols[0].width > 600 * L.zoom, L.cols);   // (600 px on the 1920-wide layout, scaled)
   await page.evaluate(() => { document.querySelectorAll(".lp-root .lc-items")[1].scrollTop = 400; });
   await page.evaluate(() => [...document.querySelectorAll(".lp-root .lc-item")].find((r) => r.textContent === "Chore number 12").querySelector(".lc-check").click());
   await h.sleep(400);

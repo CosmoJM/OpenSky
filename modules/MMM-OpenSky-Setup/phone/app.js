@@ -93,6 +93,18 @@
     colors.forEach((c) => box.append(el("button", { type: "button", class: `chip${c === value ? " on" : ""}`, style: `--c:${hex(c)}`, "aria-label": c, onclick: (e) => { box.querySelectorAll(".chip").forEach((x) => x.classList.remove("on")); e.currentTarget.classList.add("on"); onpick(c); } })));
     return box;
   }
+  // a calendar's or list's color: a palette chip, or any color as a code (the phone's color picker or typed)
+  function colorField(value, onpick) {
+    const A = window.OpenSkyAccent, custom = /^#/.test(value || "") ? value : "";
+    const box = chips(custom ? "" : value, (c) => { code.value = ""; code.classList.remove("bad"); picker.value = A.hex(c); onpick(c); });
+    const useCode = (c) => { box.querySelectorAll(".chip").forEach((x) => x.classList.remove("on")); onpick(c); };
+    const picker = el("input", { type: "color", class: "color-pick", value: custom || A.hex(value || "blue"), "aria-label": "Pick any color",
+      oninput: (e) => { code.value = e.target.value; code.classList.remove("bad"); useCode(e.target.value); } });
+    const code = el("input", { type: "text", class: "input hex-input", value: custom, placeholder: "#8cbfc4", maxlength: "7", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": "Color code",
+      oninput: (e) => { const c = A.code(e.target.value); e.target.classList.remove("bad"); if (c) { picker.value = c; useCode(c); } },
+      onblur: (e) => { e.target.classList.toggle("bad", !!e.target.value.trim() && !A.code(e.target.value)); } });
+    return el("div", { class: "field" }, el("span", { class: "label" }, "Color"), box, el("div", { class: "hex-row" }, picker, code));
+  }
   // the same icons as the screen's sidebar (OpenSkyIcons in opensky-client.js)
   function iconPicker(value, onpick) {
     const box = el("div", { class: "icon-grid" });
@@ -281,7 +293,7 @@
           ...(d.kind === "google" ? [googleBox()] : []),
           ...(d.kind !== "google" || d.gcals ? [
             field("Name", text(d.name, (v) => { d.name = v.trim(); d.named = true; }, { placeholder: d.kind === "local" ? "e.g. Family" : "e.g. Mom, School, Soccer" })),
-            el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(d.color, (c) => { d.color = c; }))] : []),
+            colorField(d.color, (c) => { d.color = c; })] : []),
           ...(d.kind === "link" ? [
             field("Calendar link", el("textarea", { class: "input", rows: "3", placeholder: "https://… or webcal://…", oninput: (e) => { d.link = e.target.value.trim(); } }), "Kept private on the Pi."),
             el("details", { class: "help" }, el("summary", {}, "Where do I find the link?"),
@@ -365,7 +377,7 @@
     const c = S.calendar.sources[i];
     let color = c.color || "blue";
     sheet(c.name, (b) => {
-      b.append(el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(color, (v) => { color = v; })));
+      b.append(colorField(color, (v) => { color = v; }));
       if (c.type !== "local" && c.type !== "caldav" && c.type !== "google") b.append(field("Replace the link", el("textarea", { class: "input", rows: "2", placeholder: isSet(`calendar.sources.${c.name}`) ? "Saved ✓ — paste a new link to replace it" : "https://… or webcal://…", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.sources.${c.name}`] = e.target.value.trim(); } })));
       if (c.type === "caldav") b.append(field("New password", el("input", { type: "password", class: "input", placeholder: "Saved ✓ — type to replace", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.caldav.${c.name}`] = { password: e.target.value.trim() }; } })));
       if (c.type === "local") b.append(el("p", { class: "hint" }, "Removing it here takes it off the screen. Its events stay saved on the Pi."));
@@ -400,7 +412,7 @@
         : d.provider === "homeassistant" ? [field("Home Assistant to-do list", text(d.entity, (v) => { d.entity = v.trim().toLowerCase(); }, { placeholder: "todo.shopping_list", autocapitalize: "off" }), "Its entity ID (Settings → Entities in Home Assistant). Address and token go below the lists.")]
         : [el("p", { class: "hint" }, "Kept on the Pi — no account needed.")]));
       b.append(field("Name", text("", (v) => { d.name = v.trim(); }, { placeholder: "e.g. Groceries" })),
-        el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(d.color, (c) => { d.color = c; })),
+        colorField(d.color, (c) => { d.color = c; }),
         field("Kept in", seg([["local", "This screen"], ["todoist", "Todoist"], ["homeassistant", "Home Assistant"]], d.provider, (v) => { d.provider = v; draw(); })), extra, err);
       draw();
     }, [["Cancel", "", () => {}], ["Add", "primary", () => {
@@ -419,7 +431,7 @@
     const l = S.lists.lists[i];
     let color = l.color || "blue";
     sheet(l.name, (b) => {
-      b.append(el("div", { class: "field" }, el("span", { class: "label" }, "Color"), chips(color, (v) => { color = v; })));
+      b.append(colorField(color, (v) => { color = v; }));
       if (l.provider !== "todoist") b.append(el("p", { class: "hint" }, "Removing the list takes it off the screen; its items stay saved on the Pi."));
     }, [["Remove", "danger", () => { S.lists.lists.splice(i, 1); change(); render(); }], ["Done", "primary", () => { l.color = color; change(); render(); }]]);
   }

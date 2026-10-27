@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4 — 2026-10-27
+- **Phone setup: any color for a calendar or a list** — besides the palette chips, the phone's color picker or a
+  typed color code (like #8cbfc4), the same as for the accent color.
+- A list's Add / Edit popup uses the list's color code too (it stayed blue).
+
 ## 1.0.3 — 2026-10-27
 - **Calendar and list colors can be color codes too**, like `"color": "#8cbfc4"` (or `#8cf`, any case) — for a
   calendar, a keyword rule or a list. Events get a solid bar in that color on a pale background of it, on Home and in

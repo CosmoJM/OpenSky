@@ -138,6 +138,20 @@ module.exports = async (page, h, app) => {
     JSON.stringify(S.lists.lists) === JSON.stringify([{ name: "Groceries", color: "orange" }, { name: "Errands", color: S.lists.lists[1]?.color, provider: "todoist", project: "Errands Project" }]) &&
     sec.lists?.todoist?.token === "todoist-token-123456", S.lists.lists);
 
+  // ---- Colors as codes: a calendar's typed (upper case), a list's from the phone's color picker ----
+  await row("#calendars", "Kids");
+  await type(".sheet .hex-input", "#8CBFC4");
+  await sheetButton("Done");
+  await row("#lists", "Groceries");
+  await phone.fill(".sheet .color-pick", "#5f8f38"); await h.sleep(200);
+  await sheetButton("Done");
+  await save();
+  S = settings();
+  ok("calendar and list colors as codes (typed / the phone's color picker), saved as #rrggbb",
+    S.calendar.sources.find((c) => c.name === "Kids")?.color === "#8cbfc4" && S.lists.lists.find((l) => l.name === "Groceries")?.color === "#5f8f38",
+    { kids: S.calendar.sources.find((c) => c.name === "Kids")?.color, groceries: S.lists.lists.find((l) => l.name === "Groceries")?.color });
+  ok("…and the rows' dots show those colors", await phone.evaluate(() => { const dot = (sc, t) => { const r = [...document.querySelectorAll(`${sc} .row`)].find((x) => x.querySelector("b")?.textContent === t); return r && getComputedStyle(r.querySelector(".dot")).getPropertyValue("--c").trim(); }; return dot("#calendars", "Kids") === "#8cbfc4" && dot("#lists", "Groceries") === "#5f8f38"; }));
+
   // ---- Photos: Immich (address, key, every minute) → saved; then back to a folder, USB stick on ----
   await tap("#photos", ".seg button", "Immich");
   await type("#photos input[inputmode=url]", "http://192.168.1.20:2283");
@@ -256,7 +270,7 @@ module.exports = async (page, h, app) => {
 
   // ---- nothing lost along the way: everything from the earlier saves is still there ----
   S = settings(); sec = secrets();
-  ok("every earlier change is still saved after 15 saves", S.family.name === "The Phone Testers" && S.location.name === "Toronto, Canada" && S.locale.units === "imperial" &&
+  ok("every earlier change is still saved after 16 saves", S.family.name === "The Phone Testers" && S.location.name === "Toronto, Canada" && S.locale.units === "imperial" &&
     S.calendar.sources.some((c) => c.name === "Kids") && S.lists.lists.some((l) => l.name === "Errands") && S.photos.folder === "~/Family Photos" && S.embeds.cameras && S.look.accent === "teal" &&
     sec.calendar.caldav.Work && sec.lists.todoist.token && sec.embeds.bank.pin);
 

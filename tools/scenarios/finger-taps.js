@@ -44,9 +44,10 @@ module.exports = async (page, h) => {
   // 4. a press that starts inside a popup and ends on its background doesn't close it; a tap on the background does
   await h.tap(".hd-lists .lc-add-item"); await until(kbOpen);
   const title = await page.evaluate(() => { const r = document.querySelector(".osl-title").getBoundingClientRect(); return { x: r.x + 10, y: r.y + r.height / 2 }; });
-  await page.mouse.move(title.x, title.y); await page.mouse.down(); await page.mouse.move(20, 1060, { steps: 4 }); await page.mouse.up(); await h.sleep(400);
+  const corner = await page.evaluate(() => [20, innerHeight - 20]);   // the background, bottom left (any screen size)
+  await page.mouse.move(title.x, title.y); await page.mouse.down(); await page.mouse.move(corner[0], corner[1], { steps: 4 }); await page.mouse.up(); await h.sleep(400);
   const stillOpen = await page.evaluate(() => !!document.querySelector(".osl-overlay"));
-  await page.mouse.click(20, 1060); await h.sleep(500);
+  await page.mouse.click(corner[0], corner[1]); await h.sleep(500);
   ok("a press from inside the popup lifted on the background keeps it open; a tap on the background closes it", stillOpen && !(await page.evaluate(() => !!document.querySelector(".osl-overlay"))));
 
   // 5. Settings → add a web page: a finger on Save with the keyboard open

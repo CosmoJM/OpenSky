@@ -18,6 +18,13 @@ module.exports = async (page, h) => {
   const list = await page.evaluate(() => { const c = [...document.querySelectorAll(".hd-lists .lc-list")].find((x) => x.querySelector(".lc-list-title").textContent === "Groceries"); return c ? getComputedStyle(c).getPropertyValue("--list-accent").trim() : null; });
   ok("a list's color code colors its column", list === "#5f8f38", list);
 
+  // its Add popup takes the list's color too (button, text box outline)
+  await page.evaluate(() => { const c = [...document.querySelectorAll(".hd-lists .lc-list")].find((x) => x.querySelector(".lc-list-title").textContent === "Groceries"); c.querySelector(".lc-add-item").click(); });
+  await until(() => page.evaluate(() => !!document.querySelector(".osl-overlay")));
+  const pop = await page.evaluate(() => document.querySelector(".osl-overlay").style.getPropertyValue("--osl-accent").trim());
+  ok("the list's Add popup uses its color code", pop === "#5f8f38", pop);
+  await page.evaluate(() => [...document.querySelectorAll(".osl-btn")].find((b) => b.textContent === "Cancel").click()); await h.sleep(400);
+
   // the month view (CalendarExt3)
   await h.tap(".os-page-calendar"); await h.sleep(2500);
   const month = await page.evaluate(() => { const e = [...document.querySelectorAll(".CX3 .event")].find((x) => /Soccer practice/.test(x.textContent)); if (!e) return null; const cs = getComputedStyle(e); return { cls: e.className, bar: cs.getPropertyValue("--evc-bar").trim(), cal: cs.getPropertyValue("--calendarColor").trim() }; });
