@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 — 2026-10-27
+- **Calendar and list colors can be color codes too**, like `"color": "#8cbfc4"` (or `#8cf`, any case) — for a
+  calendar, a keyword rule or a list. Events get a solid bar in that color on a pale background of it, on Home and in
+  the month view. Before, only palette names worked there and a code fell back to an automatic color. Reported by a user.
+
 ## 1.0.2 — 2026-10-25
 - **Accent color: any color, not just the palette.** Type a color code (#rrggbb or #rgb) in Settings on the screen
   (with a live preview), or pick any color with the phone's color picker in phone setup. A color too light for the

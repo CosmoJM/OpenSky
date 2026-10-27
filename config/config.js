@@ -123,7 +123,11 @@ const PAGES = {
         eventTransformer: (ev) => {
           const esc = (v) => (typeof v === "string" ? v.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`) : v);
           const out = { ...ev, title: esc(ev.title), description: esc(ev.description), location: esc(ev.location) };
-          if (typeof window !== "undefined" && window.OpenSkyEventColors) out.class = `evc-${window.OpenSkyEventColors.name(ev)}`;
+          if (typeof window !== "undefined" && window.OpenSkyEventColors) {
+            const c = window.OpenSkyEventColors.name(ev);
+            // a palette name → its class; a color code → evc-custom, colored through CX3's --calendarColor (= out.color)
+            if (c.startsWith("#")) { out.class = "evc-custom"; out.color = c; } else out.class = `evc-${c}`;
+          }
           return out;
         }
       }

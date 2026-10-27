@@ -288,6 +288,8 @@
 
 /* Event colors: CX3's eventTransformer (config.js) adds evc-<palette name> from window.OpenSkyEventColors */
 .CX3 .event { --evc-bg: #e5e7eb; --evc-bar: #9ca3af; }
+/* a color code (calendar.sources[].color "#rrggbb"): CX3 puts the event's color in --calendarColor */
+.CX3 .event.evc-custom { --evc-bg: color-mix(in srgb, var(--calendarColor) 32%, white); --evc-bar: var(--calendarColor); }
 .CX3 .event.evc-pink { --evc-bg: #ffc2e2; --evc-bar: #dd4f98; }
 .CX3 .event.evc-green { --evc-bg: #d7f199; --evc-bar: #78b014; }
 .CX3 .event.evc-blue { --evc-bg: #b9ddff; --evc-bar: #2e8bd6; }

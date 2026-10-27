@@ -156,8 +156,9 @@ OpenSky can show any number of calendars, each with its own color. Some can also
 - `holidays`: your country's public holidays as a calendar (and in the countdown pill): a two-letter country code —
   `"US"` (Google's US list, with Mother's Day, Halloween…), `"GB"`, `"CA"`, `"DE"`, `"AU"`… (from Nager.Date, about 200 countries).
   `"holidaysRegion": "GB-SCT"` (or `"CA-ON"`, `"DE-BY"`…) adds that region's own days. `"none"` turns it off.
-- **Colors:** `pink`, `green`, `blue`, `orange`, `yellow`, `emerald`, `purple`, `red`, `teal`, `indigo`, `tan`, `gray`.
-  Each event's color is picked in this order:
+- **Colors:** `pink`, `green`, `blue`, `orange`, `yellow`, `emerald`, `purple`, `red`, `teal`, `indigo`, `tan`, `gray` —
+  or any color as a code, `"#8cbfc4"` (or `"#8cf"`; upper or lower case): events get a solid bar in that color on a pale
+  background of it. Anything else is ignored (the event gets an automatic color). Each event's color is picked in this order:
   1. a matching `rules` keyword in the title
   2. `colors.calendars` (`{ "Mom": "pink" }`)
   3. the calendar's own `color` in `sources`
@@ -200,6 +201,7 @@ In `opensky.json`: `{ "name": "Shared", "type": "caldav", "color": "green" }`. T
   "columns": 4
 }
 ```
+- `color`: a palette name (as for calendars) or a color code like `"#8cbfc4"`.
 - **On the Pi** (default, no `provider`): items are kept on the Pi.
 - **Todoist** (`"provider": "todoist"`): shows a Todoist project, by default the one with the same name as the list. Use `"project": "…"` for a different name, or `"projectId": "…"`.
   - Add your token to `secrets.json → lists.todoist.token`. Find it in Todoist → Settings → *Integrations* → *Developer* → **API token**.

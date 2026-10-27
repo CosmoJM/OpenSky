@@ -38,7 +38,7 @@
   };
   const palette = () => (window.OpenSkyEventColors && window.OpenSkyEventColors.PALETTE) || { blue: ["#b9ddff", "#2e8bd6"] };
   const COLORS = ["blue", "pink", "green", "orange", "purple", "teal", "red", "yellow", "emerald", "indigo", "tan", "gray"];
-  const hex = (name) => name === "peach" ? "#e8663f" : (palette()[name] || palette().blue)[1];
+  const hex = (name) => name === "peach" ? "#e8663f" : /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(name || "") ? name : (palette()[name] || palette().blue)[1];   // (a color code shows as itself)
   const ICON = {
     logo: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></svg>`,
     family: `<svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9v11h14V9"/><path d="M10 20v-5h4v5"/></svg>`,

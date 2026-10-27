@@ -43,7 +43,8 @@ Module.register("MMM-OpenSky-Calendars", {
       const evs = this.events.get(src.name) || [];
       // a trash/recycling calendar isn't shown as events: the Home page turns it into pickup icons
       if (src.role === "pickup") { evs.forEach((ev) => pickup.push({ title: ev.title, startDate: ev.startDate, fullDayEvent: ev.fullDayEvent })); continue; }
-      const color = palette && palette[src.color] ? palette[src.color][1] : "";
+      const EC = window.OpenSkyEventColors, own = EC ? EC.colorOf(src.color) : null;   // a palette name or a color code
+      const color = own ? EC.pair(own)[1] : "";
       // symbol: [] — MagicMirror's calendar always sets it and CalendarExt3 requires it (calls symbol.join)
       for (const ev of evs) list.push({ ...ev, calendarName: src.name, color, colorName: src.color || null, symbol: [] });
     }
