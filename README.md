@@ -37,6 +37,8 @@ On a Raspberry Pi 4/5 with Raspberry Pi OS (64-bit, desktop) and a touchscreen:
 ```bash
 git clone https://github.com/CosmoJM/OpenSky.git ~/OpenSky && cd ~/OpenSky && ./install.sh
 ```
+No Pi? Run it in Docker and open it on tablets or PCs in a browser: [docs/docker.md](docs/docker.md).
+
 Step by step: [docs/install.md](docs/install.md) · settings: [docs/configure.md](docs/configure.md) ·
 Google Calendar with editing: [docs/google-calendar.md](docs/google-calendar.md) ·
 help: [docs/troubleshooting.md](docs/troubleshooting.md)

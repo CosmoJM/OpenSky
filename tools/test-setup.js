@@ -111,6 +111,17 @@ function burst(n) {
   r = await call("GET", "/api/state", undefined, as);
   ok("10 damaged opensky.json → the phone says so instead of offering the example settings", r.status === 409 && /mistake/.test(r.body.error), r.status);
 
+  // 11 behind Docker or a reverse proxy: OPENSKY_SETUP_URL is what the QR code shows and the only extra Host accepted
+  const sent = [];
+  h.sendSocketNotification = (n, p) => sent.push([n, p]);
+  process.env.OPENSKY_SETUP_URL = "http://nas.testers.lan:8090/, not a url, https://setup.testers.lan";
+  h.ready();
+  ok("11 OPENSKY_SETUP_URL → the QR code shows those addresses (bad entries dropped)",
+    JSON.stringify(sent[0][1].urls) === JSON.stringify(["http://nas.testers.lan:8090", "https://setup.testers.lan"]), sent[0][1].urls);
+  ok("12 ...and the Host of an address that isn't set is still refused", (await call("GET", "/", undefined, { Host: "evil.example" })).status === 421);
+  ok("13 ...while the Host of the set address works", (await call("GET", "/", undefined, { Host: "nas.testers.lan:8090" })).status === 200);
+  delete process.env.OPENSKY_SETUP_URL;
+
   h.stopServer("test over");
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`SUMMARY pass=${passed} fail=${failed}`);

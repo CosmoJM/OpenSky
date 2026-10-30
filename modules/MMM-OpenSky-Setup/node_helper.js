@@ -125,10 +125,17 @@ module.exports = NodeHelper.create({
     return { ips, host: `${os.hostname()}.local` };
   },
 
+  // OPENSKY_SETUP_URL: the address(es) phones use to reach the setup page when it isn't the machine's own (Docker, a
+  // reverse proxy), comma-separated, e.g. "http://nas.local:8090". Shown in the QR code and accepted as the Host.
+  publicUrls() {
+    return String(process.env.OPENSKY_SETUP_URL || "").split(",").map((u) => u.trim().replace(/\/+$/, "")).filter((u) => /^https?:\/\/[^/\s]+$/i.test(u));
+  },
+
   ready() {
     const { ips, host } = this.addresses();
+    const own = this.publicUrls();
     this.sendSocketNotification("OS_SETUP_READY", {
-      urls: [...ips.map((ip) => `http://${ip}:${this.port}`), `http://${host}:${this.port}`],
+      urls: own.length ? own : [...ips.map((ip) => `http://${ip}:${this.port}`), `http://${host}:${this.port}`],
       code: this.code, expiresAt: this.codeUntil
     });
   },
@@ -188,7 +195,8 @@ module.exports = NodeHelper.create({
   hostOk(req) {
     const h = String(req.headers.host || "").replace(/:\d+$/, "").toLowerCase();
     const { ips, host } = this.addresses();
-    return [...ips, host.toLowerCase(), "localhost", "127.0.0.1", os.hostname().toLowerCase()].includes(h);
+    const own = this.publicUrls().map((u) => new URL(u).hostname.toLowerCase());
+    return [...ips, host.toLowerCase(), "localhost", "127.0.0.1", os.hostname().toLowerCase(), ...own].includes(h);
   },
 
   authed(req) {
