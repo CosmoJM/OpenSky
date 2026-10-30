@@ -32,6 +32,11 @@ MagicMirror². This file is the entry point; read it first, then the docs it poi
 The settings files are found through environment variables set by the services (`OPENSKY_SETTINGS`, `OPENSKY_SECRETS`,
 `OPENSKY_LOCAL_CALENDAR`, `OPENSKY_LOCAL_LISTS`, `OPENSKY_CALENDAR_CACHE`), so nothing personal lives in the runtime.
 
+**In Docker** (`docs/docker.md`): one container runs MagicMirror in server-only mode plus the CalDAV helper, as `PUID:PGID`.
+Everything above lives in the `/config` volume (`./docker-config/` on the host) and the same `OPENSKY_*` variables point at it
+(set in the `Dockerfile`). There is no systemd, display or hardware, so `OPENSKY_DRY_RUN=1` is set, and `docker restart opensky`
+replaces `opensky restart`. `OPENSKY_SETUP_URL` is the address phone setup shows in its QR code and accepts as its Host.
+
 ## Helping a user (checklist)
 1. `opensky status`, `opensky check`, `opensky logs` — most problems are a JSON typo or a wrong link/password.
 2. Most people set things up with the **phone page** (Settings → Set up from your phone); by hand works too.
