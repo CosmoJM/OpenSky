@@ -325,6 +325,10 @@
 
 /* "+N more" badge (tapping the day opens the day view) */
 .CX3 .cell.hasMore::after {
+  content: "+" counter(more) " more" !important;
+  width: auto !important;
+  height: auto !important;
+  white-space: nowrap !important;
   position: absolute !important;
   bottom: 6px !important;
   right: 6px !important;
