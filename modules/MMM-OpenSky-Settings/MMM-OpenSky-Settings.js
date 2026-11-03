@@ -266,7 +266,7 @@ Module.register("MMM-OpenSky-Settings", {
         <div class="ost-row"><span class="ost-label">Word game</span><span class="ost-seg" data-seg="wordgame"><button data-v="nyt" class="${P.prefs.wordgame === "nyt" ? "on" : ""}">NYT's daily word</button><button data-v="opensky" class="${P.prefs.wordgame === "opensky" ? "on" : ""}">OpenSky's words</button></span></div>
         <div class="ost-row">${this.toggle("photos", P.prefs.photos)}<span class="ost-label">Photo slideshow on Home</span></div>
         <div class="ost-row"><span class="ost-label">Trash day</span><select class="ost-select" data-pref="trashDay">${[["", "No pickup icons"], ["monday", "Monday"], ["tuesday", "Tuesday"], ["wednesday", "Wednesday"], ["thursday", "Thursday"], ["friday", "Friday"]].map(([v, l]) => `<option value="${v}" ${v === P.prefs.trashDay ? "selected" : ""}>${l}</option>`).join("")}</select></div>
-        <div class="ost-note">Calendars, lists and passwords: Set up from your phone (below), which has the keyboard-friendly forms.</div>
+        <div class="ost-note">People, calendars, lists and passwords: Set up from your phone (below), which has the keyboard-friendly forms.</div>
       </section>
       <section class="ost-section">
         <h3>Backups</h3>

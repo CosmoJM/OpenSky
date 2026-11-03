@@ -11,13 +11,16 @@ Module.register("MMM-OpenSky-Header", {
     time: { format12: true, showSeconds: false, updateInterval: 1000 },
     weather: { provider: "open-meteo", latitude: null, longitude: null, units: "imperial", refreshMinutes: 15 },
     countdown: { holidays: "US", custom: [], birthdays: true },  // custom: [{ name, month (1-12), day, icon? }]
-    sports: null                                                   // e.g. { league: "nfl", team: "NE" }
+    profiles: [],                                                  // [{ name, color, photo? }] — circles that filter calendars and lists
+    sports: null                                                 // e.g. { league: "nfl", team: "NE" }
   },
 
   getStyles() { return ["MMM-OpenSky-Header.css"]; },
+  getScripts() { return ["modules/opensky-lib/client/opensky-client.js"]; },
 
   start() {
     this.now = new Date();
+    this.picked = [];       // the person whose circle is on: [name], or [] = everyone
     this.temp = null;
     this.wxId = null;
     this.game = null;
@@ -47,6 +50,8 @@ Module.register("MMM-OpenSky-Header", {
     title.className = "hb-title";
     title.textContent = this.config.title;
     row.appendChild(title);
+
+    if (this.config.profiles.length) row.appendChild(this._profileCircles());
 
     const time = document.createElement("div");
     time.className = "hb-time";
@@ -80,6 +85,33 @@ Module.register("MMM-OpenSky-Header", {
     }
 
     return row;
+  },
+
+  // One circle per profile (initial on its color). Tap = show only that person's calendars and lists (one person at a
+  // time: tapping another switches to them); tap the picked person again = everyone is back on. Calendars and lists
+  // listen for OPENSKY_PROFILE_FILTER { selected: [name] | [] }.
+  _profileCircles() {
+    const box = document.createElement("div");
+    box.className = "hb-profiles";
+    const EC = window.OpenSkyEventColors;
+    for (const p of this.config.profiles) {
+      const on = this.picked.includes(p.name);
+      const b = document.createElement("button");
+      b.className = "hb-profile" + (on ? " hb-profile-on" : "");
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(on));
+      b.setAttribute("aria-label", p.name);
+      const c = EC && p.color ? EC.colorOf(p.color) : null;
+      b.style.setProperty("--hb-pc", c ? EC.pair(c)[1] : "#9ca3af");
+      if (p.photo) { b.style.backgroundImage = `url("${p.photo}")`; b.classList.add("hb-profile-photo"); } else b.textContent = Array.from(p.name.trim())[0].toUpperCase();
+      b.onclick = () => {
+        this.picked = on ? [] : [p.name];
+        this.sendNotification("OPENSKY_PROFILE_FILTER", { selected: [...this.picked] });
+        this.updateDom(0);
+      };
+      box.appendChild(b);
+    }
+    return box;
   },
 
   // Birthdays come from the calendar ("… Birthday" / "Bday" events), broadcast by the calendar module

@@ -152,6 +152,67 @@ module.exports = async (page, h, app) => {
     { kids: S.calendar.sources.find((c) => c.name === "Kids")?.color, groceries: S.lists.lists.find((l) => l.name === "Groceries")?.color });
   ok("…and the rows' dots show those colors", await phone.evaluate(() => { const dot = (sc, t) => { const r = [...document.querySelectorAll(`${sc} .row`)].find((x) => x.querySelector("b")?.textContent === t); return r && getComputedStyle(r.querySelector(".dot")).getPropertyValue("--c").trim(); }; return dot("#calendars", "Kids") === "#8cbfc4" && dot("#lists", "Groceries") === "#5f8f38"; }));
 
+  // ---- People: add two, link calendars and lists to them (a calendar can belong to both), rename, remove ----
+  ok("people: nothing to choose in a calendar's sheet while there is no one", await (async () => { await row("#calendars", "Kids"); const n = await phone.evaluate(() => document.querySelectorAll(".sheet .person").length); await sheetButton("Done"); return n === 0; })());
+  await tap("#people", ".add", null);
+  await type(".sheet input.input[type=text]", "Mom");
+  await tap(".sheet", ".chip", "pink");
+  await sheetButton("Add");
+  await tap("#people", ".add", null);
+  await type(".sheet input.input[type=text]", "Zoe");
+  await tap(".sheet", ".chip", "teal");
+  await sheetButton("Add");
+  await row("#calendars", "Kids"); await tap(".sheet", ".person", "Mom"); await tap(".sheet", ".person", "Zoe"); await sheetButton("Done");
+  await row("#calendars", "Family"); await tap(".sheet", ".person", "Zoe"); await sheetButton("Done");
+  await row("#lists", "Groceries"); await tap(".sheet", ".person", "Mom"); await sheetButton("Done");
+  await tap("#lists", ".add", null);
+  await type(".sheet .field:first-of-type input.input", "Homework");
+  await tap(".sheet", ".person", "Zoe");
+  await sheetButton("Add");
+  const subOf = (sc, t) => phone.evaluate(([s, n]) => [...document.querySelectorAll(`${s} .row`)].find((x) => x.querySelector("b")?.textContent === n)?.querySelector("small")?.textContent, [sc, t]);
+  await save();
+  S = settings();
+  const byName = (arr, n) => arr.find((x) => x.name === n) || {};
+  ok("people: saved with name + color; calendars and lists carry their names (Kids → both, a new list → Zoe, unlinked → no key)",
+    JSON.stringify(S.profiles) === JSON.stringify([{ name: "Mom", color: "pink" }, { name: "Zoe", color: "teal" }]) &&
+    JSON.stringify(byName(S.calendar.sources, "Kids").profiles) === '["Mom","Zoe"]' && JSON.stringify(byName(S.calendar.sources, "Family").profiles) === '["Zoe"]' && !("profiles" in byName(S.calendar.sources, "Work")) &&
+    JSON.stringify(byName(S.lists.lists, "Groceries").profiles) === '["Mom"]' && JSON.stringify(byName(S.lists.lists, "Homework").profiles) === '["Zoe"]', S.profiles);
+  ok("people: each row says how many calendars and lists", (await subOf("#people", "Mom")) === "1 calendar · 1 list" && (await subOf("#people", "Zoe")) === "2 calendars · 1 list", [await subOf("#people", "Mom"), await subOf("#people", "Zoe")]);
+  await row("#people", "Zoe"); await type(".sheet input.input[type=text]", "Zoey"); await sheetButton("Done");
+  await row("#people", "Mom"); await sheetButton("Remove");
+  await save();
+  S = settings();
+  ok("people: renaming Zoe → Zoey follows into her calendars and lists; removing Mom unlinks her (and drops an empty link)",
+    JSON.stringify(S.profiles.map((p) => p.name)) === '["Zoey"]' && JSON.stringify(byName(S.calendar.sources, "Kids").profiles) === '["Zoey"]' && JSON.stringify(byName(S.calendar.sources, "Family").profiles) === '["Zoey"]' &&
+    !("profiles" in byName(S.lists.lists, "Groceries")) && JSON.stringify(byName(S.lists.lists, "Homework").profiles) === '["Zoey"]', S);
+  // a calendar for one person can take their color; with two people there is no such switch
+  await row("#calendars", "Family");
+  await tap(".sheet", ".toggle", "Use Zoey's color");
+  ok("sync color: the calendar's own color chooser goes away while it follows the person", await phone.evaluate(() => !document.querySelector(".sheet .chips")));
+  await sheetButton("Done");
+  await save();
+  S = settings();
+  const dotOf = (sc, t) => phone.evaluate(([s, n]) => { const r = [...document.querySelectorAll(`${s} .row`)].find((x) => x.querySelector("b")?.textContent === n); return r && getComputedStyle(r.querySelector(".dot")).getPropertyValue("--c").trim(); }, [sc, t]);
+  ok("sync color: saved as colorFromProfile; the row's dot shows the person's color", byName(S.calendar.sources, "Family").colorFromProfile === true && (await dotOf("#calendars", "Family")) === (await dotOf("#people", "Zoey")), [await dotOf("#calendars", "Family"), await dotOf("#people", "Zoey")]);
+  await row("#calendars", "Family"); await tap(".sheet", ".person", "Zoey");
+  ok("sync color: no switch for a calendar that is for nobody", await phone.evaluate(() => !document.querySelector(".sheet .toggle[aria-label^='Use ']")));
+  await tap(".sheet", ".person", "Zoey"); await sheetButton("Done");
+  // the same switch when ADDING a calendar for one person
+  await tap("#calendars", ".add", null);
+  await tap(".sheet", ".seg button", "On screen");
+  await type(".sheet input.input[type=text]", "ZoeyCal");
+  ok("sync color: with no one chosen the sheet says to choose a person", await phone.evaluate(() => /Choose one person/.test(document.querySelector(".sheet").textContent)));
+  await tap(".sheet", ".person", "Zoey");
+  await tap(".sheet", ".toggle", "Use Zoey's color");
+  await sheetButton("Add");
+  await save();
+  S = settings();
+  ok("sync color: a new calendar added for one person with the switch on is saved synced", byName(S.calendar.sources, "ZoeyCal").colorFromProfile === true && JSON.stringify(byName(S.calendar.sources, "ZoeyCal").profiles) === '["Zoey"]', byName(S.calendar.sources, "ZoeyCal"));
+  await row("#calendars", "ZoeyCal"); await sheetButton("Remove");
+  // (back to the state the later checks expect)
+  await row("#people", "Zoey"); await sheetButton("Remove"); await save();
+  ok("sync color: removing the person ends the sync", !("colorFromProfile" in byName(settings().calendar.sources, "Family")));
+
   // ---- Photos: Immich (address, key, every minute) → saved; then back to a folder, USB stick on ----
   await tap("#photos", ".seg button", "Immich");
   await type("#photos input[inputmode=url]", "http://192.168.1.20:2283");
@@ -320,3 +381,5 @@ module.exports.env = {
   OPENSKY_BACKUP_STATUS: path.join(OUT, "backup-status.test.json"),
   OPENSKY_MUSIC_INSTALLED: ""   // the Music add-on not installed (whatever this computer has)
 };
+// start with no people (the shared fixture has some): the phone page is where a family adds them
+module.exports.patchSettings = (s) => { delete s.profiles; [...s.calendar.sources, ...s.lists.lists].forEach((x) => delete x.profiles); };

@@ -15,6 +15,7 @@ Module.register("MMM-OpenSky-Calendars", {
   start() {
     this.events = new Map();   // source name → events
     this.status = {};
+    this.filter = [];          // profile names picked in the top bar; empty = everything
     this.sendSocketNotification("OS_CAL_START", {
       // everything a source type needs (holidays: country/region; google: calendarId) — no colors, no secrets here
       sources: this.config.sources.map((s) => ({ name: s.name, type: s.type || "link", url: s.url || null, fetchMinutes: s.fetchMinutes,
@@ -36,7 +37,7 @@ Module.register("MMM-OpenSky-Calendars", {
   },
 
   broadcast() {
-    const list = [];
+    let list = [];
     const pickup = [];
     for (const src of this.config.sources) {
       const evs = this.events.get(src.name) || [];
@@ -47,13 +48,26 @@ Module.register("MMM-OpenSky-Calendars", {
       // symbol: [] — MagicMirror's calendar always sets it and CalendarExt3 requires it (calls symbol.join)
       for (const ev of evs) list.push({ ...ev, calendarName: src.name, color, colorName: src.color || null, symbol: [] });
     }
-    list.sort((a, b) => Number(a.startDate) - Number(b.startDate));
-    this.sendNotification("CALENDAR_EVENTS", list);
+    const out = this.applyFilter(list);
+    out.sort((a, b) => Number(a.startDate) - Number(b.startDate));
+    this.sendNotification("CALENDAR_EVENTS", out);
     if (this.config.sources.some((src) => src.role === "pickup")) this.sendNotification("OPENSKY_PICKUP_EVENTS", pickup);
     this.sendNotification("OPENSKY_CALENDAR_STATUS", { ...this.status });
   },
 
+  /* Profile filter (the circles in the top bar): keep an event when its calendar is linked to the picked profile.
+   * Holidays always stay; a calendar linked to nobody shows only when nobody is picked. */
+  applyFilter(list) {
+    if (!this.filter.length) return list;
+    const src = new Map(this.config.sources.map((s) => [s.name, s]));
+    return list.filter((ev) => {
+      const s = src.get(ev.calendarName) || {};
+      return s.type === "holidays" || ev.calendarName === "Holidays" || (s.profiles || []).some((p) => this.filter.includes(p));
+    });
+  },
+
   notificationReceived(n, p) {
+    if (n === "OPENSKY_PROFILE_FILTER") { this.filter = Array.isArray(p && p.selected) ? p.selected : []; if (this.events.size) this.broadcast(); return; }
     // a page that asks again (e.g. after a reload) gets the current list
     if (n === "OPENSKY_CALENDAR_REFRESH" && this.events.size) this.broadcast();
     // after an edit: fetch that source again now (instead of at its next interval)

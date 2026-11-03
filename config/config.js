@@ -70,12 +70,32 @@ function pickupSchedule(p) {
 // A folder setting may be relative to the settings file (e.g. the test fixture's "photos")
 const folderPath = (f) => (!f ? null : /^[~/]/.test(f) ? f : path.join(settingsDir || CONFIG_DIR, f));
 
+// Profiles (family members): name + color. Calendars and lists link to them by name ("profiles": ["Mom", "Family"]);
+// the top bar shows one circle per profile and tapping it filters the calendars and lists.
+const profiles = (Array.isArray(s.profiles) ? s.profiles : []).filter((p) => p && String(p.name || "").trim())
+  .map((p) => ({ name: String(p.name).trim(), color: p.color || null, ...(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]{1,60000}$/.test(p.photo || "") ? { photo: p.photo } : {}) }))
+  .filter((p, i, all) => all.findIndex((q) => q.name.toLowerCase() === p.name.toLowerCase()) === i);
+const linkedProfiles = (v) => {   // a calendar's / list's profile names → the matching profile names (any case), no repeats
+  const names = (Array.isArray(v) ? v : []).map((n) => profiles.find((p) => p.name.toLowerCase() === String(n).trim().toLowerCase())).filter(Boolean).map((p) => p.name);
+  return [...new Set(names)];
+};
+
 // Calendar sources (a module with no screen of its own; any page can use the events)
 const cal = s.calendar || {};
+// "colorFromProfile": a calendar for exactly one person takes that person's color (and follows it when it changes)
+const profileColor = (c) => {
+  const ps = c.colorFromProfile ? linkedProfiles(c.profiles) : [];
+  const p = ps.length === 1 ? profiles.find((q) => q.name === ps[0]) : null;
+  return p && p.color ? p.color : null;
+};
 const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name)
   .filter((c) => c.name !== "Pickup" && c.name !== "Holidays")   // (names OpenSky uses itself)
-  .map((c) => ({ name: String(c.name), type: ["local", "caldav", "google"].includes(c.type) ? c.type : "link", url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5,
+  .map((c) => ({ name: String(c.name), type: ["local", "caldav", "google"].includes(c.type) ? c.type : "link", url: c.url || null, color: profileColor(c) || c.color || null, fetchMinutes: c.fetchMinutes || 5,
+    profiles: linkedProfiles(c.profiles),
     ...(c.type === "google" ? { calendarId: String(c.calendarId || "primary"), readOnly: !!c.readOnly } : {}) }));
+// calendar.colors.calendars (a color per calendar name) wins over a source's own color, so a synced color goes in there too
+const syncedColors = Object.fromEntries((Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name && profileColor(c)).map((c) => [String(c.name), profileColor(c)]));
+const eventColors = Object.keys(syncedColors).length ? { ...(cal.colors || {}), calendars: { ...((cal.colors || {}).calendars || {}), ...syncedColors } } : (cal.colors || null);
 // CalDAV calendars are read through OpenSky's calendar service on this Pi (the account stays in secrets.json)
 const servicePort = (cal.service && cal.service.port) || 5747;
 calendarSources.filter((c) => c.type === "caldav").forEach((c) => { c.url = `http://127.0.0.1:${servicePort}/${encodeURIComponent(c.name)}/calendar.ics`; });
@@ -86,7 +106,7 @@ else if (/^[A-Za-z]{2}$/.test(cal.holidays || "")) calendarSources.push({ name: 
 // Lists (groceries, to-dos…): on-device by default; Todoist with a token in secrets.json
 const listSettings = s.lists || {};
 const familyLists = (Array.isArray(listSettings.lists) ? listSettings.lists : []).filter((l) => l && l.name)
-  .map((l) => ({ name: String(l.name), color: l.color || null, provider: ["todoist", "homeassistant"].includes(l.provider) ? l.provider : "local",
+  .map((l) => ({ name: String(l.name), color: l.color || null, profiles: linkedProfiles(l.profiles), provider: ["todoist", "homeassistant"].includes(l.provider) ? l.provider : "local",
     ...(l.project ? { project: String(l.project) } : {}), ...(l.projectId ? { projectId: String(l.projectId) } : {}),
     ...(l.entity ? { entity: String(l.entity) } : {}) }));
 // Trash / recycling days from a calendar link (many cities and ReCollect publish one): opensky.json → pickup.url,
@@ -135,7 +155,7 @@ const PAGES = {
     {
       module: "MMM-OpenSky-Calendar",
       position: "fullscreen_above",
-      config: { instanceId: "OPENSKY", canAddEvents, eventColors: (s.calendar && s.calendar.colors) || null }
+      config: { instanceId: "OPENSKY", canAddEvents, eventColors }
     }
   ],
   home: () => [{
@@ -145,7 +165,7 @@ const PAGES = {
       listsPage: pages.indexOf("lists") >= 0 ? pages.indexOf("lists") : null,
       canAddEvents,
       maxEventsPerDay: 4,
-      eventColors: (s.calendar && s.calendar.colors) || null,
+      eventColors,
       photos: {
         enabled: !(s.photos && s.photos.enabled === false),
         provider: (s.photos && s.photos.provider) || "folder",
@@ -241,6 +261,7 @@ const fixed = [
     position: "top_bar",
     config: {
       title: familyName || "Our Family",
+      profiles,
       time: { format12: locale.timeFormat !== 24, showSeconds: false, updateInterval: 1000 },
       weather: {
         provider: (s.weather && s.weather.provider) || "open-meteo",
