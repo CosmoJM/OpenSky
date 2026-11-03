@@ -148,6 +148,7 @@ module.exports = NodeHelper.create({
   sendState() {
     this.sendSocketNotification("OS_SET_STATE", {
       settings: this.settings, brightness: { method: this.method }, audio: this.audio,
+      docker: process.env.OPENSKY_DOCKER === "1",   // in a container there is no Pi to restart or power off
       canRestart: DRY || !!process.env.INVOCATION_ID,   // running as the systemd service
       screen: { method: this.settings.screenOff, resolved: screen.resolve(this.settings.screenOff, this.screenAvail || {}), labels: screen.LABELS,
         available: Object.fromEntries(screen.METHODS.map((m) => [m, m === "auto" || m === "soft" || !!(this.screenAvail || {})[m]])) }

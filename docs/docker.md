@@ -38,6 +38,7 @@ this address, and requests for any other name are still refused. Saving in setup
 ## Good to know
 - **Anyone who can reach port 8080 can use the screen** (there is no login), so keep it on your home network or behind
   your reverse proxy's login. Secrets stay in `secrets.json` and never reach the page.
-- Things that belong to a Pi (screen brightness, sleep, Restart Pi, Update, the Music add-on) don't do anything here.
+- Things that belong to a Pi (screen brightness, sleep, Restart Pi, Update, the Music add-on) don't do anything here,
+  and Settings hides Restart OpenSky, Restart Pi and Shut down. To restart, use `docker restart opensky`.
   Update with `git pull && docker compose up -d --build`.
 - Behind a reverse proxy such as Traefik, point it at port 8080 and leave the published ports out.
