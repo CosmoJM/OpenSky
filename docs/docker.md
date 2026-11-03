@@ -34,6 +34,16 @@ OPENSKY_SETUP_URL=http://nas.local:8090
 Publish port 8090 (the compose file does), or route that address to it from your reverse proxy. To use other ports on the computer, change the left side of the mapping (`"9000:8080"`, `"9090:8090"`); the ports inside the container stay 8080 and 8090. Put the port phones type in `OPENSKY_SETUP_URL` (here `http://nas.local:9090`). The QR code then shows
 this address, and requests for any other name are still refused. When you finish, OpenSky restarts by itself.
 
+## Prebuilt image
+Each published release is built for `linux/amd64` and `linux/arm64` and pushed to the GitHub Container Registry
+(`.github/workflows/docker-publish.yml`), so you can skip the build:
+```bash
+docker pull ghcr.io/cosmojm/opensky:latest      # or a version: :1.2.3, :1.2
+```
+In `docker-compose.yml`, replace `build: .` with `image: ghcr.io/cosmojm/opensky:latest` and update with
+`docker compose pull && docker compose up -d`. (Maintainers: the first push creates the package as private; make it
+public under the repository's Packages settings.)
+
 ## Good to know
 - **Anyone who can reach port 8080 can use the screen** (there is no login), so keep it on your home network or behind
   your reverse proxy's login. Secrets stay in `secrets.json` and never reach the page.
