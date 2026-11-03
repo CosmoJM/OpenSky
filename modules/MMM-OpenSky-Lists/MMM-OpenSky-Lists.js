@@ -25,12 +25,14 @@ Module.register("MMM-OpenSky-Lists", {
     this.committing = new Set(); // item ids sent to the provider, hidden until the next update
     this.calls = new Map();     // request id → resolve
     this.seq = 0;
+    this.filter = [];           // profile names picked in the top bar; empty = every list
     this.sendSocketNotification("OS_LISTS_INIT", { lists: this.config.lists, refreshMinutes: this.config.refreshMinutes });
   },
 
   getDom() { return document.createElement("div"); },
 
   notificationReceived(n, p) {
+    if (n === "OPENSKY_PROFILE_FILTER") { this.filter = Array.isArray(p && p.selected) ? p.selected : []; this.broadcast(); return; }
     if (n === "OPENSKY_IDLE_RESET" || n === "PAGE_CHANGED") { if (this.popup && !this.busy) this.closePopup(); return; }
     if (n === "OPENSKY_LISTS_REFRESH") { this.sendSocketNotification("OS_LISTS_REFRESH"); return; }
     if (!p || p.source !== this.SOURCE) return;   // another list provider's lists
@@ -56,7 +58,8 @@ Module.register("MMM-OpenSky-Lists", {
   // The lists as Home shows them: an item waiting for Undo is marked done, one being checked off is hidden
   broadcast() {
     const pend = this.pending;
-    const lists = this.lists.map((l) => ({
+    const linked = new Map(this.config.lists.map((l) => [l.name, l.profiles || []]));   // a list linked to nobody shows only when nothing is picked
+    const lists = this.lists.filter((l) => !this.filter.length || (linked.get(l.id) || []).some((n) => this.filter.includes(n))).map((l) => ({
       ...l,
       items: (l.items || []).filter((it) => !this.committing.has(it.id))
         .map((it) => (pend && pend.listId === l.id && pend.item.id === it.id ? { ...it, done: true } : it))

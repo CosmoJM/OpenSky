@@ -123,3 +123,12 @@
    tile — and caught them: the middle of the Home tile couldn't be tapped. */
 .module.MMM-OpenSky-Header,
 .module.MMM-OpenSky-Header > .module-content { pointer-events: none; }
+
+/* Profile circles: the initial on the person's color; dimmed while another person is picked */
+.hb-profiles{ display:flex; gap:10px; pointer-events:auto; }
+.hb-profile{
+  width:44px; height:44px; border-radius:50%; border:3px solid transparent; padding:0;
+  background:var(--hb-pc); color:#fff; font:inherit; font-size:20px; font-weight:800; cursor:pointer;
+}
+.hb-profiles:has(.hb-profile-on) .hb-profile:not(.hb-profile-on){ opacity:.4; }
+.hb-profile-on{ border-color:#fff; box-shadow:0 0 0 3px var(--hb-pc); }

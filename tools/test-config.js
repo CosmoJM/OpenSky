@@ -21,12 +21,13 @@ const errs = []; const origErr = console.error; console.error = (...a) => errs.p
 
 const c = build({
   family: { name: "The Testers" }, locale: { timeFormat: 24, units: "metric", locale: "en-GB" },
+  profiles: [{ name: "Mom", color: "pink" }, { name: " Zoe ", color: "#3b82f6" }, { name: "mom" }, { name: "" }],
   pages: ["home", "calendar", "lists", "smarthome", "money", "wordgame", "timer", "nope"],
   calendar: { holidays: "GB", holidaysRegion: "GB-SCT", sources: [
     { name: "Family", type: "local", color: "blue" }, { name: "Shared", type: "caldav", color: "green" },
     { name: "Work", type: "google", calendarId: "primary" }, { name: "Club", type: "google", calendarId: "c@group.calendar.google.com", readOnly: true },
-    { name: "Mom" }, { name: "Holidays", url: "https://x/evil.ics" }], service: { port: 5099 } },
-  lists: { lists: [{ name: "Shopping", provider: "homeassistant", entity: "todo.shopping" }, { name: "Chores" }], columns: 3 },
+    { name: "Mom", profiles: ["mom", "Zoe", "Nobody"], colorFromProfile: true, color: "red" }, { name: "ZoeCal", profiles: ["zoe"], colorFromProfile: true, color: "red" }, { name: "ZoeOwn", profiles: ["zoe"], color: "red" }, { name: "Holidays", url: "https://x/evil.ics" }], service: { port: 5099 } },
+  lists: { lists: [{ name: "Shopping", provider: "homeassistant", entity: "todo.shopping" }, { name: "Chores", profiles: ["Zoe"] }], columns: 3 },
   pickup: { trashDay: "monday", url: "secret" },
   embeds: { smarthome: { title: "Smart Home", url: "http://ha.local:8123" }, money: { title: "Money" } },
   wordgame: { source: "opensky", extraWords: ["emoji"] }, look: { accent: "teal" }, keyboard: { enabled: false }, header: {}
@@ -43,6 +44,16 @@ ok("4 a private pickup link → a pickup-role source with no url in the config",
 const ed = mod(c, "MMM-OpenSky-EventEditor").config;
 ok("5 editable: on-screen, CalDAV, Google (not the read-only one, not links); service port", JSON.stringify(ed.editable.map((e) => e.name)) === '["Family","Shared","Work"]' && ed.servicePort === 5099, ed.editable);
 ok("6 lists: Home Assistant entity passed on; Lists page columns", mod(c, "MMM-OpenSky-Lists").config.lists[0].entity === "todo.shopping" && mod(c, "MMM-OpenSky-ListsPage").config.columns === 3);
+const hdr = mod(c, "MMM-OpenSky-Header").config;
+ok("8 profiles: trimmed, blank and repeated names dropped; the top bar gets name + color",
+  JSON.stringify(hdr.profiles) === '[{"name":"Mom","color":"pink"},{"name":"Zoe","color":"#3b82f6"}]', hdr.profiles);
+ok("9 calendars and lists link to profiles by name (any case); unknown names dropped; unlinked → []",
+  JSON.stringify(byName("Mom").profiles) === '["Mom","Zoe"]' && byName("Family").profiles.length === 0
+  && JSON.stringify(mod(c, "MMM-OpenSky-Lists").config.lists[1].profiles) === '["Zoe"]', byName("Mom").profiles);
+const ec = mod(c, "MMM-OpenSky-Home").config.eventColors;
+ok("10 a calendar for one person can take their color (colorFromProfile), also over a per-calendar color; for two people, or without the flag, it keeps its own",
+  byName("ZoeCal").color === "#3b82f6" && ec.calendars.ZoeCal === "#3b82f6" && byName("ZoeOwn").color === "red" && !("ZoeOwn" in ec.calendars) && byName("Mom").color === "red" && !("Mom" in ec.calendars),
+  { zoe: byName("ZoeCal").color, own: byName("ZoeOwn").color, mom: byName("Mom").color, ec });
 const pages = mod(c, "MMM-pages").config.modules;
 ok("7 pages in order; embed pages told apart by class; an unknown page skipped with a message",
   JSON.stringify(pages) === JSON.stringify([["MMM-OpenSky-Home"], ["MMM-CalendarExt3", "MMM-OpenSky-Calendar"], ["MMM-OpenSky-ListsPage"], ["opensky-embed-smarthome"], ["opensky-embed-money"], ["MMM-OpenSky-WordGame"], ["MMM-OpenSky-Timer"]]) && errs.some((e) => /unknown page "nope"/.test(e)), pages);

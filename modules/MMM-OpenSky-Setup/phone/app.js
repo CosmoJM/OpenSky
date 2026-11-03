@@ -170,6 +170,7 @@
       S = d.settings; secretsSet = new Set(d.secretsSet || []); pending = {}; info = d; dirty = false; saved = false;
       for (const k of ["family", "locale", "location", "weather", "header", "calendar", "lists", "photos", "pickup", "wordgame", "embeds"]) if (!S[k] || typeof S[k] !== "object") S[k] = {};
       if (!Array.isArray(S.pages)) S.pages = ["home", "calendar", "lists", "timer"];
+      if (!Array.isArray(S.profiles)) S.profiles = [];
       if (!Array.isArray(S.calendar.sources)) S.calendar.sources = [];
       if (!Array.isArray(S.lists.lists)) S.lists.lists = [];
       render();
@@ -256,6 +257,7 @@
     drawPlace();
     return section("family", "family", "Your family", "Shown at the top of the screen",
       field("Family name", text(S.family.name, (v) => { S.family.name = v; change(); }, { placeholder: "e.g. The Smiths", maxlength: "40" })),
+      peopleCard(),
       el("div", { class: "field" }, el("span", { class: "label" }, "Town (for the weather)"), place),
       el("div", { class: "two" },
         field("Temperature", seg([["imperial", "°F"], ["metric", "°C"]], S.locale.units || "imperial", (v) => { S.locale.units = v; change(); })),
@@ -263,10 +265,85 @@
       field("Week starts on", seg([[0, "Sunday"], [1, "Monday"]], S.locale.firstDayOfWeek === 1 ? 1 : 0, (v) => { S.locale.firstDayOfWeek = v; change(); })));
   }
 
+  /* ---------------- people (profiles): name + color; calendars and lists link to them by name ---------------- */
+  const linked = (x) => (Array.isArray(x.profiles) ? x.profiles : []);
+  const countFor = (name) => [S.calendar.sources.filter((c) => linked(c).includes(name)).length, S.lists.lists.filter((l) => linked(l).includes(name)).length];
+  const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  // "Who is it for?": one round button per person (initial on their color); several can be on. Nothing shown until there are people.
+  function whoField(selected, onchange) {
+    if (!S.profiles.length) return document.createDocumentFragment();
+    const on = new Set(selected), box = el("div", { class: "people-pick" });
+    S.profiles.forEach((p) => {
+      const b = el("button", { type: "button", class: `person${on.has(p.name) ? " on" : ""}`, "aria-label": p.name, "aria-pressed": String(on.has(p.name)), onclick: () => {
+        if (on.has(p.name)) on.delete(p.name); else on.add(p.name);
+        b.classList.toggle("on", on.has(p.name)); b.setAttribute("aria-pressed", String(on.has(p.name)));
+        onchange(S.profiles.map((q) => q.name).filter((n) => on.has(n)));
+      } }, el("span", { class: "initial", style: `--c:${hex(p.color || "blue")}` }, Array.from(p.name)[0].toUpperCase()), p.name);
+      box.append(b);
+    });
+    return el("div", { class: "field" }, el("span", { class: "label" }, "Who is it for?"), box, el("span", { class: "hint" }, "Tapping a person's circle at the top of the screen shows only their calendars and lists."));
+  }
+  function whoColor(st) {
+    const syncBox = el("div"), colorBox = el("div");
+    const onePerson = () => (st.who.length === 1 ? S.profiles.find((q) => q.name === st.who[0]) : null);
+    const drawColor = () => colorBox.replaceChildren(...(st.sync && onePerson() ? [] : [colorField(st.color, (v) => { st.color = v; })]));
+    const drawSync = () => {
+      const p = onePerson();
+      syncBox.replaceChildren(...(p ? [el("div", { class: "line top" }, el("span", {}, el("b", {}, `Use ${p.name}'s color`), el("small", {}, "The calendar's color follows theirs")),
+        toggle(st.sync, (v) => { st.sync = v; drawColor(); }, `Use ${p.name}'s color`))]
+        : S.profiles.length ? [el("p", { class: "hint" }, "Choose one person to use their color for this calendar.")] : []));
+      drawColor();
+    };
+    drawSync();
+    return el("div", {}, whoField(st.who, (n) => { st.who = n; drawSync(); }), syncBox, colorBox);
+  }
+  const setLinks = (x, names) => { if (names.length) x.profiles = names; else delete x.profiles; };
+
+  function peopleCard() {
+    const rows = el("div", { class: "rows" });
+    S.profiles.forEach((p, i) => { const [c, l] = countFor(p.name); rows.append(row(hex(p.color || "blue"), p.name, `${plural(c, "calendar")} · ${plural(l, "list")}`, () => editPerson(i))); });
+    if (!S.profiles.length) rows.append(el("p", { class: "empty" }, "No one yet."));
+    return el("div", { class: "field", id: "people" }, el("span", { class: "label" }, "People"),
+      el("span", { class: "hint" }, "A circle for each person at the top of the screen; tap it to see just their calendars and lists."),
+      rows, el("button", { type: "button", class: "add", onclick: addPerson }, icon("plus"), "Add a person"),
+      S.profiles.length ? el("span", { class: "hint" }, "Choose who each calendar and list is for when you add or change it below.") : null);
+  }
+
+  function addPerson() {
+    const d = { name: "", color: COLORS[S.profiles.length % COLORS.length] };
+    const err = el("p", { class: "err" });
+    sheet("Add a person", (b) => b.append(field("Name", text("", (v) => { d.name = v.trim(); }, { placeholder: "e.g. Mom, Zoe", maxlength: "20" })), colorField(d.color, (c) => { d.color = c; }), err),
+      [["Cancel", "", () => {}], ["Add", "primary", () => {
+        const bad = nameOk(d.name, S.profiles.map((p) => p.name));
+        if (bad) { err.textContent = bad; return false; }
+        S.profiles.push({ name: d.name, color: d.color }); change(); render();
+      }]]);
+  }
+
+  function editPerson(i) {
+    const p = S.profiles[i], was = p.name;
+    let name = p.name, color = p.color || "blue";
+    const err = el("p", { class: "err" });
+    sheet(p.name, (b) => b.append(field("Name", text(p.name, (v) => { name = v.trim(); }, { maxlength: "20" })), colorField(color, (c) => { color = c; }), err),
+      [["Remove", "danger", () => {   // their calendars and lists stay; they just aren't linked to this person any more
+        S.profiles.splice(i, 1);
+        [...S.calendar.sources, ...S.lists.lists].forEach((x) => { setLinks(x, linked(x).filter((n) => n !== was)); if (linked(x).length !== 1) delete x.colorFromProfile; });
+        change(); render();
+      }], ["Done", "primary", () => {
+        const bad = nameOk(name, S.profiles.filter((_, j) => j !== i).map((q) => q.name));
+        if (bad) { err.textContent = bad; return false; }
+        p.name = name; p.color = color;
+        if (name !== was) [...S.calendar.sources, ...S.lists.lists].forEach((x) => setLinks(x, linked(x).map((n) => (n === was ? name : n))));
+        change(); render();
+      }]]);
+  }
+
+  const shownColor = (c) => { const p = c.colorFromProfile && linked(c).length === 1 ? S.profiles.find((q) => q.name === linked(c)[0]) : null; return (p && p.color) || c.color; };
+
   function calendarsCard() {
     const cal = S.calendar, list = el("div", { class: "rows" });
     const kind = (c) => c.type === "local" ? "On this screen · add & edit on the screen" : c.type === "caldav" ? "iCloud / CalDAV · add & edit" : c.type === "google" ? `Google${c.readOnly ? " · view only" : " · add & edit"}` : "Calendar link · read-only";
-    cal.sources.forEach((c, i) => list.append(row(hex(c.color || "blue"), c.name, kind(c), () => editCalendar(i))));
+    cal.sources.forEach((c, i) => list.append(row(hex(shownColor(c) || "blue"), c.name, kind(c), () => editCalendar(i))));
     if (!cal.sources.length) list.append(el("p", { class: "empty" }, "No calendars yet."));
     return section("calendars", "calendar", "Calendars", "Each with its own color",
       list,
@@ -283,8 +360,9 @@
   }
 
   function addCalendar() {
-    const d = { kind: "link", name: "", color: COLORS[S.calendar.sources.length % COLORS.length], link: "", server: "icloud", url: "", user: "", pass: "", remote: "",
+    const d = { kind: "link", name: "", link: "", server: "icloud", url: "", user: "", pass: "", remote: "",
       g: null, gcals: null, gcal: "", gurl: "", cid: "", csec: "", gaddr: "", gbusy: false, gerr: "" };
+    d.st = { color: COLORS[S.calendar.sources.length % COLORS.length], who: [], sync: false };
     const err = el("p", { class: "err" });
     sheet("Add a calendar", (b) => {
       const parts = el("div");
@@ -293,7 +371,7 @@
           ...(d.kind === "google" ? [googleBox()] : []),
           ...(d.kind !== "google" || d.gcals ? [
             field("Name", text(d.name, (v) => { d.name = v.trim(); d.named = true; }, { placeholder: d.kind === "local" ? "e.g. Family" : "e.g. Mom, School, Soccer" })),
-            colorField(d.color, (c) => { d.color = c; })] : []),
+            whoColor(d.st)] : []),
           ...(d.kind === "link" ? [
             field("Calendar link", el("textarea", { class: "input", rows: "3", placeholder: "https://… or webcal://…", oninput: (e) => { d.link = e.target.value.trim(); } }), "Kept private on the Pi."),
             el("details", { class: "help" }, el("summary", {}, "Where do I find the link?"),
@@ -359,7 +437,9 @@
         (d.kind === "google" && !d.gcal ? "Sign in to Google and pick a calendar first" : null) ||
         (d.kind === "caldav" && d.server === "other" && !/^https?:\/\//.test(d.url) ? "Please add the server address" : null);
       if (bad) { err.textContent = bad; return false; }
-      const src = { name: d.name, color: d.color };
+      const src = { name: d.name, color: d.st.color };
+      setLinks(src, d.st.who);
+      if (d.st.sync && d.st.who.length === 1) src.colorFromProfile = true;
       if (d.kind === "local") src.type = "local";
       if (d.kind === "google") { src.type = "google"; src.calendarId = d.gcal; const c = (d.gcals || []).find((x) => x.id === d.gcal); if (c && !c.canEdit) src.readOnly = true; }
       if (d.kind === "caldav") {
@@ -375,9 +455,9 @@
 
   function editCalendar(i) {
     const c = S.calendar.sources[i];
-    let color = c.color || "blue";
+    const st = { color: c.color || "blue", who: linked(c), sync: !!c.colorFromProfile };
     sheet(c.name, (b) => {
-      b.append(colorField(color, (v) => { color = v; }));
+      b.append(whoColor(st));
       if (c.type !== "local" && c.type !== "caldav" && c.type !== "google") b.append(field("Replace the link", el("textarea", { class: "input", rows: "2", placeholder: isSet(`calendar.sources.${c.name}`) ? "Saved ✓ — paste a new link to replace it" : "https://… or webcal://…", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.sources.${c.name}`] = e.target.value.trim(); } })));
       if (c.type === "caldav") b.append(field("New password", el("input", { type: "password", class: "input", placeholder: "Saved ✓ — type to replace", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.caldav.${c.name}`] = { password: e.target.value.trim() }; } })));
       if (c.type === "local") b.append(el("p", { class: "hint" }, "Removing it here takes it off the screen. Its events stay saved on the Pi."));
@@ -386,7 +466,7 @@
       if (isSet(`calendar.sources.${c.name}`)) pending[`calendar.sources.${c.name}`] = null;
       if (isSet(`calendar.caldav.${c.name}`)) pending[`calendar.caldav.${c.name}`] = null;
       change(); render();
-    }], ["Done", "primary", () => { c.color = color; change(); render(); }]]);
+    }], ["Done", "primary", () => { c.color = st.color; setLinks(c, st.who); if (st.sync && st.who.length === 1) c.colorFromProfile = true; else delete c.colorFromProfile; change(); render(); }]]);
   }
 
   function listsCard() {
@@ -404,7 +484,7 @@
   }
 
   function addList() {
-    const d = { name: "", color: COLORS[(S.lists.lists.length + 3) % COLORS.length], provider: "local", project: "", entity: "" };
+    const d = { name: "", color: COLORS[(S.lists.lists.length + 3) % COLORS.length], who: [], provider: "local", project: "", entity: "" };
     const err = el("p", { class: "err" });
     sheet("Add a list", (b) => {
       const extra = el("div");
@@ -412,13 +492,14 @@
         : d.provider === "homeassistant" ? [field("Home Assistant to-do list", text(d.entity, (v) => { d.entity = v.trim().toLowerCase(); }, { placeholder: "todo.shopping_list", autocapitalize: "off" }), "Its entity ID (Settings → Entities in Home Assistant). Address and token go below the lists.")]
         : [el("p", { class: "hint" }, "Kept on the Pi — no account needed.")]));
       b.append(field("Name", text("", (v) => { d.name = v.trim(); }, { placeholder: "e.g. Groceries" })),
-        colorField(d.color, (c) => { d.color = c; }),
+        colorField(d.color, (c) => { d.color = c; }), whoField(d.who, (n) => { d.who = n; }),
         field("Kept in", seg([["local", "This screen"], ["todoist", "Todoist"], ["homeassistant", "Home Assistant"]], d.provider, (v) => { d.provider = v; draw(); })), extra, err);
       draw();
     }, [["Cancel", "", () => {}], ["Add", "primary", () => {
       const bad = nameOk(d.name, S.lists.lists.map((l) => l.name)) || (d.provider === "homeassistant" && !/^todo\.[a-z0-9_]+$/.test(d.entity) ? "The list's entity ID looks like todo.shopping_list" : null);
       if (bad) { err.textContent = bad; return false; }
       const l = { name: d.name, color: d.color };
+      setLinks(l, d.who);
       if (d.provider === "todoist") { l.provider = "todoist"; if (d.project && d.project !== d.name) l.project = d.project; }
       if (d.provider === "homeassistant") { l.provider = "homeassistant"; l.entity = d.entity; }
       S.lists.lists.push(l);
@@ -429,11 +510,11 @@
 
   function editList(i) {
     const l = S.lists.lists[i];
-    let color = l.color || "blue";
+    let color = l.color || "blue", who = linked(l);
     sheet(l.name, (b) => {
-      b.append(colorField(color, (v) => { color = v; }));
+      b.append(colorField(color, (v) => { color = v; }), whoField(who, (n) => { who = n; }));
       if (l.provider !== "todoist") b.append(el("p", { class: "hint" }, "Removing the list takes it off the screen; its items stay saved on the Pi."));
-    }, [["Remove", "danger", () => { S.lists.lists.splice(i, 1); change(); render(); }], ["Done", "primary", () => { l.color = color; change(); render(); }]]);
+    }, [["Remove", "danger", () => { S.lists.lists.splice(i, 1); change(); render(); }], ["Done", "primary", () => { l.color = color; setLinks(l, who); change(); render(); }]]);
   }
 
   function photosCard() {

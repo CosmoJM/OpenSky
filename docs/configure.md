@@ -127,6 +127,33 @@ pick an icon, optionally lock it with a PIN, then **Restart now**. Edit or remov
   - Leagues: `nfl`, `college-football`, `nba`, `wnba`, `mens-college-basketball`, `mlb`, `nhl`, `mls`, `nwsl`, `epl`.
   - `team` is the short code shown on scoreboards (`NE`, `BOS`, `LAL`…). Leave it `""` for no sports pill.
 
+## People (who a calendar or list belongs to)
+Add the people in your family and say whom each calendar and list is for. Each person shows in the top bar as a circle
+with their initial, in their color; tap a circle to show only that person's calendars and lists.
+
+**On the phone:** Settings → Set up from your phone → **Your family** → **People** → *Add a person* (a name and a color). Then, in
+**Calendars** and **Lists**, tap a calendar or list (or add one) and choose **Who is it for?**.
+- A person can have any number of calendars and lists, and a calendar or list can be for several people
+  (a Family calendar, birthdays…): tap all of them.
+- **Use the person's color:** a calendar that is for exactly one person can take that person's color. Open the calendar
+  on the phone, choose who it's for, and turn on *Use <name>'s color*; the calendar then follows their color if you
+  change it later. A calendar for several people keeps its own color. By hand: `"colorFromProfile": true` on the
+  calendar source.
+- Renaming a person updates everything linked to them; removing a person keeps their calendars and lists, they just
+  aren't linked to anyone any more.
+- Tapping a circle filters the **calendar page, Home and the lists** to that person. One person at a time: tapping
+  another circle switches to them, and tapping the picked person again shows everyone.
+- While someone is picked, a calendar or list that is for nobody is hidden (the Holidays calendar always stays).
+  The countdown in the top bar follows the filter too.
+- The filter is per screen and resets when the screen reloads.
+
+What the phone page writes (you never need to edit this by hand):
+```json
+"profiles": [ { "name": "Mom", "color": "pink" }, { "name": "Zoe", "color": "#3b82f6" } ],
+"calendar": { "sources": [ { "name": "Family", "type": "local", "profiles": ["Mom", "Zoe"] } ] },
+"lists": { "lists": [ { "name": "Chores", "profiles": ["Zoe"] } ] }
+```
+
 ## Calendars
 OpenSky can show any number of calendars, each with its own color. Some can also be **added to and edited from the screen**.
 
