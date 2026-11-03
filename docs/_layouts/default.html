@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.url == "/" %}OpenSky docs{% else %}{{ page.title }} · OpenSky docs{% endif %}</title>
+  <meta name="description" content="{{ site.description }}">
+  <link rel="icon" href="{{ '/assets/opensky-logo.png' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/docs.css' | relative_url }}">
+</head>
+<body>
+  <header class="top">
+    <button class="menu" id="menu" type="button" aria-label="Topics" aria-expanded="false" aria-controls="side"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a class="brand" href="{{ '/' | relative_url }}"><img src="{{ '/assets/opensky-logo.png' | relative_url }}" alt="OpenSky"><span>docs</span></a>
+    <a class="gh" href="https://github.com/CosmoJM/OpenSky">GitHub</a>
+  </header>
+  <div class="wrap">
+    <nav class="side" id="side" aria-label="Documentation">
+      <ul>
+      {% for group in site.data.nav %}
+        <li class="group">{{ group.title }}</li>
+        {% for c in group.children %}
+        <li><a href="{{ c.url | relative_url }}"{% if page.url == c.url %} aria-current="page"{% endif %}>{{ c.title }}</a></li>
+        {% endfor %}
+      {% endfor %}
+      </ul>
+    </nav>
+    <main class="doc">
+      {% unless page.hide_title %}<h1>{{ page.title }}</h1>{% endunless %}
+      {{ content }}
+    </main>
+    <aside class="toc" id="toc" aria-label="On this page" hidden></aside>
+  </div>
+  <div class="scrim" id="scrim"></div>
+  <script>
+    (function () {
+      var b = document.body, m = document.getElementById("menu");
+      function set(o) { b.classList.toggle("nav-open", o); m.setAttribute("aria-expanded", o); }
+      m.onclick = function () { set(!b.classList.contains("nav-open")); };
+      document.getElementById("scrim").onclick = function () { set(false); };
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") set(false); });
+    })();
+    (function () {
+      var hs = document.querySelectorAll(".doc h2, .doc h3"), toc = document.getElementById("toc");
+      if (hs.length < 2) return;
+      var html = "<p>On this page</p><ul>";
+      hs.forEach(function (h, i) {
+        if (!h.id) h.id = "s" + i;
+        html += '<li class="' + h.tagName.toLowerCase() + '"><a href="#' + h.id + '">' + h.textContent + "</a></li>";
+      });
+      toc.innerHTML = html + "</ul>"; toc.hidden = false;
+    })();
+  </script>
+</body>
+</html>

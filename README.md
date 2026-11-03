@@ -26,9 +26,9 @@ timers, photos, weather and smart-home controls on one screen. Built on [MagicMi
 ## What you get
 - **Home:** the week ahead with everyone's events in their colors, weather, trash-day icons, your lists and a photo.
 - **Calendar:** month / two-week / week view; tap to see, add, edit or delete events.
+  - Works with Google, Outlook, iCloud, Fastmail, Nextcloud or any calendar link — or no account at all.
 - **Lists:** to-dos and groceries — kept on the Pi, or in Todoist. Check off with Undo.
 - **Timer**, holiday & birthday countdown, your team's game day, sleep button, photos from a folder, USB stick or Immich.
-- Works with Google, Outlook, iCloud, Fastmail, Nextcloud or any calendar link — or no account at all.
 - **Add-on — Music:** the screen becomes an AirPlay and Spotify speaker, with a Music page
   ([docs/music.md](docs/music.md)): `opensky addon music`.
 
@@ -42,6 +42,6 @@ Google Calendar with editing: [docs/google-calendar.md](docs/google-calendar.md)
 help: [docs/troubleshooting.md](docs/troubleshooting.md)
 
 ## Docs
-- **For people:** [`docs/`](docs/README.md).
+- **For people:** the [documentation site](https://chelming.github.io/OpenSky/) (or browse [`docs/`](docs/README.md)).
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md).
 - **For AI assistants:** start with [`AGENTS.md`](AGENTS.md).

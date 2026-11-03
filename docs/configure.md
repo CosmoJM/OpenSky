@@ -72,7 +72,7 @@ These are the buttons on the left, in this order. The first one is where the scr
 | `lists` | every list side by side, each one scrolls (Home shows the first three) |
 | `wordgame` | a daily five-letter word puzzle for the whole family (one shared board a day, family stats) |
 | `timer` | kitchen timers with a chime |
-| `music` | **add-on**: what's playing on the screen's speakers, with play / pause / skip and the volume — see [music.md](music.md) |
+| `music` | **add-on**: what's playing on the screen's speakers, with play / pause / skip and the volume — see [Music add-on](music.md) |
 
 You can also add your own **web pages** as pages (next section).
 
@@ -150,7 +150,7 @@ OpenSky can show any number of calendars, each with its own color. Some can also
 |---|---|---|
 | **On the Pi** | `"type": "local"`. Nothing to set up; events are kept on the Pi. | ✅ |
 | **A calendar link** (Google, Outlook, iCloud, school or team calendars…) | `"url": "…"` in opensky.json if it's public, or no url and the link in `secrets.json → calendar.sources.<name>` if it's private | read-only |
-| **Google, with editing** | `"type": "google", "calendarId": "primary"` — a one-time Google key + sign-in, guided on the phone: [google-calendar.md](google-calendar.md) | ✅ |
+| **Google, with editing** | `"type": "google", "calendarId": "primary"` — a one-time Google key + sign-in, guided on the phone: [Google Calendar](google-calendar.md) | ✅ |
 | **iCloud, Fastmail, Nextcloud (CalDAV)** | `"type": "caldav"` and the account in `secrets.json` (below) | ✅ |
 
 - `holidays`: your country's public holidays as a calendar (and in the countdown pill): a two-letter country code —
