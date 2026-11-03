@@ -129,7 +129,7 @@ Module.register("MMM-OpenSky-Setup", {
     const text = {
       waiting: "Waiting for your phone…",
       paired: "Phone connected — carry on there",
-      saved: "Saved! Tap Done on your phone when you're finished",
+      saved: "Saved! Tap Finish on your phone when you're finished",
       done: "All done — OpenSky is restarting with your settings",
       closed: "Setup has closed",
       error: `Couldn't start phone setup (${this.errorText || "error"})`
