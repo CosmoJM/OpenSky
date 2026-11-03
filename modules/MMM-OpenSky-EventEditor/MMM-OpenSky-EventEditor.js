@@ -146,7 +146,7 @@ Module.register("MMM-OpenSky-EventEditor", {
     details.appendChild(this.createDetailRow(this.getClockIcon(), this.formatEventDateTime(ev)));
     if (ev.location) details.appendChild(this.createDetailRow(this.getPinIcon(), ev.location));
     if (ev.description) details.appendChild(this.createDetailRow(this.getDocIcon(), ev.description));
-    details.appendChild(this.createDetailRow(this.getCalendarIcon(), ev.calendarName || "Calendar"));
+    details.appendChild(this.createDetailRow(this.getCalendarIcon(), (ev.calendarNames && ev.calendarNames.length ? ev.calendarNames.join(", ") : ev.calendarName) || "Calendar"));
     container.appendChild(details);
 
     if (editable) {

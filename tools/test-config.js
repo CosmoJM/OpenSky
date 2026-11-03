@@ -23,9 +23,9 @@ const c = build({
   family: { name: "The Testers" }, locale: { timeFormat: 24, units: "metric", locale: "en-GB" },
   pages: ["home", "calendar", "lists", "smarthome", "money", "wordgame", "timer", "nope"],
   calendar: { holidays: "GB", holidaysRegion: "GB-SCT", sources: [
-    { name: "Family", type: "local", color: "blue" }, { name: "Shared", type: "caldav", color: "green" },
+    { name: "Family", type: "local", color: "blue", role: "shared" }, { name: "Shared", type: "caldav", color: "green" },
     { name: "Work", type: "google", calendarId: "primary" }, { name: "Club", type: "google", calendarId: "c@group.calendar.google.com", readOnly: true },
-    { name: "Mom" }, { name: "Holidays", url: "https://x/evil.ics" }], service: { port: 5099 } },
+    { name: "Mom" }, { name: "Holidays", url: "https://x/evil.ics" }], service: { port: 5099 }, mergeShared: true },
   lists: { lists: [{ name: "Shopping", provider: "homeassistant", entity: "todo.shopping" }, { name: "Chores" }], columns: 3 },
   pickup: { trashDay: "monday", url: "secret" },
   embeds: { smarthome: { title: "Smart Home", url: "http://ha.local:8123" }, money: { title: "Money" } },
@@ -52,6 +52,7 @@ ok("9 word game source + extra words; accent; keyboard off; 24 h / metric", mod(
   mod(c, "MMM-OpenSky-Sidebar").config.accent === "teal" && !mod(c, "MMM-OpenSky-Keyboard") && c.timeFormat === 24 && c.units === "metric");
 ok("10 header countdown follows the country's holiday calendar", mod(c, "MMM-OpenSky-Header").config.countdown.holidays === "calendar");
 const served = JSON.stringify(c);
+ok("10b mergeShared and a shared-role calendar reach the calendars module", mod(c, "MMM-OpenSky-Calendars").config.mergeShared === true && byName("Family").role === "shared" && byName("Mom").role === undefined);
 ok("11 nothing private in the built config (served to the network)", !/private|246810|192\.168\.1\.9|xyz/.test(served));
 ok("12 security basics: localhost only, webview on", c.address === "localhost" && c.ipWhitelist.includes("127.0.0.1") && c.electronOptions.webPreferences.webviewTag === true);
 const d = build({});

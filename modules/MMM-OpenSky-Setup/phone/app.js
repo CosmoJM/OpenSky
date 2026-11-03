@@ -272,7 +272,9 @@
       list,
       el("button", { type: "button", class: "add", onclick: addCalendar }, icon("plus"), "Add a calendar"),
       el("div", { class: "line" }, el("span", {}, el("b", {}, "Public holidays"), el("small", {}, `${S.locale.country || (cal.holidays && cal.holidays !== "none" ? cal.holidays : "US")} · on the calendar and the countdown`)),
-        toggle(!!cal.holidays && cal.holidays !== "none", (v) => { cal.holidays = v ? (S.locale.country || "US") : "none"; change(); }, "Public holidays")));
+        toggle(!!cal.holidays && cal.holidays !== "none", (v) => { cal.holidays = v ? (S.locale.country || "US") : "none"; change(); }, "Public holidays")),
+      el("div", { class: "line" }, el("span", {}, el("b", {}, "Show shared events once"), el("small", {}, "An event on several calendars (invite the kids to it) appears once, with everyone's colors")),
+        toggle(!!cal.mergeShared, (v) => { if (v) cal.mergeShared = true; else delete cal.mergeShared; change(); }, "Show shared events once")));
   }
 
   function nameOk(name, taken) {
@@ -375,9 +377,11 @@
 
   function editCalendar(i) {
     const c = S.calendar.sources[i];
-    let color = c.color || "blue";
+    let color = c.color || "blue", shared = c.role === "shared";
     sheet(c.name, (b) => {
       b.append(colorField(color, (v) => { color = v; }));
+      if (S.calendar.mergeShared) b.append(el("div", { class: "line" }, el("span", {}, el("b", {}, "Shared family calendar"), el("small", {}, "Its events are merged with the kids' copies but it isn't named on them")),
+        toggle(shared, (v) => { shared = v; }, "Shared family calendar")));
       if (c.type !== "local" && c.type !== "caldav" && c.type !== "google") b.append(field("Replace the link", el("textarea", { class: "input", rows: "2", placeholder: isSet(`calendar.sources.${c.name}`) ? "Saved ✓ — paste a new link to replace it" : "https://… or webcal://…", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.sources.${c.name}`] = e.target.value.trim(); } })));
       if (c.type === "caldav") b.append(field("New password", el("input", { type: "password", class: "input", placeholder: "Saved ✓ — type to replace", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.caldav.${c.name}`] = { password: e.target.value.trim() }; } })));
       if (c.type === "local") b.append(el("p", { class: "hint" }, "Removing it here takes it off the screen. Its events stay saved on the Pi."));
@@ -386,7 +390,7 @@
       if (isSet(`calendar.sources.${c.name}`)) pending[`calendar.sources.${c.name}`] = null;
       if (isSet(`calendar.caldav.${c.name}`)) pending[`calendar.caldav.${c.name}`] = null;
       change(); render();
-    }], ["Done", "primary", () => { c.color = color; change(); render(); }]]);
+    }], ["Done", "primary", () => { c.color = color; if (shared) c.role = "shared"; else delete c.role; change(); render(); }]]);
   }
 
   function listsCard() {

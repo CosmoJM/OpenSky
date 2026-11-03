@@ -47,10 +47,41 @@ Module.register("MMM-OpenSky-Calendars", {
       // symbol: [] — MagicMirror's calendar always sets it and CalendarExt3 requires it (calls symbol.join)
       for (const ev of evs) list.push({ ...ev, calendarName: src.name, color, colorName: src.color || null, symbol: [] });
     }
-    list.sort((a, b) => Number(a.startDate) - Number(b.startDate));
-    this.sendNotification("CALENDAR_EVENTS", list);
+    const out = this.config.mergeShared ? this.mergeShared(list) : list;
+    out.sort((a, b) => Number(a.startDate) - Number(b.startDate));
+    this.sendNotification("CALENDAR_EVENTS", out);
     if (this.config.sources.some((src) => src.role === "pickup")) this.sendNotification("OPENSKY_PICKUP_EVENTS", pickup);
     this.sendNotification("OPENSKY_CALENDAR_STATUS", { ...this.status });
+  },
+
+  /* calendar.mergeShared: one event that sits on several calendars (the kids were invited, or it was entered on each) is
+   * shown once. Same event = same Google iCalUID + start, else same title + start + end. A source with role "shared"
+   * (the family calendar) is merged in but isn't named. Result fields: calendarNames (who it's for), colors (one per
+   * name, for the striped bar); calendarName stays the organizer's copy, the one the event editor changes.
+   * A copy the person declined is left out. */
+  mergeShared(list) {
+    const src = new Map(this.config.sources.map((s) => [s.name, s]));
+    const groups = new Map(), out = [];
+    for (const ev of list) {
+      if (ev.response === "declined") continue;
+      const s = src.get(ev.calendarName) || {};
+      if (s.type === "holidays") { out.push(ev); continue; }
+      const key = ev.uid ? `u|${ev.uid}|${ev.startDate}` : `t|${String(ev.title || "").trim().toLowerCase()}|${ev.startDate}|${ev.endDate}|${!!ev.fullDayEvent}`;
+      const g = groups.get(key);
+      if (!g) { const grp = [ev]; groups.set(key, grp); out.push({ group: grp }); }
+      else if (g.some((x) => x.calendarName === ev.calendarName)) out.push(ev);   // twice on the same calendar: leave alone
+      else g.push(ev);
+    }
+    return out.map((o) => {
+      if (!o.group) return o;
+      const g = o.group;
+      if (g.length === 1) return g[0];
+      const named = g.filter((x) => (src.get(x.calendarName) || {}).role !== "shared");
+      const shown = named.length ? named : g;
+      const owner = g.find((x) => x.organizerSelf) || g[0];
+      const colors = [...new Set(shown.map((x) => x.color).filter(Boolean))];
+      return { ...owner, calendarNames: shown.map((x) => x.calendarName), colors, color: shown[0].color, colorName: shown[0].colorName };
+    });
   },
 
   notificationReceived(n, p) {

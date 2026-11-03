@@ -306,6 +306,11 @@
   background: var(--evc-bg) !important;
   border-left: 4px solid var(--evc-bar) !important;
 }
+/* shared by several calendars: the bar is a stripe of their colors (CX3 passes the gradient as --calendarColor) */
+.CX3 .event.evc-multi {
+  background: var(--calendarColor) left / 4px 100% no-repeat border-box, var(--evc-bg) !important;
+  border-left-color: transparent !important;
+}
 
 /* Multi-day events */
 .CX3 .event.multiday,

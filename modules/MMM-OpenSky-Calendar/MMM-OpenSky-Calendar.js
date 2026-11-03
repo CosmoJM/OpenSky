@@ -85,14 +85,21 @@ Module.register("MMM-OpenSky-Calendar", {
     const text = (v) => (typeof v === "string" ? v.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n))) : v);
     const start = Number(d.startDate), end = Number(d.endDate);
     if (!d.title || !Number.isFinite(start)) return null;
-    return this.normalize({ title: text(d.title), calendarName: d.calendarName, startDate: start, endDate: Number.isFinite(end) ? end : start,
+    const ev = this.normalize({ title: text(d.title), calendarName: d.calendarName, startDate: start, endDate: Number.isFinite(end) ? end : start,
       fullDayEvent: d.fullDayEvent === "true", location: text(d.location), description: text(d.description), color: d.color });
+    // an event shared by several calendars: the element doesn't carry who it's for, the event pool does
+    const cx3 = typeof MM !== "undefined" ? MM.getModules().withClass("MMM-CalendarExt3")[0] : null;
+    const pool = cx3 && cx3.eventPool ? [...cx3.eventPool.values()].flat() : [];
+    const full = pool.find((p) => Array.isArray(p.calendarNames) && Number(p.startDate) === ev.startDate && p.calendarName === ev.calendarName && String(p.title || "").trim() === ev.title);
+    if (full) Object.assign(ev, { calendarNames: full.calendarNames, colors: full.colors });
+    return ev;
   },
 
   normalize(ev) {
     const clean = (v) => (v && v !== "undefined" && v !== "false" ? String(v) : "");
     return { title: String(ev.title || "").trim(), calendarName: ev.calendarName || "", startDate: Number(ev.startDate), endDate: Number(ev.endDate),
-      allDay: ev.fullDayEvent === true || ev.fullDayEvent === "true", location: clean(ev.location), description: clean(ev.description), color: ev.color || "" };
+      allDay: ev.fullDayEvent === true || ev.fullDayEvent === "true", location: clean(ev.location), description: clean(ev.description), color: ev.color || "",
+      colors: Array.isArray(ev.colors) ? ev.colors : null, calendarNames: Array.isArray(ev.calendarNames) ? ev.calendarNames : null };
   },
 
   // Every event (from CX3's pool, i.e. every calendar) that touches the given day
