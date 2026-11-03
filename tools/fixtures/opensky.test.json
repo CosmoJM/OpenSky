@@ -4,7 +4,7 @@
   "location": { "name": "Boston, MA", "latitude": 42.3601, "longitude": -71.0589 },
   "weather": { "provider": "open-meteo" },
   "header": { "holidays": "US", "occasions": [{ "name": "Test Day", "month": 10, "day": 20 }], "birthdaysFromCalendar": true, "sports": { "league": "nfl", "team": "NE" } },
-  "profiles": [{ "name": "Mom", "color": "pink" }, { "name": "Kid", "color": "teal" }],
+  "profiles": [{ "name": "Mom", "color": "pink" }, { "name": "Kid", "color": "teal", "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" }],
   "pages": ["home", "calendar", "lists", "smarthome", "vault", "wordgame", "timer"],
   "calendar": {
     "sources": [

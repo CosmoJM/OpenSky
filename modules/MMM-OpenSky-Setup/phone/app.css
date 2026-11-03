@@ -188,3 +188,8 @@ ol.steps li { margin: 4px 0; }
 .person { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 4px; border: 2px solid var(--line); border-radius: 22px; background: #fff; color: var(--ink); font-size: 15px; font-weight: 700; }
 .person.on { border-color: var(--ink); background: #f3efec; }
 .person .initial { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--c); color: #fff; font-weight: 800; }
+
+/* a person's photo in the add / edit sheet */
+.photo-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.photo-prev { width: 56px; height: 56px; border-radius: 50%; background: #ddd center/cover no-repeat; flex: none; }
+.photo-row [hidden] { display: none; }

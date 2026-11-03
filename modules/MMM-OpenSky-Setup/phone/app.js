@@ -309,22 +309,44 @@
       S.profiles.length ? el("span", { class: "hint" }, "Choose who each calendar and list is for when you add or change it below.") : null);
   }
 
+  // A person's photo: chosen on the phone, cropped to a square and shrunk to 128px so it stays small in opensky.json
+  function photoField(current, onchange) {
+    let photo = current || "";
+    const prev = el("span", { class: "photo-prev" }), msg = el("span", { class: "hint" });
+    const paint = () => { prev.style.backgroundImage = photo ? `url("${photo}")` : ""; rm.hidden = !photo; };
+    const file = el("input", { type: "file", accept: "image/*", class: "hidden-file", onchange: async (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      try {
+        const bmp = await createImageBitmap(f), side = Math.min(bmp.width, bmp.height), c = document.createElement("canvas");
+        c.width = c.height = 128;
+        c.getContext("2d").drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, 128, 128);
+        photo = c.toDataURL("image/jpeg", 0.85); msg.textContent = ""; onchange(photo); paint();
+      } catch (x) { msg.textContent = "That file isn't a picture this phone can read."; }
+    } });
+    const rm = el("button", { type: "button", class: "btn", onclick: () => { photo = ""; onchange(""); paint(); } }, "Remove photo");
+    paint();
+    return el("div", { class: "field" }, el("span", { class: "label" }, "Photo"),
+      el("div", { class: "photo-row" }, prev, el("button", { type: "button", class: "btn", onclick: () => file.click() }, "Choose a photo"), rm, file), msg);
+  }
+
   function addPerson() {
-    const d = { name: "", color: COLORS[S.profiles.length % COLORS.length] };
+    const d = { name: "", color: COLORS[S.profiles.length % COLORS.length], photo: "" };
     const err = el("p", { class: "err" });
-    sheet("Add a person", (b) => b.append(field("Name", text("", (v) => { d.name = v.trim(); }, { placeholder: "e.g. Mom, Zoe", maxlength: "20" })), colorField(d.color, (c) => { d.color = c; }), err),
+    sheet("Add a person", (b) => b.append(field("Name", text("", (v) => { d.name = v.trim(); }, { placeholder: "e.g. Mom, Zoe", maxlength: "20" })), colorField(d.color, (c) => { d.color = c; }), photoField("", (v) => { d.photo = v; }), err),
       [["Cancel", "", () => {}], ["Add", "primary", () => {
         const bad = nameOk(d.name, S.profiles.map((p) => p.name));
         if (bad) { err.textContent = bad; return false; }
-        S.profiles.push({ name: d.name, color: d.color }); change(); render();
+        S.profiles.push(d.photo ? { name: d.name, color: d.color, photo: d.photo } : { name: d.name, color: d.color }); change(); render();
       }]]);
   }
 
   function editPerson(i) {
     const p = S.profiles[i], was = p.name;
-    let name = p.name, color = p.color || "blue";
+    let name = p.name, color = p.color || "blue", photo = p.photo || "";
     const err = el("p", { class: "err" });
-    sheet(p.name, (b) => b.append(field("Name", text(p.name, (v) => { name = v.trim(); }, { maxlength: "20" })), colorField(color, (c) => { color = c; }), err),
+    sheet(p.name, (b) => b.append(field("Name", text(p.name, (v) => { name = v.trim(); }, { maxlength: "20" })), colorField(color, (c) => { color = c; }), photoField(photo, (v) => { photo = v; }), err),
       [["Remove", "danger", () => {   // their calendars and lists stay; they just aren't linked to this person any more
         S.profiles.splice(i, 1);
         [...S.calendar.sources, ...S.lists.lists].forEach((x) => { setLinks(x, linked(x).filter((n) => n !== was)); if (linked(x).length !== 1) delete x.colorFromProfile; });
@@ -333,6 +355,7 @@
         const bad = nameOk(name, S.profiles.filter((_, j) => j !== i).map((q) => q.name));
         if (bad) { err.textContent = bad; return false; }
         p.name = name; p.color = color;
+        if (photo) p.photo = photo; else delete p.photo;
         if (name !== was) [...S.calendar.sources, ...S.lists.lists].forEach((x) => setLinks(x, linked(x).map((n) => (n === was ? name : n))));
         change(); render();
       }]]);

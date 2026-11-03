@@ -11,7 +11,7 @@ Module.register("MMM-OpenSky-Header", {
     time: { format12: true, showSeconds: false, updateInterval: 1000 },
     weather: { provider: "open-meteo", latitude: null, longitude: null, units: "imperial", refreshMinutes: 15 },
     countdown: { holidays: "US", custom: [], birthdays: true },  // custom: [{ name, month (1-12), day, icon? }]
-    profiles: [],                                                  // [{ name, color }] — circles that filter calendars and lists
+    profiles: [],                                                  // [{ name, color, photo? }] — circles that filter calendars and lists
     sports: null                                                 // e.g. { league: "nfl", team: "NE" }
   },
 
@@ -103,7 +103,7 @@ Module.register("MMM-OpenSky-Header", {
       b.setAttribute("aria-label", p.name);
       const c = EC && p.color ? EC.colorOf(p.color) : null;
       b.style.setProperty("--hb-pc", c ? EC.pair(c)[1] : "#9ca3af");
-      b.textContent = Array.from(p.name.trim())[0].toUpperCase();
+      if (p.photo) { b.style.backgroundImage = `url("${p.photo}")`; b.classList.add("hb-profile-photo"); } else b.textContent = Array.from(p.name.trim())[0].toUpperCase();
       b.onclick = () => {
         this.picked = on ? [] : [p.name];
         this.sendNotification("OPENSKY_PROFILE_FILTER", { selected: [...this.picked] });

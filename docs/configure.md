@@ -139,6 +139,8 @@ with their initial, in their color; tap a circle to show only that person's cale
   on the phone, choose who it's for, and turn on *Use <name>'s color*; the calendar then follows their color if you
   change it later. A calendar for several people keeps its own color. By hand: `"colorFromProfile": true` on the
   calendar source.
+- A person can have a **photo**: in the add/edit sheet choose "Choose a photo". It is cropped square and shrunk on the
+  phone, and the circle shows it instead of the initial.
 - Renaming a person updates everything linked to them; removing a person keeps their calendars and lists, they just
   aren't linked to anyone any more.
 - Tapping a circle filters the **calendar page, Home and the lists** to that person. One person at a time: tapping
@@ -149,7 +151,7 @@ with their initial, in their color; tap a circle to show only that person's cale
 
 What the phone page writes (you never need to edit this by hand):
 ```json
-"profiles": [ { "name": "Mom", "color": "pink" }, { "name": "Zoe", "color": "#3b82f6" } ],
+"profiles": [ { "name": "Mom", "color": "pink", "photo": "data:image/jpeg;base64,..." }, { "name": "Zoe", "color": "#3b82f6" } ],
 "calendar": { "sources": [ { "name": "Family", "type": "local", "profiles": ["Mom", "Zoe"] } ] },
 "lists": { "lists": [ { "name": "Chores", "profiles": ["Zoe"] } ] }
 ```

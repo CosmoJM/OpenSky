@@ -21,6 +21,8 @@ module.exports = async (page, h) => {
   const tap = async (name) => { await page.click(`.hb-profile[aria-label="${name}"]`); await h.sleep(600); };
   const c0 = await circles();
   ok("one circle per profile, with its initial and color", c0.length === 2 && c0[0].t === "M" && c0[1].t === "K" && c0[0].bg !== c0[1].bg && c0.every((c) => !c.on && c.w === 44), c0);
+  const ph = await page.evaluate(() => [...document.querySelectorAll(".hb-profile")].map((b) => ({ img: getComputedStyle(b).backgroundImage.startsWith("url("), txt: b.textContent })));
+  ok("a profile with a photo shows it instead of the initial; one without keeps the initial", !ph[0].img && ph[0].txt === "M" && ph[1].img && ph[1].txt === "", ph);
   const all = await sent();
   ok("nobody picked → every calendar and list", all.cal.includes("School") && all.cal.includes("Family") && all.lists.length === 2, all);
   await h.shot("profiles-all");

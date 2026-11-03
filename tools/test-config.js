@@ -21,7 +21,7 @@ const errs = []; const origErr = console.error; console.error = (...a) => errs.p
 
 const c = build({
   family: { name: "The Testers" }, locale: { timeFormat: 24, units: "metric", locale: "en-GB" },
-  profiles: [{ name: "Mom", color: "pink" }, { name: " Zoe ", color: "#3b82f6" }, { name: "mom" }, { name: "" }],
+  profiles: [{ name: "Mom", color: "pink" }, { name: " Zoe ", color: "#3b82f6" }, { name: "mom" }, { name: "Pic", photo: "data:image/jpeg;base64,AAAA" }, { name: "Bad", photo: "javascript:alert(1)" }, { name: "" }],
   pages: ["home", "calendar", "lists", "smarthome", "money", "wordgame", "timer", "nope"],
   calendar: { holidays: "GB", holidaysRegion: "GB-SCT", sources: [
     { name: "Family", type: "local", color: "blue" }, { name: "Shared", type: "caldav", color: "green" },
@@ -46,7 +46,9 @@ ok("5 editable: on-screen, CalDAV, Google (not the read-only one, not links); se
 ok("6 lists: Home Assistant entity passed on; Lists page columns", mod(c, "MMM-OpenSky-Lists").config.lists[0].entity === "todo.shopping" && mod(c, "MMM-OpenSky-ListsPage").config.columns === 3);
 const hdr = mod(c, "MMM-OpenSky-Header").config;
 ok("8 profiles: trimmed, blank and repeated names dropped; the top bar gets name + color",
-  JSON.stringify(hdr.profiles) === '[{"name":"Mom","color":"pink"},{"name":"Zoe","color":"#3b82f6"}]', hdr.profiles);
+  JSON.stringify(hdr.profiles.slice(0, 2)) === '[{"name":"Mom","color":"pink"},{"name":"Zoe","color":"#3b82f6"}]', hdr.profiles);
+ok("8b profile photos: an image data URL is kept, anything else dropped",
+  hdr.profiles.length === 4 && hdr.profiles[2].photo === "data:image/jpeg;base64,AAAA" && !("photo" in hdr.profiles[3]), hdr.profiles);
 ok("9 calendars and lists link to profiles by name (any case); unknown names dropped; unlinked → []",
   JSON.stringify(byName("Mom").profiles) === '["Mom","Zoe"]' && byName("Family").profiles.length === 0
   && JSON.stringify(mod(c, "MMM-OpenSky-Lists").config.lists[1].profiles) === '["Zoe"]', byName("Mom").profiles);

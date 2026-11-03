@@ -73,7 +73,7 @@ const folderPath = (f) => (!f ? null : /^[~/]/.test(f) ? f : path.join(settingsD
 // Profiles (family members): name + color. Calendars and lists link to them by name ("profiles": ["Mom", "Family"]);
 // the top bar shows one circle per profile and tapping it filters the calendars and lists.
 const profiles = (Array.isArray(s.profiles) ? s.profiles : []).filter((p) => p && String(p.name || "").trim())
-  .map((p) => ({ name: String(p.name).trim(), color: p.color || null }))
+  .map((p) => ({ name: String(p.name).trim(), color: p.color || null, ...(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]{1,60000}$/.test(p.photo || "") ? { photo: p.photo } : {}) }))
   .filter((p, i, all) => all.findIndex((q) => q.name.toLowerCase() === p.name.toLowerCase()) === i);
 const linkedProfiles = (v) => {   // a calendar's / list's profile names → the matching profile names (any case), no repeats
   const names = (Array.isArray(v) ? v : []).map((n) => profiles.find((p) => p.name.toLowerCase() === String(n).trim().toLowerCase())).filter(Boolean).map((p) => p.name);

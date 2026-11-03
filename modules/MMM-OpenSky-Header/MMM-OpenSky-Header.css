@@ -130,5 +130,6 @@
   width:44px; height:44px; border-radius:50%; border:3px solid transparent; padding:0;
   background:var(--hb-pc); color:#fff; font:inherit; font-size:20px; font-weight:800; cursor:pointer;
 }
+.hb-profile-photo{ background-size:cover; background-position:center; background-color:var(--hb-pc); }
 .hb-profiles:has(.hb-profile-on) .hb-profile:not(.hb-profile-on){ opacity:.4; }
 .hb-profile-on{ border-color:#fff; box-shadow:0 0 0 3px var(--hb-pc); }
