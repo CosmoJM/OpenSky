@@ -1,0 +1,9 @@
+.git
+docker-config
+node_modules
+tools/out
+config/secrets.json
+config/opensky.json
+config/lists.json
+config/local-calendar.json*
+config/calendar-cache

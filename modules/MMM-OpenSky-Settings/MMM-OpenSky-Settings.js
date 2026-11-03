@@ -105,7 +105,7 @@ Module.register("MMM-OpenSky-Settings", {
   },
 
   shape(st) {
-    return st ? JSON.stringify([st.settings.eveningDim.enabled, st.settings.sleep.enabled, st.brightness.method, !!st.audio, st.canRestart, st.screen && st.screen.method]) : "";
+    return st ? JSON.stringify([st.settings.eveningDim.enabled, st.settings.sleep.enabled, st.brightness.method, !!st.audio, st.canRestart, st.docker, st.screen && st.screen.method]) : "";
   },
 
   /* ---------------- panel ---------------- */
@@ -196,8 +196,8 @@ Module.register("MMM-OpenSky-Settings", {
               <button class="ost-btn" data-act="reload">Reload screen</button>
               ${st.canRestart ? `<button class="ost-btn" data-act="restart-app">Restart OpenSky</button>` : ""}
               <button class="ost-btn ost-update" data-act="update" hidden>Update</button>
-              <button class="ost-btn" data-act="reboot">Restart Pi</button>
-              <button class="ost-btn ost-danger" data-act="shutdown">Shut down</button>
+              ${st.docker ? "" : `<button class="ost-btn" data-act="reboot">Restart Pi</button>
+              <button class="ost-btn ost-danger" data-act="shutdown">Shut down</button>`}
             </div>
           </section>
         </div>

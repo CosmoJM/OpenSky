@@ -1,0 +1,19 @@
+# OpenSky in Docker — see docs/docker.md.   docker compose up -d --build   then open http://<this-computer>:8080
+services:
+  opensky:
+    build: .
+    image: opensky:latest
+    container_name: opensky
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # the screen: open this address in a browser on each tablet
+      - "8090:8090"   # phone setup page (answers only while the pairing card is open)
+    volumes:
+      - ./docker-config:/config   # your settings and data; back this up
+    environment:
+      TZ: ${TZ:-UTC}
+      PUID: ${PUID:-1000}   # the user and group the container runs as (so docker-config/ is yours)
+      PGID: ${PGID:-1000}
+      # What phones type or scan to reach the setup page, if it isn't http://<container's address>:8090
+      # (the QR code would otherwise show the container's internal address). Comma-separated.
+      OPENSKY_SETUP_URL: ${OPENSKY_SETUP_URL:-}

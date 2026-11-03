@@ -24,3 +24,5 @@ __pycache__/
 .DS_Store
 *.swp
 tools/out/
+docker-config/
+docker-compose.override.yml

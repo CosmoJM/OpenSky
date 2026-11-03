@@ -270,6 +270,9 @@ if you use a real keyboard. Dates and times use pickers instead.
 ```
 The port the phone page uses while setup is open (only then). Change it if something else on the Pi uses 8090.
 
+In Docker (or behind a reverse proxy) phones reach the page at a different address than the machine's own: set the
+`OPENSKY_SETUP_URL` environment variable to it ([docker.md](docker.md#phone-setup)).
+
 ## Automatic backups
 ```json
 "backup": { "destination": "/media/pi/MYSTICK", "time": "03:00", "keep": 14, "includeSecrets": false }
