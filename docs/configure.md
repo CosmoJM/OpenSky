@@ -165,8 +165,13 @@ OpenSky can show any number of calendars, each with its own color. Some can also
   4. otherwise a steady automatic color
 
 ### One event on several calendars (kids who share an activity)
-If each person has their own calendar and an event is on more than one of them, turn on `mergeShared` and it shows
-**once**, with a box that blends each person's color and their names in the event's details:
+If each person has their own calendar and an event is on more than one of them, turn on **Show shared events once** and it
+shows **once**, with a box that blends each person's color and their names in the event's details. It's off by default.
+
+**On the phone:** Settings → Set up from your phone → Calendars → *Show shared events once*; then tap your family
+calendar and turn on *Shared family calendar*.
+
+**By hand** (`mergeShared`, and `role` on the family calendar, in `opensky.json`):
 
 ```json
 "calendar": {
@@ -187,9 +192,7 @@ If each person has their own calendar and an event is on more than one of them, 
 - `"role": "shared"` marks a family calendar: its copy is merged in but isn't named, so an event on Family that Ava and
   Ben were invited to reads "Ava, Ben". An event only on Family keeps Family's color.
 - Changing or deleting a merged event on the screen changes the **organizer's** copy (Google tells the invitees).
-- **On the phone:** Settings → Set up from your phone → Calendars → *Show shared events once*; then tap your family
-  calendar and turn on *Shared family calendar*. (Or set `mergeShared` / `role` in opensky.json.)
-- Off by default. With it on, an event you've declined in Google is also left off the screen.
+- With it on, an event you've declined in Google is also left off the screen.
 
 ### Finding a calendar's link
 - **Google Calendar** (on a computer): ⚙ Settings → pick the calendar on the left → *Integrate calendar* → copy **Secret address in iCal format**. It's private, so put it in `secrets.json`.
