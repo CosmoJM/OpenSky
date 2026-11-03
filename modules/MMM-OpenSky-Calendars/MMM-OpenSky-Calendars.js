@@ -6,6 +6,7 @@
  */
 Module.register("MMM-OpenSky-Calendars", {
   defaults: {
+    eventColors: null,    // calendar.colors (a color set per calendar in the settings wins over the source's own)
     sources: [],          // [{ name, type: "local" | "link" | "caldav", url (public links only), color, fetchMinutes }]
     days: 400             // how far ahead (and back) to keep events
   },
@@ -42,10 +43,13 @@ Module.register("MMM-OpenSky-Calendars", {
       const evs = this.events.get(src.name) || [];
       // a trash/recycling calendar isn't shown as events: the Home page turns it into pickup icons
       if (src.role === "pickup") { evs.forEach((ev) => pickup.push({ title: ev.title, startDate: ev.startDate, fullDayEvent: ev.fullDayEvent })); continue; }
-      const EC = window.OpenSkyEventColors, own = EC ? EC.colorOf(src.color) : null;   // a palette name or a color code
-      const color = own ? EC.pair(own)[1] : "";
+      const EC = window.OpenSkyEventColors;
+      if (EC && this.config.eventColors) EC.configure(this.config.eventColors);
+      // the color set for the calendar in the settings (colors.calendars), else the source's own: a palette name or a color code
+      const set = EC ? (EC.colorOf((EC.calendars || {})[src.name]) || EC.colorOf(src.color)) : null;
+      const color = set ? EC.pair(set)[1] : "";
       // symbol: [] — MagicMirror's calendar always sets it and CalendarExt3 requires it (calls symbol.join)
-      for (const ev of evs) list.push({ ...ev, calendarName: src.name, color, colorName: src.color || null, symbol: [] });
+      for (const ev of evs) list.push({ ...ev, calendarName: src.name, color, colorName: set || src.color || null, symbol: [] });
     }
     const out = this.config.mergeShared ? this.mergeShared(list) : list;
     out.sort((a, b) => Number(a.startDate) - Number(b.startDate));
@@ -57,7 +61,7 @@ Module.register("MMM-OpenSky-Calendars", {
   /* calendar.mergeShared: one event that sits on several calendars (the kids were invited, or it was entered on each) is
    * shown once. Same event = same Google iCalUID + start, else same title + start + end. A source with role "shared"
    * (the family calendar) is merged in but isn't named. Result fields: calendarNames (who it's for), colors (one per
-   * name, for the striped bar); calendarName stays the organizer's copy, the one the event editor changes.
+   * name, for the blended box); calendarName stays the organizer's copy, the one the event editor changes.
    * A copy the person declined is left out. */
   mergeShared(list) {
     const src = new Map(this.config.sources.map((s) => [s.name, s]));

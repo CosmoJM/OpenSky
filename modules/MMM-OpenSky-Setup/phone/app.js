@@ -380,7 +380,7 @@
     let color = c.color || "blue", shared = c.role === "shared";
     sheet(c.name, (b) => {
       b.append(colorField(color, (v) => { color = v; }));
-      if (S.calendar.mergeShared) b.append(el("div", { class: "line" }, el("span", {}, el("b", {}, "Shared family calendar"), el("small", {}, "Its events are merged with the kids' copies but it isn't named on them")),
+      if (S.calendar.mergeShared) b.append(el("div", { class: "line" }, el("span", {}, el("b", {}, "Shared family calendar"), el("small", {}, "When the same event is on this calendar and another, it is shown once, with only the other calendar's name")),
         toggle(shared, (v) => { shared = v; }, "Shared family calendar")));
       if (c.type !== "local" && c.type !== "caldav" && c.type !== "google") b.append(field("Replace the link", el("textarea", { class: "input", rows: "2", placeholder: isSet(`calendar.sources.${c.name}`) ? "Saved ✓ — paste a new link to replace it" : "https://… or webcal://…", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.sources.${c.name}`] = e.target.value.trim(); } })));
       if (c.type === "caldav") b.append(field("New password", el("input", { type: "password", class: "input", placeholder: "Saved ✓ — type to replace", oninput: (e) => { if (e.target.value.trim()) pending[`calendar.caldav.${c.name}`] = { password: e.target.value.trim() }; } })));

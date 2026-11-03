@@ -166,7 +166,7 @@ OpenSky can show any number of calendars, each with its own color. Some can also
 
 ### One event on several calendars (kids who share an activity)
 If each person has their own calendar and an event is on more than one of them, turn on `mergeShared` and it shows
-**once**, with a striped bar in each person's color and their names in the event's details:
+**once**, with a box that blends each person's color and their names in the event's details:
 
 ```json
 "calendar": {

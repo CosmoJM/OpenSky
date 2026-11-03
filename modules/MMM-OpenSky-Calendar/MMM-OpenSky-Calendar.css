@@ -220,7 +220,6 @@
   color: #222 !important;
   font-weight: 500 !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  border-left: 3px solid #ccc !important;
   background: #f5f5f5 !important;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -304,13 +303,9 @@
 .CX3 .event.evc-gray { --evc-bg: #e5e7eb; --evc-bar: #9ca3af; }
 .CX3 .event[class*="evc-"] {
   background: var(--evc-bg) !important;
-  border-left: 4px solid var(--evc-bar) !important;
 }
-/* shared by several calendars: the bar is a stripe of their colors (CX3 passes the gradient as --calendarColor) */
-.CX3 .event.evc-multi {
-  background: var(--calendarColor) left / 4px 100% no-repeat border-box, var(--evc-bg) !important;
-  border-left-color: transparent !important;
-}
+/* shared by several calendars: the whole box blends their pale colors (CX3 passes the gradient as --calendarColor) */
+.CX3 .event.evc-multi { background: var(--calendarColor) !important; }
 
 /* Multi-day events */
 .CX3 .event.multiday,

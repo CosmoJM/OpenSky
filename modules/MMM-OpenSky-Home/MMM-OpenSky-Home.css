@@ -207,7 +207,6 @@
   width: 100%;
   padding: 8px 10px 8px 12px;
   border: none;
-  border-left: 5px solid var(--evc-bar, #9ca3af);
   border-radius: 12px;
   background: var(--evc-bg, #e5e7eb);
   text-align: left;
@@ -216,8 +215,8 @@
   box-sizing: border-box;
 }
 .hd-event.passed { opacity: .6; }
-/* shared by several calendars (calendar.mergeShared): the bar is a stripe of their colors */
-.hd-event[style*="--evc-stripe"] { background: var(--evc-stripe) left / 5px 100% no-repeat border-box, var(--evc-bg); border-left-color: transparent; }
+/* shared by several calendars (calendar.mergeShared): the whole pill blends their pale colors */
+.hd-event[style*="--evc-multi"] { background: var(--evc-multi); }
 .hd-event-title {
   max-width: 100%;
   overflow: hidden;

@@ -125,8 +125,8 @@ const PAGES = {
           const esc = (v) => (typeof v === "string" ? v.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`) : v);
           const out = { ...ev, title: esc(ev.title), description: esc(ev.description), location: esc(ev.location) };
           if (typeof window !== "undefined" && window.OpenSkyEventColors) {
-            const stripe = window.OpenSkyEventColors.stripe(ev);
-            if (stripe) { out.class = "evc-multi"; out.color = stripe; return out; }   // shared by several calendars: striped bar
+            const multi = window.OpenSkyEventColors.multi(ev);
+            if (multi) { out.class = "evc-multi"; out.color = multi; return out; }   // shared by several calendars: box shows all their colors
             const c = window.OpenSkyEventColors.name(ev);
             // a palette name → its class; a color code → evc-custom, colored through CX3's --calendarColor (= out.color)
             if (c.startsWith("#")) { out.class = "evc-custom"; out.color = c; } else out.class = `evc-${c}`;
@@ -238,7 +238,7 @@ const fixed = [
   ...(s.keyboard && s.keyboard.enabled === false ? [] : [{ module: "MMM-OpenSky-Keyboard", config: { layout: (s.keyboard && s.keyboard.layout) || "en" } }]),
   ...(familyLists.length ? [{ module: "MMM-OpenSky-Lists", config: { lists: familyLists, refreshMinutes: listSettings.refreshMinutes || 2 } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-EventEditor", config: { editable: editableCalendars, servicePort } }] : []),
-  ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources, mergeShared: !!cal.mergeShared } }] : []),
+  ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources, mergeShared: !!cal.mergeShared, eventColors: cal.colors || null } }] : []),
   {
     module: "MMM-OpenSky-Header",
     position: "top_bar",

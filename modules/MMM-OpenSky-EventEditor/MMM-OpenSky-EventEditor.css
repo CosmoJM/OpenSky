@@ -453,15 +453,14 @@
   width: 100%;
   padding: 16px 18px;
   border: none;
-  border-left: 6px solid var(--event-color, #9ca3af);
   border-radius: 12px;
-  background: #f8f9fa;
+  background: var(--evc-multi, var(--evc-bg, #f8f9fa));
   text-align: left;
   font: inherit;
   cursor: pointer;
   transition: background .15s ease;
 }
-.day-event-row:active { background: #eef1f4; }
+.day-event-row:active { filter: brightness(.95); }
 .day-event-time {
   flex: 0 0 auto;
   min-width: 96px;
