@@ -23,7 +23,7 @@ Module.register("MMM-OpenSky-ListsPage", {
           <span class="lp-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Lists</span>
         </header>
         <div class="lp-columns"></div>
-        <div class="lp-none" hidden>No lists yet. Add some under <b>"lists"</b> in opensky.json (see docs/configure.md).</div>`;
+        <div class="lp-none" hidden>No lists yet. Go to <b>Settings</b> → <b>Set up from your phone</b> and add a list.</div>`;
       this.root.style.setProperty("--lp-columns", this.config.columns);
     }
     this.render();
