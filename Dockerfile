@@ -22,7 +22,7 @@ RUN python3 -m venv /opt/venv && /opt/venv/bin/pip install -q --no-cache-dir -r 
 COPY . /opt/opensky
 RUN /opt/opensky/tools/link-mm.sh /opt/MagicMirror
 
-# (OPENSKY_DRY_RUN: there is no Pi to dim, sleep or restart in a container; OPENSKY_DOCKER hides those buttons in Settings)
+# (OPENSKY_DOCKER: no Pi to power off or update; Settings hides those buttons, and "Restart OpenSky" exits so Docker's restart policy starts it again)
 # Settings + data live in a volume: /config (opensky.json, secrets.json, lists.json, local-calendar.json…)
 ENV OPENSKY_SETTINGS=/config/opensky.json \
     OPENSKY_SECRETS=/config/secrets.json \
@@ -32,7 +32,6 @@ ENV OPENSKY_SETTINGS=/config/opensky.json \
     OPENSKY_MM=/opt/MagicMirror \
     OPENSKY_ADDRESS=0.0.0.0 \
     OPENSKY_IP_WHITELIST=all \
-    OPENSKY_DRY_RUN=1 \
     OPENSKY_DOCKER=1 \
     TZ=UTC
 VOLUME /config

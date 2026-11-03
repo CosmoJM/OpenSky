@@ -29,6 +29,7 @@ const backup = require(path.join(global.root_path || process.cwd(), "modules", "
 const music = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "music.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
+const DOCKER = process.env.OPENSKY_DOCKER === "1";   // the container restarts when this process exits (restart policy)
 const MM_CONFIG = path.join(global.root_path || process.cwd(), "config");
 const SETTINGS = process.env.OPENSKY_SETTINGS || path.join(MM_CONFIG, "opensky.json");
 const SECRETS = process.env.OPENSKY_SECRETS || path.join(path.dirname(SETTINGS), "secrets.json");
@@ -257,7 +258,7 @@ module.exports = NodeHelper.create({
       try { presets = fs.readdirSync(path.join(__dirname, "..", "..", "lib", "pickup-presets")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)); } catch (e) { /* none */ }
       return this.send(res, 200, {
         settings: settings || readJson(EXAMPLE, {}), secretsSet: secretPaths(readJson(SECRETS, {})), presets,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DOCKER || DRY,
         addons: { music: musicInstalled() }
       });
     }
@@ -365,10 +366,11 @@ module.exports = NodeHelper.create({
     }
 
     if (url.pathname === "/api/done" && req.method === "POST") {
-      this.send(res, 200, { ok: true, restarting: !!process.env.INVOCATION_ID && !DRY });
+      this.send(res, 200, { ok: true, restarting: (!!process.env.INVOCATION_ID || DOCKER) && !DRY });
       setTimeout(() => {
         this.stopServer("setup finished");
         if (DRY) return console.log("[OpenSky] phone setup: restart (dry run — nothing done)");
+        if (DOCKER) return process.exit(0);
         if (process.env.INVOCATION_ID) {
           const restart = () => execFile("systemctl", ["--user", "--no-block", "restart", "opensky-calendar.service", "opensky.service"], () => {});
           // the Music add-on's speakers first, and only what changed (a new name; AirPlay / Spotify switched on or off)

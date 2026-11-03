@@ -32,13 +32,14 @@ is an internal one that phones can't reach, so tell it the address phones use:
 OPENSKY_SETUP_URL=http://nas.local:8090
 ```
 Publish port 8090 (the compose file does), or route that address to it from your reverse proxy. To use other ports on the computer, change the left side of the mapping (`"9000:8080"`, `"9090:8090"`); the ports inside the container stay 8080 and 8090. Put the port phones type in `OPENSKY_SETUP_URL` (here `http://nas.local:9090`). The QR code then shows
-this address, and requests for any other name are still refused. Saving in setup doesn't restart the container: run
-`docker restart opensky` when you finish.
+this address, and requests for any other name are still refused. When you finish, OpenSky restarts by itself.
 
 ## Good to know
 - **Anyone who can reach port 8080 can use the screen** (there is no login), so keep it on your home network or behind
   your reverse proxy's login. Secrets stay in `secrets.json` and never reach the page.
 - Things that belong to a Pi (screen brightness, sleep, Restart Pi, Update, the Music add-on) don't do anything here,
-  and Settings hides Restart OpenSky, Restart Pi and Shut down. To restart, use `docker restart opensky`.
+  and Settings hides Restart Pi and Shut down. **Restart OpenSky** (and finishing phone setup) stops OpenSky and relies on
+  Docker's restart policy to start it again, so keep `restart: unless-stopped` (the compose file has it; with plain
+  `docker run`, add `--restart unless-stopped`). `docker restart opensky` does the same from outside.
   Update with `git pull && docker compose up -d --build`.
 - Behind a reverse proxy such as Traefik, point it at port 8080 and leave the published ports out.

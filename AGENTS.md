@@ -34,8 +34,9 @@ The settings files are found through environment variables set by the services (
 
 **In Docker** (`docs/docker.md`): one container runs MagicMirror in server-only mode plus the CalDAV helper, as `PUID:PGID`.
 Everything above lives in the `/config` volume (`./docker-config/` on the host) and the same `OPENSKY_*` variables point at it
-(set in the `Dockerfile`). There is no systemd, display or hardware, so `OPENSKY_DRY_RUN=1` is set, and `docker restart opensky`
-replaces `opensky restart`. `OPENSKY_SETUP_URL` is the address phone setup shows in its QR code and accepts as its Host.
+(set in the `Dockerfile`). There is no systemd, display or hardware, so `OPENSKY_DOCKER=1` is set: Settings hides Restart Pi / Shut down, and
+"Restart OpenSky" (and finishing phone setup) exits the process so the compose restart policy starts it again
+(`docker restart opensky` does the same from outside). `OPENSKY_SETUP_URL` is the address phone setup shows in its QR code and accepts as its Host.
 
 ## Helping a user (checklist)
 1. `opensky status`, `opensky check`, `opensky logs` — most problems are a JSON typo or a wrong link/password.

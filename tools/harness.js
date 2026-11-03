@@ -85,6 +85,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       OPENSKY_SPOTIFY_API: "http://127.0.0.1:9", OPENSKY_BUSCTL: "/bin/false",   // never this computer's real speakers
       // Settings: never touch the real screen, audio, updates or power — except in an approved real-screen session
       // (OPENSKY_HARNESS_REAL=1, run by hand on the real display, never from test-all.sh)
+      OPENSKY_DOCKER: "0",                         // tests behave like a Pi, even when run inside the container
       ...(process.env.OPENSKY_HARNESS_REAL === "1" ? {} : { OPENSKY_DRY_RUN: "1" }),
       LANGUAGE: settingsLanguage(),     // as tools/opensky-start does: the screen's language from the settings
       ELECTRON_ENABLE_LOGGING: "1",

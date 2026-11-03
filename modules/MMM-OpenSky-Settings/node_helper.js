@@ -26,6 +26,7 @@ const screen = require(path.join(global.root_path || process.cwd(), "modules", "
 const accent = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "accent.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
+const DOCKER = process.env.OPENSKY_DOCKER === "1";   // in a container: Docker restarts us when we exit; no Pi to update or power off
 // the icons a web page can have (same list as OpenSkyIcons.webPage in lib/client/opensky-client.js)
 const WEB_ICONS = ["embed", "smarthome", "globe", "camera", "play", "music", "cart", "food", "school", "briefcase", "heart", "chart", "cloud", "car", "paw", "book"];
 const REPO = path.resolve(__dirname, "..", "..");   // (MagicMirror links the module in; Node resolves the real folder)
@@ -148,8 +149,8 @@ module.exports = NodeHelper.create({
   sendState() {
     this.sendSocketNotification("OS_SET_STATE", {
       settings: this.settings, brightness: { method: this.method }, audio: this.audio,
-      docker: process.env.OPENSKY_DOCKER === "1",   // in a container there is no Pi to restart or power off
-      canRestart: DRY || !!process.env.INVOCATION_ID,   // running as the systemd service
+      docker: DOCKER,   // in a container there is no Pi to restart or power off
+      canRestart: DRY || DOCKER || !!process.env.INVOCATION_ID,   // running as the systemd service, or in a container
       screen: { method: this.settings.screenOff, resolved: screen.resolve(this.settings.screenOff, this.screenAvail || {}), labels: screen.LABELS,
         available: Object.fromEntries(screen.METHODS.map((m) => [m, m === "auto" || m === "soft" || !!(this.screenAvail || {})[m]])) }
     });
@@ -397,7 +398,7 @@ module.exports = NodeHelper.create({
     out.ip = ip.out.trim().split(/\s+/)[0] || "";
     const v = await run("git", ["-C", REPO, "describe", "--tags", "--always", "--dirty"], 5000);
     out.version = v.ok ? v.out.trim() : null;
-    if (out.internet && !DRY) {
+    if (out.internet && !DRY && !DOCKER) {
       // how many updates are waiting (only fetches; nothing changes until "Update" is pressed)
       // the same rule as `opensky update`: the newest release tag, or origin/main when update.channel is "main"
       if ((await run("git", ["-C", REPO, "fetch", "--quiet", "--tags", "origin"], 30000)).ok) {
@@ -417,6 +418,12 @@ module.exports = NodeHelper.create({
     const say = (ok, message) => ({ ok, message });
     console.log(`[OpenSky] settings: ${action}${DRY ? " (dry run — nothing done)" : ""}`);
     if (DRY) return say(true, "Done (test mode)");
+    if (DOCKER) {
+      if (action !== "restart-app") return say(false, "Not available in Docker");
+      // exit: the container's restart policy (restart: unless-stopped) starts it again, CalDAV helper included
+      setTimeout(() => process.exit(0), 500);
+      return say(true, "Restarting…");
+    }
     if (action === "restart-app") {
       if (!process.env.INVOCATION_ID) return say(false, "OpenSky isn't running as a service here — use Reload instead");
       // --no-block: systemd restarts us after this returns

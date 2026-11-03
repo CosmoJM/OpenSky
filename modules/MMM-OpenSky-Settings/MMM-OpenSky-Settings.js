@@ -194,7 +194,7 @@ Module.register("MMM-OpenSky-Settings", {
             <div class="ost-buttons">
               <button class="ost-btn ost-phone" data-act="phone">Set up from your phone</button>
               <button class="ost-btn" data-act="reload">Reload screen</button>
-              ${st.canRestart && !st.docker ? `<button class="ost-btn" data-act="restart-app">Restart OpenSky</button>` : ""}
+              ${st.canRestart ? `<button class="ost-btn" data-act="restart-app">Restart OpenSky</button>` : ""}
               <button class="ost-btn ost-update" data-act="update" hidden>Update</button>
               ${st.docker ? "" : `<button class="ost-btn" data-act="reboot">Restart Pi</button>
               <button class="ost-btn ost-danger" data-act="shutdown">Shut down</button>`}
@@ -243,7 +243,7 @@ Module.register("MMM-OpenSky-Settings", {
     const st = P.status || {};
     const last = st.last ? `${st.ok ? "Last backup" : "Last try"}: ${new Date(st.last).toLocaleString(config.locale || "en-US", { dateStyle: "medium", timeStyle: "short" })}${st.ok ? " ✓" : " — " + esc(st.error || "")}` : "No automatic backup yet.";
     box.innerHTML = `
-      ${this.restartNeeded ? `<div class="ost-restart"><span>Some changes show after a restart.</span><button class="ost-btn ost-primary" data-act="${(this.state && this.state.canRestart && !this.state.docker) ? "restart-app" : "reload"}">Restart now</button></div>` : ""}
+      ${this.restartNeeded ? `<div class="ost-restart"><span>Some changes show after a restart.</span><button class="ost-btn ost-primary" data-act="${(this.state && this.state.canRestart) ? "restart-app" : "reload"}">Restart now</button></div>` : ""}
       ${this.webForm ? this.webFormHtml(P, esc) : ""}
       <section class="ost-section">
         <h3>Pages</h3>
