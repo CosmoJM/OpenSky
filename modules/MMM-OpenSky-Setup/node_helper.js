@@ -70,6 +70,12 @@ function writeJson(file, data, mode) {
 }
 
 // which secrets are set: their dotted paths only (values never leave the Pi)
+// Secrets that are only an address, not a credential: the phone page shows these instead of hiding them
+function shownSecrets(obj) {
+  const u = obj && obj.homeassistant && obj.homeassistant.url;
+  return typeof u === "string" && u ? { "homeassistant.url": u } : {};
+}
+
 function secretPaths(obj, prefix = "", out = []) {
   for (const [k, v] of Object.entries(obj || {})) {
     if (k.startsWith("_")) continue;
@@ -248,7 +254,7 @@ module.exports = NodeHelper.create({
       let presets = [];
       try { presets = fs.readdirSync(path.join(__dirname, "..", "..", "lib", "pickup-presets")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)); } catch (e) { /* none */ }
       return this.send(res, 200, {
-        settings: settings || readJson(EXAMPLE, {}), secretsSet: secretPaths(readJson(SECRETS, {})), presets,
+        settings: settings || readJson(EXAMPLE, {}), secretsSet: secretPaths(readJson(SECRETS, {})), shown: shownSecrets(readJson(SECRETS, {})), presets,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY,
         addons: { music: musicInstalled() }
       });
@@ -273,7 +279,7 @@ module.exports = NodeHelper.create({
       }
       console.log("[OpenSky] phone setup: settings saved");
       this.sendSocketNotification("OS_SETUP_SAVED", {});
-      return this.send(res, 200, { ok: true, secretsSet: secretPaths(readJson(SECRETS, {})) });
+      return this.send(res, 200, { ok: true, secretsSet: secretPaths(readJson(SECRETS, {})), shown: shownSecrets(readJson(SECRETS, {})) });
     }
 
     if (url.pathname === "/api/geocode" && req.method === "GET") {
