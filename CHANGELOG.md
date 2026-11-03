@@ -1,6 +1,5 @@
 # Changelog
 
-## Unreleased
 - **Run in Docker**: a `Dockerfile` and `docker-compose.yml`; tablets and PCs open the screen in a browser
   ([docs/docker.md](docs/docker.md)). `OPENSKY_SETUP_URL` sets the address phone setup shows in its QR code.
   In Docker, Settings hides Restart Pi and Shut down, and Restart OpenSky (and finishing phone setup) really restarts it.
