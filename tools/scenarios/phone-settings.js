@@ -244,7 +244,11 @@ module.exports = async (page, h, app) => {
   // other speakers: Home Assistant address + token, save, Find my speakers, pick one
   await type("#extras input[placeholder='http://homeassistant.local:8123']", `http://127.0.0.1:${HA}`);
   await type("#extras input[placeholder='Paste a long-lived access token']", "ha-phone-token");
+  const ha = await phone.evaluate(() => { const a = document.querySelector("#extras input[placeholder='http://homeassistant.local:8123']"), t = document.querySelector("#extras input[placeholder='Paste a long-lived access token']"); return { addr: a.value, addrType: a.type, tokenType: t.type }; });
+  ok("Home Assistant address is plain text you can read; the token is a hidden field", ha.addr === `http://127.0.0.1:${HA}` && ha.addrType === "url" && ha.tokenType === "password", ha);
   await save();
+  const shown = await phone.evaluate(async () => (await (await fetch("/api/state", { credentials: "same-origin", headers: { "X-OpenSky": "1" } })).json()).shown);
+  ok("after saving, the Pi sends the address back for the page to show — and never the token", shown && shown["homeassistant.url"] === `http://127.0.0.1:${HA}` && !JSON.stringify(shown).includes("ha-phone-token"), shown);
   await tap("#extras", ".btn.block", "Find my speakers");
   await until(() => phone.evaluate(() => /Attic/.test(document.querySelector("#extras").textContent)));
   const found = await phone.evaluate(() => [...document.querySelectorAll("#extras .rows .line b")].map((b) => b.textContent));
@@ -253,6 +257,7 @@ module.exports = async (page, h, app) => {
   S = settings(); sec = secrets();
   ok("other speakers: Find my speakers lists Home Assistant's speakers; Kitchen picked and saved (address + token only in secrets)",
     found.join() === "Attic,Kitchen" && JSON.stringify(S.music.speakers) === '["media_player.kitchen"]' && sec.homeassistant?.token === "ha-phone-token" && !JSON.stringify(S).includes("ha-phone-token"), { found, speakers: S.music.speakers });
+
 
   // ---- Backup: nightly to a folder, time, how many, with passwords; then Back up now ----
   await until(() => phone.evaluate(() => !!document.querySelector("#backup .auto-backup select")));

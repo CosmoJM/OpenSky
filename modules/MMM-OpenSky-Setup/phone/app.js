@@ -6,6 +6,7 @@
   "use strict";
   const $app = document.getElementById("app");
   let S = null;              // opensky.json being edited
+  let shown = {};            // saved secrets that are only addresses, shown as plain text
   let secretsSet = new Set(); // dotted paths of secrets already saved on the Pi
   let pending = {};          // secret changes to send: path → value | null (remove)
   let info = {};             // { presets, timezone, service }
@@ -74,6 +75,11 @@
   const field = (label, input, hint) => el("label", { class: "field" }, el("span", { class: "label" }, label), input, hint ? el("span", { class: "hint" }, hint) : null);
   function text(value, onchange, attrs = {}) {
     return el("input", { type: "text", class: "input", value: value || "", autocomplete: "off", ...attrs, oninput: (e) => onchange(e.target.value) });
+  }
+  // An address (not a credential): plain text showing what is saved
+  function addressInput(path, placeholder) {
+    return el("input", { type: "url", class: "input", autocomplete: "off", autocapitalize: "off", inputmode: "url", placeholder,
+      value: path in pending ? (pending[path] || "") : (shown[path] || ""), oninput: (e) => setSecret(path, e.target.value.trim()) });
   }
   function secretInput(path, placeholder) {
     return el("input", { type: "password", class: "input", autocomplete: "off", placeholder: isSet(path) ? "Saved ✓ — type to replace" : placeholder, oninput: (e) => setSecret(path, e.target.value) });
@@ -167,7 +173,7 @@
   async function load() {   // (returns a promise; the backup restore waits on it)
     try {
       const d = await api("GET", "/api/state");
-      S = d.settings; secretsSet = new Set(d.secretsSet || []); pending = {}; info = d; dirty = false; saved = false;
+      S = d.settings; secretsSet = new Set(d.secretsSet || []); shown = d.shown || {}; pending = {}; info = d; dirty = false; saved = false;
       for (const k of ["family", "locale", "location", "weather", "header", "calendar", "lists", "photos", "pickup", "wordgame", "embeds"]) if (!S[k] || typeof S[k] !== "object") S[k] = {};
       if (!Array.isArray(S.pages)) S.pages = ["home", "calendar", "lists", "timer"];
       if (!Array.isArray(S.calendar.sources)) S.calendar.sources = [];
@@ -203,7 +209,7 @@
     const btn = document.querySelector(".bar .btn"); if (btn) { btn.textContent = "Saving…"; btn.disabled = true; }
     try {
       const r = await api("POST", "/api/save", { settings: S, secrets: pending });
-      secretsSet = new Set(r.secretsSet || []); pending = {}; dirty = false; saved = true; busy = false;
+      secretsSet = new Set(r.secretsSet || []); shown = r.shown || {}; pending = {}; dirty = false; saved = true; busy = false;
       toast("Saved", "good"); render();
     } catch (e) { busy = false; toast(e.message, "bad"); renderBar(); }
   }
@@ -399,7 +405,7 @@
       rows,
       el("button", { type: "button", class: "add", onclick: addList }, icon("plus"), "Add a list"),
       usesTodoist ? field("Todoist API token", secretInput("lists.todoist.token", "Paste your token"), "Todoist → Settings → Integrations → Developer → API token.") : null,
-      usesHA ? field("Home Assistant address", secretInput("homeassistant.url", "http://homeassistant.local:8123")) : null,
+      usesHA ? field("Home Assistant address", addressInput("homeassistant.url", "http://homeassistant.local:8123")) : null,
       usesHA ? field("Home Assistant token", secretInput("homeassistant.token", "Paste a long-lived access token"), "In Home Assistant: your profile → Security → Long-lived access tokens → Create token.") : null);
   }
 
@@ -596,7 +602,7 @@
       el("div", { class: "line" }, el("span", {}, el("b", {}, "Spotify Connect"), el("small", {}, "Needs Spotify Premium")), toggle(M.spotify !== false, (v) => { M.spotify = v; change(); }, "Spotify Connect")),
       el("h4", { class: "sub-title" }, "Other speakers to control"),
       el("p", { class: "hint" }, "Sonos, HomePod, Echo, Google speakers… through Home Assistant: the Music page gets a tab for each, with its song, buttons and volume."),
-      ...(haSet ? [] : [field("Home Assistant address", secretInput("homeassistant.url", "http://homeassistant.local:8123")),
+      ...(haSet ? [] : [field("Home Assistant address", addressInput("homeassistant.url", "http://homeassistant.local:8123")),
         field("Home Assistant token", secretInput("homeassistant.token", "Paste a long-lived access token"), "In Home Assistant: your profile → Security → Long-lived access tokens → Create token. Save, then Find my speakers.")]),
       others, find
     ];
