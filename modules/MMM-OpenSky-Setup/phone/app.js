@@ -436,12 +436,51 @@
     }, [["Remove", "danger", () => { S.lists.lists.splice(i, 1); change(); render(); }], ["Done", "primary", () => { l.color = color; change(); render(); }]]);
   }
 
+  // Upload to / delete from the Pi's photo folder (the folder as last saved)
+  function photoManager() {
+    const box = el("div", { class: "pm" }), grid = el("div", { class: "pm-grid" }), msg = el("p", { class: "hint" }), count = el("p", { class: "hint" }, "Looking…");
+    const file = el("input", { type: "file", accept: "image/jpeg,image/png,image/webp", multiple: true, hidden: true, onchange: async (e) => {
+      const files = [...e.target.files]; e.target.value = "";
+      let done = 0, failed = "";
+      for (const f of files) {
+        msg.className = "hint"; msg.textContent = `Adding ${done + 1} of ${files.length}…`;
+        try {
+          let r;
+          try { r = await fetch(`/api/photos?name=${encodeURIComponent(f.name)}`, { method: "POST", credentials: "same-origin", headers: { "X-OpenSky": "1", "Content-Type": "application/octet-stream" }, body: f }); }
+          catch (x) { throw new Error(OFFLINE); }
+          if (r.status === 401) { showPair(); return; }
+          if (!r.ok) throw new Error(((await r.json().catch(() => ({}))).error) || `Error ${r.status}`);
+          done++;
+        } catch (x) { failed = `${f.name}: ${x.message}`; }
+      }
+      msg.className = failed ? "hint bad" : "hint";
+      msg.textContent = failed || `Added ${done} photo${done === 1 ? "" : "s"}. They appear on the screen within a few minutes.`;
+      load();
+    } });
+    const ask = (p) => sheet("Delete this photo?", (b) => b.append(el("img", { class: "pm-big", src: `/api/photos/${p.id}`, alt: "" }), el("p", { class: "hint" }, `${p.name} is deleted from the Pi and can't be brought back.`)), [
+      ["Keep it", "", () => {}],
+      ["Delete", "danger", () => { api("POST", "/api/photos/delete", { id: p.id }).then(load).catch((x) => { msg.className = "hint bad"; msg.textContent = x.message; }); }]]);
+    async function load() {
+      try {
+        const d = await api("GET", "/api/photos");
+        grid.replaceChildren(...d.photos.map((p) => el("button", { type: "button", class: "pm-item", "aria-label": `Delete ${p.name}`, onclick: () => ask(p) },
+          el("img", { src: `/api/photos/${p.id}`, loading: "lazy", alt: "" }), icon("trash", "pm-x"))));
+        count.textContent = d.photos.length ? `${d.photos.length} photo${d.photos.length === 1 ? "" : "s"} in ${d.folder} — tap one to delete it` : `No photos in ${d.folder} yet`;
+      } catch (x) { count.textContent = x.message; }
+    }
+    box.append(el("button", { type: "button", class: "btn primary block", onclick: () => file.click() }, "Add photos from this phone"), file, msg, count, grid,
+      el("p", { class: "hint" }, "Shows the folder as last saved. Photos on a USB stick are managed on the stick."));
+    load();
+    return box;
+  }
+
   function photosCard() {
     const P = S.photos, body = el("div");
     const mode = P.enabled === false ? "off" : P.provider === "immich" ? "immich" : "folder";
     const draw = (m) => body.replaceChildren(...(m === "folder" ? [
-      field("Folder on the Pi", text(P.folder || "~/Pictures", (v) => { P.folder = v.trim(); change(); }), "Copy photos into it over the network — or use a USB stick:"),
-      el("div", { class: "line" }, el("span", {}, el("b", {}, "USB stick"), el("small", {}, "Photos in a folder named “OpenSky” on a stick")), toggle(P.usb !== false, (v) => { P.usb = v; change(); }, "USB stick"))
+      field("Folder on the Pi", text(P.folder || "~/Pictures", (v) => { P.folder = v.trim(); change(); }), "Add photos below, copy them over the network — or use a USB stick:"),
+      el("div", { class: "line" }, el("span", {}, el("b", {}, "USB stick"), el("small", {}, "Photos in a folder named “OpenSky” on a stick")), toggle(P.usb !== false, (v) => { P.usb = v; change(); }, "USB stick")),
+      photoManager()
     ] : m === "immich" ? [
       field("Immich address", text(P.url, (v) => { P.url = v.trim(); change(); }, { placeholder: "http://192.168.1.20:2283", inputmode: "url", autocapitalize: "off" })),
       field("Immich API key", secretInput("photos.immich.apiKey", "Paste the key"), "In Immich: Account Settings → API Keys.")

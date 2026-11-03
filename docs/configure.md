@@ -215,7 +215,9 @@ In `opensky.json`: `{ "name": "Shared", "type": "caldav", "color": "green" }`. T
 ```json
 "photos": { "enabled": true, "provider": "folder", "folder": "~/Pictures", "usb": true, "intervalSeconds": 30 }
 ```
-- `folder`: pictures in this folder and its sub-folders, shuffled. Copy them over the network, or with a USB stick and the file manager.
+- `folder`: pictures in this folder and its sub-folders, shuffled. **Add and delete them from your phone:** Set up from your phone →
+  **Photos** → *Add photos from this phone* (pick one or many; JPEG, PNG or WebP, up to 40 MB each). Tap a thumbnail to delete that
+  photo from the Pi. The list shows the folder as last saved. Or copy files over the network, or with a USB stick and the file manager.
 - `usb`: also show photos from a plugged-in USB stick. Put them in a folder named **`OpenSky`** on the stick; the rest of the stick is ignored.
 - Two portrait photos are shown side by side. The date a photo was taken is shown when the photo has it.
 - **Immich** (your own photo server): `"provider": "immich", "url": "http://192.168.1.20:2283"`. Put an API key in

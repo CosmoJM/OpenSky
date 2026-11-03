@@ -37,7 +37,7 @@ module.exports = NodeHelper.create({
       } catch (e) {
         const folder = this.settings.provider === "immich" ? null : (this.settings.folder || "~/Pictures");
         const message = /no photos/.test(e.message) && folder
-          ? `Add photos to ${folder} on the Pi${this.settings.usb !== false ? ", or a folder named OpenSky on a USB stick" : ""}`
+          ? `Add photos from your phone (Settings → Set up from your phone → Photos), or to ${folder} on the Pi${this.settings.usb !== false ? ", or a folder named OpenSky on a USB stick" : ""}`
           : e.message;
         this.sendSocketNotification("PHOTO_ERROR", { message });
       }
