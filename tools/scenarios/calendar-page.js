@@ -34,6 +34,15 @@ module.exports = async (page, h) => {
   await page.evaluate(() => document.querySelector(".event-close-btn")?.click()); await h.sleep(200);
   const got = await page.evaluate(() => window.__cal);
   ok("tap event → CALENDAR_EVENT_CLICKED; tap day → CALENDAR_DAY_CLICKED", got.some((g) => g[0] === "CALENDAR_EVENT_CLICKED" && g[1] === "Family dinner") && got.some((g) => g[0] === "CALENDAR_DAY_CLICKED"), got);
+  // the day list (tap a day / "+N more") colors its rows from the event's calendar color, like the month view
+  const dayEv = await page.evaluate(() => {
+    const cal = MM.getModules().withClass("MMM-OpenSky-Calendar")[0], cx3 = MM.getModules().withClass("MMM-CalendarExt3")[0];
+    const dinner = [...cx3.eventPool.values()].flat().find((e) => e.title === "Family dinner");
+    if (!dinner) return [];
+    const d = new Date(Number(dinner.startDate)); d.setHours(0, 0, 0, 0);
+    return cal.eventsForDay(d.getTime()).map((e) => ({ title: e.title, colorName: e.colorName }));
+  });
+  ok("the day list gets each event's calendar color (colorName)", !!(dayEv.find((e) => e.title === "Family dinner") || {}).colorName, dayEv);
   // idle reset
   await h.tap(".os-nav-next"); await h.sleep(800);
   await page.evaluate(() => MM.getModules().withClass("MMM-OpenSky-Sidebar")[0].sendNotification("OPENSKY_IDLE_RESET")); await h.sleep(1200);

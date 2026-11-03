@@ -98,7 +98,7 @@ Module.register("MMM-OpenSky-Calendar", {
   normalize(ev) {
     const clean = (v) => (v && v !== "undefined" && v !== "false" ? String(v) : "");
     return { title: String(ev.title || "").trim(), calendarName: ev.calendarName || "", startDate: Number(ev.startDate), endDate: Number(ev.endDate),
-      allDay: ev.fullDayEvent === true || ev.fullDayEvent === "true", location: clean(ev.location), description: clean(ev.description), color: ev.color || "",
+      allDay: ev.fullDayEvent === true || ev.fullDayEvent === "true", location: clean(ev.location), description: clean(ev.description), color: ev.color || "", colorName: ev.colorName || "",
       colors: Array.isArray(ev.colors) ? ev.colors : null, calendarNames: Array.isArray(ev.calendarNames) ? ev.calendarNames : null };
   },
 
