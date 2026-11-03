@@ -333,9 +333,10 @@
             el("ol", { class: "steps" },
               el("li", {}, "Create a project (any name, e.g. OpenSky)."),
               el("li", {}, "APIs & Services → Library → “Google Calendar API” → Enable."),
-              el("li", {}, "Google Auth platform → Get started: app name “OpenSky”, your email, audience “External”."),
-              el("li", {}, "Audience → Publish app → In production (otherwise the sign-in stops working after 7 days)."),
-              el("li", {}, "Clients → Create client → type “Desktop app” → copy the Client ID and Client secret below.")),
+              el("li", {}, "APIs & Services → OAuth consent screen → Get started: app name “OpenSky”, your email, audience “External”."),
+              el("li", {}, "OAuth consent screen → Branding: app name, support email, home page and privacy policy links (any web address, e.g. https://github.com/CosmoJM/OpenSky), add that domain (github.com) under Authorized domains, and your email → Save. Google won't let you publish without these."),
+              el("li", {}, "APIs & Services → OAuth consent screen → Audience → Publish app → In production (otherwise the sign-in stops working after 7 days)."),
+              el("li", {}, "OAuth consent screen → Clients → Create client → type “Desktop app” → copy the Client ID and Client secret below.")),
             el("p", {}, "Step-by-step with pictures: docs/google-calendar.md in OpenSky.")));
           if (!d.g.clientSet) box.append(
             field("Client ID", text(d.cid, (v) => { d.cid = v.trim(); }, { placeholder: "….apps.googleusercontent.com", autocapitalize: "off" })),
