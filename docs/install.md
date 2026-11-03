@@ -50,7 +50,7 @@ Out of the box you get:
 - a timer
 - photos from the Pi's `~/Pictures` folder or a USB stick
 
-Next steps, all in [configure.md](configure.md):
+Next steps, all in [Settings](configure.md):
 - **Show your existing calendars**: Google, iCloud, Outlook or any calendar link.
 - **Use Todoist** for your lists instead of the on-device ones.
 - **Photos** from a USB stick, a folder, or your Immich server.
@@ -90,4 +90,4 @@ By hand: everything personal lives in **`~/OpenSky/config/`**: your settings, pa
 | `--home DIR` | put the downloaded parts somewhere else (default `~/.local/share/opensky`) |
 | `--uninstall` | stop OpenSky and remove its start-up entries |
 
-Something not working? See [troubleshooting.md](troubleshooting.md).
+Something not working? See [Troubleshooting](troubleshooting.md).

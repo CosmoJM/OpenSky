@@ -1,7 +1,7 @@
 # Google Calendar with adding and editing
 
 **Just want to see a Google calendar?** You don't need any of this. Use its *Secret address in iCal format* as a
-calendar link (see [configure.md](configure.md#finding-a-calendars-link)). That takes one minute and needs no Google key.
+calendar link (see [Settings](configure.md#finding-a-calendars-link)). That takes one minute and needs no Google key.
 
 To **add and edit events** on Google calendars from the screen, OpenSky signs in to Google. Google requires every
 MagicMirror screen to use **its own Google key**: a free "OAuth client" in your own Google Cloud project. That's

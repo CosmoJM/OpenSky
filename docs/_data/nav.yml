@@ -1,0 +1,18 @@
+- title: Getting started
+  children:
+    - { title: Welcome, url: / }
+    - { title: Install, url: /install.html }
+- title: Using OpenSky
+  children:
+    - { title: Settings, url: /configure.html }
+    - { title: Google Calendar, url: /google-calendar.html }
+- title: Add-ons
+  children:
+    - { title: Music, url: /music.html }
+- title: Help
+  children:
+    - { title: Troubleshooting, url: /troubleshooting.html }
+- title: Development
+  children:
+    - { title: Architecture, url: /development/architecture.html }
+    - { title: Testing, url: /development/testing.html }

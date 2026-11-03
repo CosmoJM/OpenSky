@@ -26,7 +26,7 @@ screen is off (an update, a crash), it turns the screen back on as it starts.
 Raspberry Pi OS blanks the screen when idle. Run `sudo raspi-config nonint do_blanking 1` (or re-run `./install.sh` and answer yes), then restart the Pi.
 
 ## No weather
-- `location` needs a latitude and longitude. Add them with `opensky edit` (see [configure.md](configure.md#family-and-place)).
+- `location` needs a latitude and longitude. Add them with `opensky edit` (see [Settings](configure.md#family-and-place)).
 - Using `"openweathermap"`? Check the key in `secrets.json`; new keys take up to 2 hours to start working. Or switch back to `"open-meteo"`, which needs no key.
 - The weather fills in about a minute after the internet comes back.
 
@@ -38,7 +38,7 @@ Raspberry Pi OS blanks the screen when idle. Run `sudo raspi-config nonint do_bl
 - New events in Google or Outlook can take a while to appear. Those services update their links on their own schedule, sometimes hours.
 
 ## Google calendar (with editing) problems
-See the "Problems" list at the end of [google-calendar.md](google-calendar.md). The usual cause of a sign-in that stops
+See the "Problems" list at the end of [Google Calendar](google-calendar.md). The usual cause of a sign-in that stops
 after a week is a Google app left in "Testing": publish it.
 
 ## iCloud / CalDAV calendar problems
@@ -95,4 +95,4 @@ Open an issue at <https://github.com/CosmoJM/OpenSky/issues> with:
 
 **Remove anything private first.** The logs don't contain your passwords, but calendar names and event titles may show up.
 
-AI assistants helping with OpenSky: start with [AGENTS.md](../AGENTS.md).
+AI assistants helping with OpenSky: start with [AGENTS.md](https://github.com/CosmoJM/OpenSky/blob/main/AGENTS.md).

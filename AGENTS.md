@@ -9,6 +9,8 @@ MagicMirror². This file is the entry point; read it first, then the docs it poi
 1. `PLAN.md` — goals, principles, the options matrix (which providers exist or are planned) and the roadmap.
 2. `docs/` — user documentation: `install.md`, `configure.md` (every setting in `opensky.json` / `secrets.json`),
    `troubleshooting.md`. Point people there rather than re-explaining.
+   `docs/` is also published as a static site by GitHub Pages (`docs/_config.yml`, Jekyll): keep links relative and
+   inside `docs/`.
 3. `docs/development/architecture.md` — how OpenSky is put together (distribution on upstream MagicMirror²,
    settings vs secrets, module names, services, lessons learned). Testing guide: `docs/development/testing.md`.
 
