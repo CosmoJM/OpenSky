@@ -37,6 +37,7 @@
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   color: #9ca3af; font-size: 16px; font-weight: 600;
+  text-align: center; white-space: pre-line;   /* the message can have several lines (\n) */
 }
 .hd-photo-empty .hd-icon { width: 40px; height: 40px; }
 .hd-ph-layer { position: absolute; inset: 0; display: flex; gap: 4px; background: #fff; opacity: 0; transition: opacity 1s ease; }

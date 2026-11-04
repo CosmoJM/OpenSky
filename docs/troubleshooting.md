@@ -75,7 +75,7 @@ OpenSky's calendar helper listens on port 5747 on the Pi itself. If another prog
 - **Todoist changes take a minute or two** to show on the screen (`refreshMinutes`). Changes made on the screen show at once.
 
 ## Photos
-- Nothing shows: put pictures in `~/Pictures`, or in a folder named `OpenSky` on a USB stick. JPEG, PNG and WebP work, and new photos are found within a few minutes.
+- Nothing shows: add photos from your phone (Settings → Set up from your phone → Photos), or put pictures in `~/Pictures`, or in a folder named `OpenSky` on a USB stick. JPEG, PNG and WebP work, and new photos are found within a few minutes.
 - A photo is sideways: OpenSky follows the photo's own rotation setting. Re-save it from a photo app to fix it.
 - Immich: check `photos.url` (with `http://` and the port, usually `:2283`) and the API key.
 

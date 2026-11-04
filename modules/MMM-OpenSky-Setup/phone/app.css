@@ -182,3 +182,13 @@ ol.steps li { margin: 4px 0; }
 .color-pick::-moz-color-swatch { border: 0; border-radius: 14px; }
 .hex-input { flex: 1; min-width: 0; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
 .hex-input.bad { box-shadow: inset 0 0 0 2px var(--bad); }
+
+.photo-row [hidden] { display: none; }
+
+/* photos: upload / delete */
+.pm { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.pm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-top: 10px; }
+.pm-item { position: relative; padding: 0; border: 0; border-radius: 12px; overflow: hidden; aspect-ratio: 1; background: #f1ece9; }
+.pm-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pm-x { position: absolute; right: 5px; bottom: 5px; width: 28px; height: 28px; padding: 5px; border-radius: 50%; background: rgba(0, 0, 0, .55); color: #fff; }
+.pm-big { display: block; max-width: 100%; max-height: 40vh; margin: 0 auto; border-radius: 12px; }

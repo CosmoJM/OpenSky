@@ -23,5 +23,22 @@ const DIR = path.join(__dirname, "fixtures", "photos");
   ok("8 empty folder → clear error", await empty.next().then(() => false, (e) => /no photos/.test(e.message)));
   const im = createPhotoSource({ provider: "immich", url: "" }, () => null);
   ok("9 Immich without settings → explains what's missing", await im.next().then(() => false, (e) => /photos\.url/.test(e.message)));
+  // upload + delete (the phone page)
+  const fs = require("fs"), os = require("os");
+  const { listFolder, savePhoto, deletePhoto } = require("../lib/photos.js");
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "os-photos-")), o = { folder: tmp };
+  const jpg = fs.readFileSync(path.join(DIR, fs.readdirSync(DIR).find((f) => /\.jpe?g$/i.test(f))));
+  const a = savePhoto(o, "Beach day.JPG", jpg), b = savePhoto(o, "Beach day.jpg", jpg);
+  ok("10 upload saves into the folder, never overwriting", a.name === "Beach day.jpg" && b.name === "Beach day (2).jpg" && listFolder(o).length === 2, `${a.name} / ${b.name}`);
+  ok("11 the name can't escape the folder", fs.existsSync(path.join(tmp, savePhoto(o, "../../evil.jpg", jpg).name)) && fs.readdirSync(os.tmpdir()).indexOf("evil.jpg") < 0);
+  ok("12 not a photo → refused (checked by content, not name)", (() => { try { savePhoto(o, "x.jpg", Buffer.from("<html>not an image at all</html>")); } catch (e) { return e.status === 400; } })());
+  deletePhoto(o, a.id);
+  ok("13 delete removes only that photo", listFolder(o).length === 2 && !listFolder(o).some((p) => p.id === a.id));
+  ok("14 delete with an unknown id → 404, nothing removed", (() => { try { deletePhoto(o, "../../etc/passwd"); } catch (e) { return e.status === 404 && listFolder(o).length === 2; } })());
+  fs.rmSync(tmp, { recursive: true, force: true });
+  // in Docker the default folder is in the /config volume (the home folder is lost with the container), never ~/Pictures
+  const out = require("child_process").execFileSync(process.execPath, ["-e", `const p=require(${JSON.stringify(path.join(__dirname, "..", "lib", "photos.js"))});console.log([p.folderOf({}),p.folderOf({folder:"~/Pictures"}),p.folderOf({folder:"/photos"})].join("|"))`],
+    { env: { ...process.env, OPENSKY_DOCKER: "1", OPENSKY_SETTINGS: "/config/opensky.json" } }).toString().trim();
+  ok("15 Docker: the default folder is /config/photos; a folder of your own is kept", out === "/config/photos|/config/photos|/photos", out);
   console.log(`SUMMARY pass=${pass} fail=${fail}`);
 })();

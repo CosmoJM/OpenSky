@@ -15,6 +15,8 @@
  *   Google Calendar sign-in: GET /api/google · POST /api/google/start {clientId?, clientSecret?} → {url}
  *     · POST /api/google/finish {address} → {calendars} · GET /api/google/calendars
  *   GET /api/music/speakers → {speakers: [{id, name, state}]} (Home Assistant media players, for the Music page)
+ *   Photos in the Pi's folder: GET /api/photos → {folder, photos: [{id, name, size}]} · GET /api/photos/<id> (the image)
+ *     · POST /api/photos?name= (the raw image as the body) · POST /api/photos/delete {id}
  *   GET /api/backup[?secrets=1] (a download: settings + on-device data, passwords only when asked) · POST /api/restore {backup}
  */
 const NodeHelper = require("node_helper");
@@ -26,9 +28,11 @@ const crypto = require("crypto");
 const { execFile } = require("child_process");
 const google = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "google-calendar.js"));
 const backup = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "backup.js"));
+const photos = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "photos.js"));
 const music = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "music.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
+const DOCKER = process.env.OPENSKY_DOCKER === "1";   // in a container: photos live in the /config volume
 const MM_CONFIG = path.join(global.root_path || process.cwd(), "config");
 const SETTINGS = process.env.OPENSKY_SETTINGS || path.join(MM_CONFIG, "opensky.json");
 const SECRETS = process.env.OPENSKY_SECRETS || path.join(path.dirname(SETTINGS), "secrets.json");
@@ -205,6 +209,15 @@ module.exports = NodeHelper.create({
     });
   },
 
+  rawBody(req, limit) {
+    return new Promise((resolve, reject) => {
+      let size = 0; const chunks = [];
+      req.on("data", (c) => { size += c.length; if (size > limit) { reject(Object.assign(new Error("That photo is too big (40 MB at most)"), { status: 413 })); req.destroy(); } else chunks.push(c); });
+      req.on("end", () => resolve(Buffer.concat(chunks)));
+      req.on("error", reject);
+    });
+  },
+
   async handle(req, res) {
     if (!this.hostOk(req)) return this.send(res, 421, { error: "Wrong address" });
     const url = new URL(req.url, "http://x");
@@ -249,7 +262,7 @@ module.exports = NodeHelper.create({
       try { presets = fs.readdirSync(path.join(__dirname, "..", "..", "lib", "pickup-presets")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)); } catch (e) { /* none */ }
       return this.send(res, 200, {
         settings: settings || readJson(EXAMPLE, {}), secretsSet: secretPaths(readJson(SECRETS, {})), presets,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY, docker: DOCKER,
         addons: { music: musicInstalled() }
       });
     }
@@ -323,6 +336,33 @@ module.exports = NodeHelper.create({
     if (url.pathname === "/api/google/calendars" && req.method === "GET") {
       try { return this.send(res, 200, { calendars: await google.listCalendars() }); }
       catch (e) { return this.send(res, e.status && e.status < 500 ? e.status : 502, { error: e.message }); }
+    }
+
+    if (url.pathname.startsWith("/api/photos")) {
+      const P = readJson(SETTINGS, {}).photos || {};
+      if (url.pathname === "/api/photos" && req.method === "GET") {
+        return this.send(res, 200, { folder: DOCKER ? null : P.folder || "~/Pictures", photos: photos.listFolder(P).map(({ id, name, size }) => ({ id, name, size })) });
+      }
+      if (url.pathname === "/api/photos" && req.method === "POST") {
+        try {
+          const saved = photos.savePhoto(P, url.searchParams.get("name"), await this.rawBody(req, photos.MAX_UPLOAD));
+          console.log("[OpenSky] phone setup: a photo was added");
+          return this.send(res, 200, { ok: true, photo: saved });
+        } catch (e) { return this.send(res, e.status || 500, { error: e.status ? e.message : "Couldn't save that photo on the Pi" }); }
+      }
+      if (url.pathname === "/api/photos/delete" && req.method === "POST") {
+        const { id } = await this.body(req);
+        try { photos.deletePhoto(P, String(id || "")); } catch (e) { return this.send(res, e.status || 500, { error: e.status ? e.message : "Couldn't delete that photo" }); }
+        console.log("[OpenSky] phone setup: a photo was deleted");
+        return this.send(res, 200, { ok: true });
+      }
+      const m = url.pathname.match(/^\/api\/photos\/([0-9a-f]{20})$/);
+      if (m && req.method === "GET") {
+        const p = photos.findInFolder(P, m[1]);
+        if (!p) return this.send(res, 404, { error: "Not found" });
+        const ext = path.extname(p.file).toLowerCase();
+        return this.send(res, 200, fs.readFileSync(p.file), { "Content-Type": ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg", "Cache-Control": "private, max-age=300" });
+      }
     }
 
     if (url.pathname === "/api/backup" && req.method === "GET") {
