@@ -170,6 +170,25 @@ module.exports = async (page, h, app) => {
   S = settings();
   ok("photos: a folder on the Pi, USB stick switched on", S.photos.enabled === true && S.photos.provider === "folder" && S.photos.folder === "~/Family Photos" && S.photos.usb === true, S.photos);
 
+  // ---- Photos: add one from the phone, see it, delete it (in a scratch folder, then back to the family's) ----
+  const PICS = path.join(OUT, "phone-photos");
+  fs.rmSync(PICS, { recursive: true, force: true });
+  await type("#photos .field input.input", PICS);
+  await save();
+  await phone.reload(); await phone.waitForLoadState();
+  await until(() => phone.evaluate(() => !!document.querySelector("#photos .pm")));
+  const fixtures = path.join(__dirname, "..", "fixtures", "photos");
+  const jpg = path.join(fixtures, fs.readdirSync(fixtures).find((f) => /\.jpe?g$/i.test(f)));
+  await phone.setInputFiles("#photos input[type=file]", jpg);
+  ok("photos: a photo added from the phone shows up as a thumbnail and lands in the folder",
+    await until(() => phone.evaluate(() => document.querySelectorAll("#photos .pm-item").length === 1)) && fs.readdirSync(PICS).length === 1, fs.existsSync(PICS) && fs.readdirSync(PICS));
+  await tap("#photos", ".pm-item", null);
+  await sheetButton("Delete");
+  ok("photos: tapping a thumbnail and confirming deletes it",
+    await until(() => phone.evaluate(() => document.querySelectorAll("#photos .pm-item").length === 0)) && fs.readdirSync(PICS).length === 0);
+  await type("#photos .field input.input", "~/Family Photos");
+  await save();
+
   // ---- Web pages: one plain, one with a PIN, one removed ----
   await tap("#web", ".add", null);
   await type(".sheet input[maxlength='14']", "Cameras");
