@@ -36,8 +36,9 @@ module.exports = NodeHelper.create({
         this.sendSocketNotification("PHOTO", await this.source.next());
       } catch (e) {
         const folder = this.settings.provider === "immich" ? null : (this.settings.folder || "~/Pictures");
+        const docker = process.env.OPENSKY_DOCKER === "1";   // no Pi folder or USB stick to point at
         const message = /no photos/.test(e.message) && folder
-          ? `Add photos from your phone\nSettings → Set up from your phone → Photos\nor put them in ${folder} on the Pi${this.settings.usb !== false ? ", or a folder named OpenSky on a USB stick" : ""}`
+          ? `Add photos from your phone\nSettings → Set up from your phone → Photos${docker ? "" : `\nor put them in ${folder} on the Pi${this.settings.usb !== false ? ", or a folder named OpenSky on a USB stick" : ""}`}`
           : e.message;
         this.sendSocketNotification("PHOTO_ERROR", { message });
       }

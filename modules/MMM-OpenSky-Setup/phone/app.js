@@ -465,11 +465,12 @@
         const d = await api("GET", "/api/photos");
         grid.replaceChildren(...d.photos.map((p) => el("button", { type: "button", class: "pm-item", "aria-label": `Delete ${p.name}`, onclick: () => ask(p) },
           el("img", { src: `/api/photos/${p.id}`, loading: "lazy", alt: "" }), icon("trash", "pm-x"))));
-        count.textContent = d.photos.length ? `${d.photos.length} photo${d.photos.length === 1 ? "" : "s"} in ${d.folder} — tap one to delete it` : `No photos in ${d.folder} yet`;
+        const where = d.folder ? ` in ${d.folder}` : "";
+        count.textContent = d.photos.length ? `${d.photos.length} photo${d.photos.length === 1 ? "" : "s"}${where} — tap one to delete it` : `No photos${where} yet`;
       } catch (x) { count.textContent = x.message; }
     }
     box.append(el("button", { type: "button", class: "btn primary block", onclick: () => file.click() }, "Add photos from this phone"), file, msg, count, grid,
-      el("p", { class: "hint" }, "Shows the folder as last saved. Photos on a USB stick are managed on the stick."));
+      info.docker ? null : el("p", { class: "hint" }, "Shows the folder as last saved. Photos on a USB stick are managed on the stick."));
     load();
     return box;
   }
@@ -477,7 +478,7 @@
   function photosCard() {
     const P = S.photos, body = el("div");
     const mode = P.enabled === false ? "off" : P.provider === "immich" ? "immich" : "folder";
-    const draw = (m) => body.replaceChildren(...(m === "folder" ? [
+    const draw = (m) => body.replaceChildren(...(m === "folder" && info.docker ? [photoManager()] : m === "folder" ? [
       field("Folder on the Pi", text(P.folder || "~/Pictures", (v) => { P.folder = v.trim(); change(); }), "Add photos below, copy them over the network — or use a USB stick:"),
       el("div", { class: "line" }, el("span", {}, el("b", {}, "USB stick"), el("small", {}, "Photos in a folder named “OpenSky” on a stick")), toggle(P.usb !== false, (v) => { P.usb = v; change(); }, "USB stick")),
       photoManager()
@@ -487,7 +488,7 @@
     ] : [el("p", { class: "hint" }, "No photo card — the lists get more room.")]));
     draw(mode);
     return section("photos", "photos", "Photos", "A slideshow on the Home page",
-      seg([["folder", "On the Pi"], ["immich", "Immich"], ["off", "Off"]], mode, (m) => { P.enabled = m !== "off"; if (m !== "off") P.provider = m; change(); draw(m); }),
+      seg([["folder", info.docker ? "Uploaded" : "On the Pi"], ["immich", "Immich"], ["off", "Off"]], mode, (m) => { P.enabled = m !== "off"; if (m !== "off") P.provider = m; change(); draw(m); }),
       body,
       field("Change photo every", select([[15, "15 seconds"], [30, "30 seconds"], [60, "1 minute"], [300, "5 minutes"]], Number(P.intervalSeconds) || 30, (v) => { P.intervalSeconds = Number(v); change(); })));
   }

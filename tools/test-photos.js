@@ -36,5 +36,9 @@ const DIR = path.join(__dirname, "fixtures", "photos");
   ok("13 delete removes only that photo", listFolder(o).length === 2 && !listFolder(o).some((p) => p.id === a.id));
   ok("14 delete with an unknown id → 404, nothing removed", (() => { try { deletePhoto(o, "../../etc/passwd"); } catch (e) { return e.status === 404 && listFolder(o).length === 2; } })());
   fs.rmSync(tmp, { recursive: true, force: true });
+  // in Docker the default folder is in the /config volume (the home folder is lost with the container), never ~/Pictures
+  const out = require("child_process").execFileSync(process.execPath, ["-e", `const p=require(${JSON.stringify(path.join(__dirname, "..", "lib", "photos.js"))});console.log([p.folderOf({}),p.folderOf({folder:"~/Pictures"}),p.folderOf({folder:"/photos"})].join("|"))`],
+    { env: { ...process.env, OPENSKY_DOCKER: "1", OPENSKY_SETTINGS: "/config/opensky.json" } }).toString().trim();
+  ok("15 Docker: the default folder is /config/photos; a folder of your own is kept", out === "/config/photos|/config/photos|/photos", out);
   console.log(`SUMMARY pass=${pass} fail=${fail}`);
 })();

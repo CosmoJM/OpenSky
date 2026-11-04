@@ -32,6 +32,7 @@ const photos = require(path.join(global.root_path || process.cwd(), "modules", "
 const music = require(path.join(global.root_path || process.cwd(), "modules", "opensky-lib", "music.js"));
 
 const DRY = process.env.OPENSKY_DRY_RUN === "1";
+const DOCKER = process.env.OPENSKY_DOCKER === "1";   // in a container: photos live in the /config volume
 const MM_CONFIG = path.join(global.root_path || process.cwd(), "config");
 const SETTINGS = process.env.OPENSKY_SETTINGS || path.join(MM_CONFIG, "opensky.json");
 const SECRETS = process.env.OPENSKY_SECRETS || path.join(path.dirname(SETTINGS), "secrets.json");
@@ -261,7 +262,7 @@ module.exports = NodeHelper.create({
       try { presets = fs.readdirSync(path.join(__dirname, "..", "..", "lib", "pickup-presets")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)); } catch (e) { /* none */ }
       return this.send(res, 200, {
         settings: settings || readJson(EXAMPLE, {}), secretsSet: secretPaths(readJson(SECRETS, {})), presets,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, service: !!process.env.INVOCATION_ID || DRY, docker: DOCKER,
         addons: { music: musicInstalled() }
       });
     }
@@ -340,7 +341,7 @@ module.exports = NodeHelper.create({
     if (url.pathname.startsWith("/api/photos")) {
       const P = readJson(SETTINGS, {}).photos || {};
       if (url.pathname === "/api/photos" && req.method === "GET") {
-        return this.send(res, 200, { folder: P.folder || "~/Pictures", photos: photos.listFolder(P).map(({ id, name, size }) => ({ id, name, size })) });
+        return this.send(res, 200, { folder: DOCKER ? null : P.folder || "~/Pictures", photos: photos.listFolder(P).map(({ id, name, size }) => ({ id, name, size })) });
       }
       if (url.pathname === "/api/photos" && req.method === "POST") {
         try {
