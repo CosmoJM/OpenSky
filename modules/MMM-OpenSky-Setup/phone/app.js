@@ -469,8 +469,8 @@
         count.textContent = d.photos.length ? `${d.photos.length} photo${d.photos.length === 1 ? "" : "s"}${where} — tap one to delete it` : `No photos${where} yet`;
       } catch (x) { count.textContent = x.message; }
     }
-    box.append(el("button", { type: "button", class: "btn primary block", onclick: () => file.click() }, "Add photos from this phone"), file, msg, count, grid,
-      info.docker ? null : el("p", { class: "hint" }, "Shows the folder as last saved. Photos on a USB stick are managed on the stick."));
+    box.append(el("button", { type: "button", class: "btn primary block", onclick: () => file.click() }, "Add photos from this phone"), file, msg, count, grid);
+    if (!info.docker) box.append(el("p", { class: "hint" }, "Shows the folder as last saved. Photos on a USB stick are managed on the stick."));
     load();
     return box;
   }
