@@ -146,7 +146,7 @@ Module.register("MMM-OpenSky-EventEditor", {
     details.appendChild(this.createDetailRow(this.getClockIcon(), this.formatEventDateTime(ev)));
     if (ev.location) details.appendChild(this.createDetailRow(this.getPinIcon(), ev.location));
     if (ev.description) details.appendChild(this.createDetailRow(this.getDocIcon(), ev.description));
-    details.appendChild(this.createDetailRow(this.getCalendarIcon(), ev.calendarName || "Calendar"));
+    details.appendChild(this.createDetailRow(this.getCalendarIcon(), (ev.calendarNames && ev.calendarNames.length ? ev.calendarNames.join(", ") : ev.calendarName) || "Calendar"));
     container.appendChild(details);
 
     if (editable) {
@@ -177,7 +177,7 @@ Module.register("MMM-OpenSky-EventEditor", {
     this.day.events.forEach((ev) => {
       const row = document.createElement("button");
       row.className = "day-event-row";
-      row.style.setProperty("--event-color", this.calendarColor(ev));
+      if (window.OpenSkyEventColors) row.setAttribute("style", window.OpenSkyEventColors.vars(ev));   // same pale color (or blend) as the calendar
       const when = document.createElement("span");
       when.className = "day-event-time";
       when.textContent = this.shortWhen(ev, day);
@@ -205,11 +205,6 @@ Module.register("MMM-OpenSky-EventEditor", {
     };
     container.appendChild(add);
     return container;
-  },
-
-  // Same colors as the calendar (window.OpenSkyEventColors)
-  calendarColor(ev) {
-    return window.OpenSkyEventColors ? window.OpenSkyEventColors.bar(ev) : "#9ca3af";
   },
 
   // "All day", "4:00 PM", or "Starts 4:00 PM"/"Until 11:00 AM" for multi-day timed events

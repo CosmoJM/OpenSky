@@ -75,6 +75,7 @@ const cal = s.calendar || {};
 const calendarSources = (Array.isArray(cal.sources) ? cal.sources : []).filter((c) => c && c.name)
   .filter((c) => c.name !== "Pickup" && c.name !== "Holidays")   // (names OpenSky uses itself)
   .map((c) => ({ name: String(c.name), type: ["local", "caldav", "google"].includes(c.type) ? c.type : "link", url: c.url || null, color: c.color || null, fetchMinutes: c.fetchMinutes || 5,
+    ...(c.role === "shared" ? { role: "shared" } : {}),
     ...(c.type === "google" ? { calendarId: String(c.calendarId || "primary"), readOnly: !!c.readOnly } : {}) }));
 // CalDAV calendars are read through OpenSky's calendar service on this Pi (the account stays in secrets.json)
 const servicePort = (cal.service && cal.service.port) || 5747;
@@ -124,6 +125,8 @@ const PAGES = {
           const esc = (v) => (typeof v === "string" ? v.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`) : v);
           const out = { ...ev, title: esc(ev.title), description: esc(ev.description), location: esc(ev.location) };
           if (typeof window !== "undefined" && window.OpenSkyEventColors) {
+            const multi = window.OpenSkyEventColors.multi(ev);
+            if (multi) { out.class = "evc-multi"; out.color = multi; return out; }   // shared by several calendars: box shows all their colors
             const c = window.OpenSkyEventColors.name(ev);
             // a palette name → its class; a color code → evc-custom, colored through CX3's --calendarColor (= out.color)
             if (c.startsWith("#")) { out.class = "evc-custom"; out.color = c; } else out.class = `evc-${c}`;
@@ -235,7 +238,7 @@ const fixed = [
   ...(s.keyboard && s.keyboard.enabled === false ? [] : [{ module: "MMM-OpenSky-Keyboard", config: { layout: (s.keyboard && s.keyboard.layout) || "en" } }]),
   ...(familyLists.length ? [{ module: "MMM-OpenSky-Lists", config: { lists: familyLists, refreshMinutes: listSettings.refreshMinutes || 2 } }] : []),
   ...(calendarSources.length ? [{ module: "MMM-OpenSky-EventEditor", config: { editable: editableCalendars, servicePort } }] : []),
-  ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources } }] : []),
+  ...(calendarSources.length ? [{ module: "MMM-OpenSky-Calendars", config: { sources: calendarSources, mergeShared: !!cal.mergeShared, eventColors: cal.colors || null } }] : []),
   {
     module: "MMM-OpenSky-Header",
     position: "top_bar",

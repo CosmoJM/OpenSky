@@ -164,6 +164,36 @@ OpenSky can show any number of calendars, each with its own color. Some can also
   3. the calendar's own `color` in `sources`
   4. otherwise a steady automatic color
 
+### One event on several calendars (kids who share an activity)
+If each person has their own calendar and an event is on more than one of them, turn on **Show shared events once** and it
+shows **once**, with a box that blends each person's color and their names in the event's details. It's off by default.
+
+**On the phone:** Settings → Set up from your phone → Calendars → *Show shared events once*; then tap your family
+calendar and turn on *Shared family calendar*.
+
+**By hand** (`mergeShared`, and `role` on the family calendar, in `opensky.json`):
+
+```json
+"calendar": {
+  "mergeShared": true,
+  "sources": [
+    { "name": "Family", "type": "google", "calendarId": "…", "role": "shared" },
+    { "name": "Ava", "type": "google", "calendarId": "ava@example.com", "color": "green" },
+    { "name": "Ben", "type": "google", "calendarId": "ben@example.com", "color": "red" }
+  ]
+}
+```
+
+- **How to share an event:** enter it on any calendar and **invite the others** (Google Calendar → Add guests; choose
+  *All events* for a repeating one). Everyone invited gets their own copy with the same event ID; OpenSky merges
+  copies with the same ID and start time. Nobody has to accept first. Anyone who **declines** drops off.
+- **Calendars without invites** (a calendar link, or events typed in by hand) are merged when the title, start and end
+  are all the same.
+- `"role": "shared"` marks a family calendar: its copy is merged in but isn't named, so an event on Family that Ava and
+  Ben were invited to reads "Ava, Ben". An event only on Family keeps Family's color.
+- Changing or deleting a merged event on the screen changes the **organizer's** copy (Google tells the invitees).
+- With it on, an event you've declined in Google is also left off the screen.
+
 ### Finding a calendar's link
 - **Google Calendar** (on a computer): ⚙ Settings → pick the calendar on the left → *Integrate calendar* → copy **Secret address in iCal format**. It's private, so put it in `secrets.json`.
 - **Outlook / Microsoft 365**: Settings → Calendar → *Shared calendars* → *Publish a calendar* → choose "Can view all details" → copy the **ICS** link.

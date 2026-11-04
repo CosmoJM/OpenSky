@@ -96,6 +96,7 @@ module.exports = async (page, h, app) => {
 
   // ---- Calendars: holidays off, on-screen calendar, iCloud, color change, remove ----
   await tap("#calendars", ".toggle", "Public holidays");
+  await tap("#calendars", ".toggle", "Show shared events once");
   await tap("#calendars", ".add", null);
   await tap(".sheet", ".seg button", "On screen");
   await type(".sheet input.input[type=text]", "Kids");
@@ -109,6 +110,7 @@ module.exports = async (page, h, app) => {
   await sheetButton("Add");
   await row("#calendars", "Family");
   await tap(".sheet", ".chip", "teal");
+  await tap(".sheet", ".toggle", "Shared family calendar");
   await sheetButton("Done");
   await row("#calendars", "School");
   await sheetButton("Remove");
@@ -119,6 +121,8 @@ module.exports = async (page, h, app) => {
     S.calendar.holidays === "none" && src("Kids")?.type === "local" && src("Kids")?.color === "purple" && src("Work")?.type === "caldav" &&
     sec.calendar.caldav?.Work?.password === "abcd-efgh-ijkl-mnop" && sec.calendar.caldav.Work.url === "https://caldav.icloud.com/" && !JSON.stringify(S).includes("abcd-efgh") &&
     src("Family")?.color === "teal" && !src("School") && !(sec.calendar.sources && sec.calendar.sources.School), S.calendar.sources.map((c) => `${c.name}:${c.type || "link"}:${c.color}`));
+
+  ok("calendars: 'Show shared events once' on, and Family marked as the shared family calendar", S.calendar.mergeShared === true && src("Family")?.role === "shared" && !src("Kids")?.role, [S.calendar.mergeShared, src("Family")?.role]);
 
   // ---- Lists: a Todoist list + token, a color change, a removal ----
   await tap("#lists", ".add", null);

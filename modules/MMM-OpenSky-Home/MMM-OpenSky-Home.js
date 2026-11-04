@@ -236,7 +236,8 @@ Module.register("MMM-OpenSky-Home", {
       title: String(ev.title || "").trim(), calendarName: ev.calendarName || "",
       startDate: start, endDate: Number.isFinite(end) && end > 0 ? end : start,
       allDay: ev.fullDayEvent === true || ev.fullDayEvent === "true",
-      location: clean(ev.location), description: clean(ev.description), color: ev.color || "", colorName: ev.colorName || null
+      location: clean(ev.location), description: clean(ev.description), color: ev.color || "", colorName: ev.colorName || null,
+      colors: Array.isArray(ev.colors) ? ev.colors : null, calendarNames: Array.isArray(ev.calendarNames) ? ev.calendarNames : null
     };
   },
 
