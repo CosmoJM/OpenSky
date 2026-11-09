@@ -13,14 +13,23 @@ phone setup page. It takes about 10 minutes, once.
 2. **Create a project.** Use the project picker at the top → *New project*, name it e.g. `OpenSky`, then *Create*.
    Make sure it's selected.
 3. **Turn on the Calendar API.** Search the top bar for **Google Calendar API** → *Enable*.
-4. **Set up the sign-in screen.** Menu → **Google Auth platform** → *Get started*.
+4. **Set up the sign-in screen.** Menu → **APIs & Services** → **OAuth consent screen** → *Get started*.
    - App name: `OpenSky`; user support email: yours.
    - Audience: **External**.
    - Contact email: yours. Agree, then *Create*.
-5. **Make it last.** Go to Google Auth platform → **Audience** → **Publish app** → *Confirm*. The status becomes
+5. **Fill in the Branding page.** Google won't let you publish until it has a valid app name, support email,
+   homepage URL and privacy policy URL ("…required for switching the app to external production mode"). Go to
+   APIs & Services → OAuth consent screen → **Branding** and fill in:
+   - App name: `OpenSky`; user support email: yours.
+   - Application home page and Application privacy policy link: any web address will do, since only you will see
+     them. For example `https://github.com/CosmoJM/OpenSky` for both.
+   - Authorized domains: *Add domain* and enter the domain of those links, e.g. `github.com`. Google rejects links
+     whose domain isn't listed here.
+   - Developer contact email: yours. Then *Save*.
+6. **Make it last.** Go to APIs & Services → OAuth consent screen → **Audience** → **Publish app** → *Confirm*. The status becomes
    **In production**.
    *If you skip this, Google keeps the app in "Testing" and the sign-in stops working after 7 days.*
-6. **Create the key.** Go to Google Auth platform → **Clients** → **Create client**.
+7. **Create the key.** Go to APIs & Services → OAuth consent screen → **Clients** → **Create client**.
    - Application type: **Desktop app**; name: `OpenSky screen`.
    - Click *Create*.
    - **Copy the Client ID and the Client secret now.** Google shows the secret only once. You can also download the JSON.
@@ -62,9 +71,9 @@ Calendars you can only view (shared with you read-only) show their events but ca
 needs the phone page (or `secrets.json → google: { "clientId", "clientSecret", "refreshToken" }` if you have one).
 
 ## Problems
-- **"The Google sign-in has expired"**: the app was still in *Testing* (7-day limit). Publish it (step 1.5), then
+- **"The Google sign-in has expired"**: the app was still in *Testing* (7-day limit). Publish it (step 1.6), then
   sign in again from the phone.
-- **"Google didn't accept the Client ID / secret"**: copy them again from Google Auth platform → Clients. If the
+- **"Google didn't accept the Client ID / secret"**: copy them again from APIs & Services → OAuth consent screen → Clients. If the
   secret is gone, add a new secret there.
 - **"Access wasn't fully allowed"**: sign in again and tick both permissions.
 - **"Google refused that"**: the Calendar API isn't enabled in that project (step 1.3).
